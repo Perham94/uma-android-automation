@@ -357,7 +357,6 @@ object DialogObjects {
         DialogPurchaseAlarmClock,           // Career
         DialogPurchaseCarats,               // Anywhere (ALWAYS THROW ERROR)
         DialogPurchaseDailyRaceTicket,      // Daily Races
-        DialogQuickModeSettings,            // Career
         DialogRaceDetails,                  // Daily Races, Special Events, and Career
         DialogRacePlayback,                 // Career
         DialogRaceRecommendations,          // Career
@@ -1067,19 +1066,6 @@ object DialogPurchaseDailyRaceTicket : DialogInterface {
     override val buttons: List<ComponentInterface> = listOf(
         ButtonCancel,
         ButtonOk,
-    )
-}
-
-object DialogQuickModeSettings : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogQuickModeSettings"
-    override val name: String = "quick_mode_settings"
-    override val title: String = "Quick Mode Settings"
-    override val closeButton = null
-    override val okButton: ComponentInterface = ButtonConfirm
-    override val buttons: List<ComponentInterface> = listOf(
-        ButtonCancel,
-        ButtonConfirm,
-        RadioCareerQuickShortenAllEvents,
     )
 }
 
