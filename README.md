@@ -6,7 +6,7 @@
 
 This Android application written in Kotlin is designed to fully automate a run of Uma Musume Pretty Derby by offering a comprehensive set of options to customize event rewards, stat prioritization, race scheduling, automatic skill point buying, and more. Featuring a robust modern frontend built on React Native (Expo) and an extensive computer-vision driven backend, this app aims to solve the issue of spending too much hands-on time completing runs into something you can set and forget.
 
-https://user-images.githubusercontent.com/18709555/125517168-61b72aa4-28be-4868-b160-2ff4aa4d73f6.mp4
+https://github.com/user-attachments/assets/962adaf4-5e78-4807-8c25-e39be9a68fb4
 
 # Disclaimer
 
