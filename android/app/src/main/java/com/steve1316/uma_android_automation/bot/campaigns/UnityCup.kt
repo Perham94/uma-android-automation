@@ -159,6 +159,9 @@ class UnityCup(game: Game) : Campaign(game) {
                         return false
                     }
 
+                    // Backup original index in case we fail any operations.
+                    val prevSelectedOpponentIndex: Int = selectedOpponentIndex
+
                     if (selectedOpponentIndex >= 2) {
                         MessageLog.w(TAG, "[UNITY_CUP] Could not determine any opponent with sufficient double circle predictions. Selecting the 2nd opponent as a fallback.")
                         selectedOpponentIndex = 1
@@ -168,9 +171,34 @@ class UnityCup(game: Game) : Campaign(game) {
                     }
                     val opponent = opponents[selectedOpponentIndex]
                     game.gestureUtils.tap(opponent.x, opponent.y, LabelUnityCupOpponentSelectionLaurel.template.path)
+                    // Tiny delay to allow the opponent selection to register fully.
+                    game.wait(0.1, skipWaitingForLoading = true)
                     MessageLog.d(TAG, "[UNITY CUP] Selecting opponent #${selectedOpponentIndex} at ${opponent}")
                     ButtonSelectOpponent.click(imageUtils = game.imageUtils, sourceBitmap = sourceBitmap)
-                    game.wait(0.5, skipWaitingForLoading = true)
+                    // Clicking SelectOpponent requires connect to server. Don't skip
+                    // waiting for loading otherwise we might miss handling a dialog.
+                    game.wait(0.5)
+                    // Now wait until we've handled the dialog. Shouldn't ever take
+                    // this long but this is just a failsafe for lag.
+                    val timeoutMs: Int = 3000
+                    val startTime: Long = System.currentTimeMillis()
+                    var bDidHandleDialog: Boolean = false
+                    while (System.currentTimeMillis() - startTime < timeoutMs) {
+                        val dialog: DialogInterface? = handleDialogs().second
+                        if (dialog?.name == "unity_cup_confirmation") {
+                            bDidHandleDialog = true
+                            // Need to wait for dialog to close in case we need to
+                            // try clicking another opponent.
+                            game.wait(0.5, skipWaitingForLoading = true)
+                            break
+                        }
+                    }
+
+                    if (!bDidHandleDialog) {
+                        // Revert to previous index since we failed to handle this iter.
+                        selectedOpponentIndex = prevSelectedOpponentIndex
+                        MessageLog.w(TAG, "[UNITY_CUP] Timed out while waiting to handle dialog after clicking SelectOpponent button.")
+                    }
                 }
                 // If the skip button is locked, need to manually run the race.
                 ButtonViewResultsLocked.check(game.imageUtils, sourceBitmap = sourceBitmap) -> {
