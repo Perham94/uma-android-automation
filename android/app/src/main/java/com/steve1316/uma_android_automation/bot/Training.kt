@@ -1,6 +1,8 @@
 package com.steve1316.uma_android_automation.bot
 
 import android.util.Log
+import android.graphics.Bitmap
+
 import com.steve1316.uma_android_automation.MainActivity
 import com.steve1316.automation_library.utils.SettingsHelper
 import com.steve1316.uma_android_automation.utils.CustomImageUtils
@@ -35,6 +37,7 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.intArrayOf
 import kotlin.math.pow
 import org.opencv.core.Point
@@ -717,11 +720,50 @@ class Training(private val game: Game) {
             val startTime = System.currentTimeMillis()
             while (System.currentTimeMillis() - startTime < timeoutMs) {
                 val bitmap: Bitmap = game.imageUtils.getSourceBitmap()
+                // Using threads here is slower only if the active tab is SPEED.
+                // STAM was about even, then each stat after that using threads
+                // gained an additional 100ms improvement.
+                val waitLatch = CountDownLatch(5)
+                val matchFound = AtomicBoolean(false)
+                val matchMap = ConcurrentHashMap<StatName, Boolean>()
                 for ((statName, header) in iconTrainingHeaders) {
-                    // Return immediately if we get a match.
-                    if (header.check(game.imageUtils, sourceBitmap = bitmap)) {
-                        return statName
-                    }
+                    Thread {
+                        try {
+                            if (!BotService.isRunning) {
+                                return@Thread
+                            }
+
+                            // Exit thread early if we already found a match.
+                            if (matchFound.get()) {
+                                return@Thread
+                            }
+                            // Return immediately if we get a match.
+                            val bIsFound = header.check(game.imageUtils, sourceBitmap = bitmap)
+                            matchMap[statName] = bIsFound
+                            if (bIsFound) {
+                                matchFound.set(true)
+                                return@Thread
+                            }
+                        } catch (e: Exception) {
+                            Log.e(TAG, "[ERROR] Error detecting stat header $statName: ${e.stackTraceToString()}")
+                            matchMap[statName] = false
+                        } finally {
+                            waitLatch.countDown()
+                        }
+                    }.apply { isDaemon = true }.start()
+                }
+
+                // Collect our threads.
+                try {
+                    waitLatch.await(5, java.util.concurrent.TimeUnit.SECONDS)
+                } catch (_: InterruptedException) {
+                    MessageLog.e(TAG, "[TRAINING] getActiveStat: Stat header detection threads timed out.")
+                }
+
+                // If we got a match, then return it. Otherwise, continue the loop.
+                val match = matchMap.entries.firstOrNull { it.value == true }
+                if (match != null) {
+                    return match.key
                 }
             }
             MessageLog.w(TAG, "[TRAINING] getActiveStat: Timed out while trying to detect the active stat.")
@@ -743,6 +785,12 @@ class Training(private val game: Game) {
             val header: ComponentInterface = iconTrainingHeaders[statName]!!
             val button: ComponentInterface = trainingButtons[statName]!!
 
+            // Fast early check if we're already at the stat.
+            // Helps to do this before calling getActiveStat so we can save time.
+            if (header.check(game.imageUtils)) {
+                return true
+            }
+
             val activeStat: StatName? = getActiveStat(timeoutMs)
             if (activeStat == null) {
                 MessageLog.w(TAG, "[TRAINING] goToStat: getActiveStat returned NULL.")
@@ -757,6 +805,7 @@ class Training(private val game: Game) {
 
             // Now click on the desired stat button.
             button.click(game.imageUtils)
+
             // Now wait for the header to be detected.
             // In case the previous operations took too long, we still want to do
             // at least one check for the header before we time out since it doesn't
