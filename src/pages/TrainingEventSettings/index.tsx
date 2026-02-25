@@ -1,8 +1,9 @@
-import { useContext, useState, useMemo, useCallback } from "react"
+import { useContext, useState, useMemo, useCallback, useRef } from "react"
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Modal, TextInput, Dimensions } from "react-native"
 import { FlashList } from "@shopify/flash-list"
 import { useTheme } from "../../context/ThemeContext"
 import { BotStateContext, defaultSettings } from "../../context/BotStateContext"
+import { SearchPageProvider } from "../../context/SearchPageContext"
 import CustomAccordion from "../../components/CustomAccordion"
 import CustomCheckbox from "../../components/CustomCheckbox"
 import CustomSelect from "../../components/CustomSelect"
@@ -41,6 +42,7 @@ const excludedEventNames = new Set([
 const TrainingEventSettings = () => {
     const { colors } = useTheme()
     const bsc = useContext(BotStateContext)
+    const scrollViewRef = useRef<ScrollView>(null)  
 
     const { settings, setSettings } = bsc
     // Merge current training event settings with defaults to handle missing properties.
@@ -495,11 +497,12 @@ const TrainingEventSettings = () => {
         <View style={styles.root}>
             <PageHeader title="Training Event Settings" />
 
-            <ScrollView nestedScrollEnabled={true} showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1 }}>
+            <SearchPageProvider page="TrainingEventSettings" scrollViewRef={scrollViewRef}>
+            <ScrollView ref={scrollViewRef} nestedScrollEnabled={true} showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1 }}>
                 <View className="m-1">
                     <View style={styles.section}>
                         <CustomCheckbox
-                            id="prioritize-energy-options"
+                            searchId="prioritize-energy-options"
                             checked={enablePrioritizeEnergyOptions}
                             onCheckedChange={(checked) => updateTrainingEventSetting("enablePrioritizeEnergyOptions", checked)}
                             label="Prioritize Energy Options"
@@ -509,6 +512,7 @@ const TrainingEventSettings = () => {
                     </View>
 
                     <CustomTitle
+                        searchId="training-event-option-overrides"
                         title="Training Event Option Overrides"
                         description="Force the bot to select a specific option for character or support training events. Search through all available events and select which option to use. This overrides the normal stat prioritization logic."
                     />
@@ -561,6 +565,7 @@ const TrainingEventSettings = () => {
                     )}
 
                     <CustomTitle
+                        searchId="special-event-overrides"
                         title="Special Event Overrides"
                         description="Override the bot's normal stat prioritization for specific training events. These settings bypass the standard weight calculation system."
                     />
@@ -729,6 +734,7 @@ const TrainingEventSettings = () => {
                     />
                 </View>
             </ScrollView>
+            </SearchPageProvider>
 
             {/* Event Override Selection Modal */}
             <Modal animationType="slide" transparent={true} visible={eventOverrideModalVisible} onRequestClose={() => setEventOverrideModalVisible(false)}>
