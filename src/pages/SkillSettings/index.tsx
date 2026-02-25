@@ -11,6 +11,7 @@ import CustomTitle from "../../components/CustomTitle"
 import PageHeader from "../../components/PageHeader"
 import { BotStateContext, defaultSettings } from "../../context/BotStateContext"
 import { skillPlanSettingsPages } from "../SkillPlanSettings"
+import InfoContainer from "../../components/InfoContainer"
 
 const SkillSettings = () => {
     const { colors } = useTheme()
@@ -73,11 +74,23 @@ const SkillSettings = () => {
                     color: colors.foreground,
                     marginBottom: 8,
                 },
-                inputDescription: {
+                infoBlock: {
+                    marginTop: 12,
+                },
+                infoLabel: {
+                    fontWeight: "bold",
+                    color: colors.foreground,
+                    fontSize: 14,
+                    lineHeight: 22,
+                    includeFontPadding: false,
+                },
+                infoDescription: {
                     fontSize: 14,
                     color: colors.foreground,
                     opacity: 0.7,
-                    marginTop: 8,
+                    lineHeight: 22,
+                    includeFontPadding: false,
+                    marginTop: 2,
                 },
             }),
         [colors],
@@ -176,32 +189,54 @@ const SkillSettings = () => {
                             onValueChange={(value) => updateSkillsSetting("preferredRunningStyle", value)}
                             placeholder="Select Running Style"
                         />
-                        <Text style={styles.inputDescription}>There are two different groups of Running Style skills.</Text>
-                        <Text style={styles.inputDescription}>
-                            The first are skills that specifically say in their description that they are for a specific running style. These cannot be activated unless the trainee is using that
-                            running style.
-                        </Text>
-                        <Text style={styles.inputDescription}>
-                            The second are skills that do not say they are for a running style, but have activation conditions which limit which styles would actually be able to activate them
-                            (ignoring rare cases).
-                        </Text>
-                        <Text style={styles.inputDescription}>
-                            This setting will filter skills based on both of these conditions. This helps us avoid having situations like an End Closer purchasing a skill like "Keeping the Lead". This
-                            skill doesn't require using the Front Runner style to activate, but it does require the runner to be in the lead mid-race which is very unlikely for an End Closer.
-                        </Text>
-                        <Text style={styles.inputDescription}>Detailed breakdown of examples:</Text>
-                        <Text style={styles.inputDescription}>
-                            • Use [Racing Settings] {"->"} [Original Race Strategy]: Inherits the running style from your Racing Settings. For example, if you set the Strategy to "Late Surger" in
-                            Racing Settings, only Late Surger skills will be considered.
-                        </Text>
-                        <Text style={styles.inputDescription}>
-                            • Any: Does not filter any skills based on running style. For example, even if your trainee is an "End Closer", the bot may still purchase "Pace Chaser Corners ○" (a Pace
-                            Chaser skill) if it's available.
-                        </Text>
-                        <Text style={styles.inputDescription}>
-                            • Front Runner: Only considers skills that are compatible with the Front Runner style. For example, skills like "Escape Artist" will be included, while "Outer Swell" (Late
-                            Surger) will be ignored.
-                        </Text>
+                        <InfoContainer>
+                            <View>
+                                <Text style={styles.infoLabel}>There are two different groups of Running Style skills.</Text>
+                                <View style={styles.infoBlock}>
+                                    <Text style={styles.infoDescription}>
+                                        The first are skills that specifically say in their description that they are for a specific running style. These cannot be activated unless the trainee is using that
+                                        running style.
+                                    </Text>
+                                </View>
+                                <View style={styles.infoBlock}>
+                                    <Text style={styles.infoDescription}>
+                                        The second are skills that do not say they are for a running style, but have activation conditions which limit which styles would actually be able to activate them
+                                        (ignoring rare cases).
+                                    </Text>
+                                </View>
+                                <View style={styles.infoBlock}>
+                                    <Text style={styles.infoDescription}>
+                                        This setting will filter skills based on both of these conditions. This helps us avoid having situations like an End Closer purchasing a skill like "Keeping the Lead". This
+                                        skill doesn't require using the Front Runner style to activate, but it does require the runner to be in the lead mid-race which is very unlikely for an End Closer.
+                                    </Text>
+                                </View>
+                                <Text style={[styles.infoLabel, { marginTop: 12 }]}>Detailed breakdown of examples:</Text>
+
+                                <View style={styles.infoBlock}>
+                                    <Text style={styles.infoLabel}>Use [Racing Settings] {"->"} [Original Race Strategy]</Text>
+                                    <Text style={styles.infoDescription}>
+                                        • Inherits the running style from your Racing Settings. For example, if you set the Strategy to "Late Surger" in Racing Settings, only Late Surger skills will be
+                                        considered.
+                                    </Text>
+                                </View>
+
+                                <View style={styles.infoBlock}>
+                                    <Text style={styles.infoLabel}>Any</Text>
+                                    <Text style={styles.infoDescription}>
+                                        • Does not filter any skills based on running style. For example, even if your trainee is an "End Closer", the bot may still purchase "Pace Chaser Corners ○" (a
+                                        Pace Chaser skill) if it's available.
+                                    </Text>
+                                </View>
+
+                                <View style={styles.infoBlock}>
+                                    <Text style={styles.infoLabel}>Front Runner</Text>
+                                    <Text style={styles.infoDescription}>
+                                        • Only considers skills that are compatible with the Front Runner style. For example, skills like "Escape Artist" will be included, while "Outer Swell" (Late
+                                        Surger) will be ignored.
+                                    </Text>
+                                </View>
+                            </View>
+                        </InfoContainer>
                     </View>
                     <View style={styles.inputContainer}>
                         <Text style={styles.inputLabel}>Track Distance</Text>
@@ -233,10 +268,12 @@ const SkillSettings = () => {
                             onValueChange={(value) => updateSkillsSetting("preferredTrackSurface", value)}
                             placeholder="Select Track Surface"
                         />
-                        <Text style={styles.inputDescription}>
-                            As of 2026-02-19, there are no skills that only apply to the Turf surface type. The only track surface specific skills are ones for Dirt. So if you choose Dirt, all skills
-                            will still be available for purchase. However if you choose Turf, then all the Dirt skills will be ignored.
-                        </Text>
+                        <InfoContainer>
+                            <Text style={styles.infoDescription}>
+                                As of 2026-02-19, there are no skills that only apply to the Turf surface type. The only track surface specific skills are ones for Dirt. So if you choose Dirt, all skills
+                                will still be available for purchase. However if you choose Turf, then all the Dirt skills will be ignored.
+                            </Text>
+                        </InfoContainer>
                     </View>
                 </View>
                 <Divider style={{ marginBottom: 24 }} />
