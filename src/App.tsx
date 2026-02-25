@@ -23,6 +23,7 @@ import ImportSettingsPreview from "./pages/ImportSettingsPreview"
 import DebugSettings from "./pages/DebugSettings"
 import DrawerContent from "./components/DrawerContent"
 import { NAV_THEME } from "./lib/theme"
+import { ProfileProvider } from "./context/ProfileContext"
 
 export const Tag = "UAA"
 
@@ -107,11 +108,13 @@ function AppContent() {
 
     return (
         <BotStateProvider>
-            <MessageLogProvider>
-                <SettingsProvider>
-                    <AppWithBootstrap theme={theme} colors={colors} />
-                </SettingsProvider>
-            </MessageLogProvider>
+            <ProfileProvider>
+                <MessageLogProvider>
+                    <SettingsProvider>
+                        <AppWithBootstrap theme={theme} colors={colors} />
+                    </SettingsProvider>
+                </MessageLogProvider>
+            </ProfileProvider>
         </BotStateProvider>
     )
 }
