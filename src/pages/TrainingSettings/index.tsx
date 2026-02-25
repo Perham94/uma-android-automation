@@ -1,4 +1,4 @@
-import React, { useMemo,  useContext, useEffect, useState } from "react"
+import React, { useMemo,  useContext, useEffect, useState, useRef } from "react"
 import { View, Text, ScrollView, StyleSheet, Modal, TouchableOpacity, Dimensions } from "react-native"
 import { Snackbar } from "react-native-paper"
 import { useTheme } from "../../context/ThemeContext"
@@ -16,10 +16,13 @@ import { useProfileManager } from "../../hooks/useProfileManager"
 import { applyMigrations } from "../../hooks/useSettingsManager"
 import { databaseManager } from "../../lib/database"
 import PageHeader from "../../components/PageHeader"
+import { SearchPageProvider } from "../../context/SearchPageContext"
+import SearchableItem from "../../components/SearchableItem"
 
 const TrainingSettings = () => {
     const { colors } = useTheme()
     const bsc = useContext(BotStateContext)
+    const scrollViewRef = useRef<ScrollView>(null)
     const { saveSettingsImmediate } = useSettings()
     const { currentProfileName } = useProfileManager()
     const [blacklistModalVisible, setBlacklistModalVisible] = useState(false)
@@ -270,97 +273,120 @@ const TrainingSettings = () => {
         setModalVisible: React.Dispatch<React.SetStateAction<boolean>>,
         description?: string,
         mode: "checkbox" | "priority" = "checkbox",
-    ) => (
-        <View style={styles.section}>
-            <View style={styles.row}>
-                <Text style={styles.label}>{title}</Text>
-                <TouchableOpacity onPress={() => setModalVisible(true)}>
-                    <Text style={styles.pressableText}>{selectedStats.length === 0 ? "None" : selectedStats.join(", ")}</Text>
-                </TouchableOpacity>
-            </View>
-            {description && <Text style={[styles.label, { fontSize: 14, color: colors.foreground, opacity: 0.7, marginTop: 4 }]}>{description}</Text>}
-
-            <Modal visible={modalVisible} transparent={true} animationType="fade" onRequestClose={() => setModalVisible(false)}>
-                <TouchableOpacity style={styles.modal} activeOpacity={1} onPress={() => setModalVisible(false)}>
-                    <TouchableOpacity style={styles.modalContent} activeOpacity={1} onPress={(e) => e.stopPropagation()}>
-                        <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>{title}</Text>
-                            <TouchableOpacity style={styles.closeButton} onPress={() => setModalVisible(false)}>
-                                <Text style={styles.closeText}>✕</Text>
-                            </TouchableOpacity>
-                        </View>
-
-                        {mode === "priority" ? (
-                            <DraggablePriorityList
-                                items={defaultSettings.training.statPrioritization.map((stat) => ({
-                                    id: stat,
-                                    label: stat,
-                                }))}
-                                selectedItems={selectedStats}
-                                onSelectionChange={setSelectedStats}
-                                onOrderChange={(orderedItems) => {
-                                    // Update the order when items are reordered.
-                                    setSelectedStats(orderedItems)
-                                }}
-                            />
-                        ) : (
-                            defaultSettings.training.statPrioritization.map((stat) => (
-                                <CustomCheckbox
-                                    key={stat}
-                                    id={`stat-${stat.toLowerCase()}`}
-                                    checked={selectedStats.includes(stat)}
-                                    onCheckedChange={() => toggleStat(stat, selectedStats, setSelectedStats)}
-                                    label={stat}
-                                    className="my-2"
-                                />
-                            ))
-                        )}
-
-                        <View style={styles.buttonRow}>
-                            <CustomButton
-                                onPress={() => {
-                                    if (mode === "priority") {
-                                        // For prioritization, reset to default and dismiss modal.
-                                        setSelectedStats(defaultSettings.training.statPrioritization)
-                                        setModalVisible(false)
-                                    } else {
-                                        // For blacklist, just clear the list.
-                                        clearAll(setSelectedStats)
-                                    }
-                                }}
-                                variant="destructive"
-                            >
-                                Clear All
-                            </CustomButton>
-                            <CustomButton onPress={() => selectAll(setSelectedStats, selectedStats)} variant="outline">
-                                Select All
-                            </CustomButton>
-                        </View>
+        id?: string,
+    ) => {
+        const content = (
+            <View style={styles.section}>
+                <View style={styles.row}>
+                    <Text style={styles.label}>{title}</Text>
+                    <TouchableOpacity onPress={() => setModalVisible(true)}>
+                        <Text style={styles.pressableText}>{selectedStats.length === 0 ? "None" : selectedStats.join(", ")}</Text>
                     </TouchableOpacity>
-                </TouchableOpacity>
-            </Modal>
-        </View>
-    )
+                </View>
+                {description && <Text style={[styles.label, { fontSize: 14, color: colors.foreground, opacity: 0.7, marginTop: 4 }]}>{description}</Text>}
+
+                <Modal visible={modalVisible} transparent={true} animationType="fade" onRequestClose={() => setModalVisible(false)}>
+                    <TouchableOpacity style={styles.modal} activeOpacity={1} onPress={() => setModalVisible(false)}>
+                        <TouchableOpacity style={styles.modalContent} activeOpacity={1} onPress={(e) => e.stopPropagation()}>
+                            <View style={styles.modalHeader}>
+                                <Text style={styles.modalTitle}>{title}</Text>
+                                <TouchableOpacity style={styles.closeButton} onPress={() => setModalVisible(false)}>
+                                    <Text style={styles.closeText}>✕</Text>
+                                </TouchableOpacity>
+                            </View>
+
+                            {mode === "priority" ? (
+                                <DraggablePriorityList
+                                    items={defaultSettings.training.statPrioritization.map((stat) => ({
+                                        id: stat,
+                                        label: stat,
+                                    }))}
+                                    selectedItems={selectedStats}
+                                    onSelectionChange={setSelectedStats}
+                                    onOrderChange={(orderedItems) => {
+                                        // Update the order when items are reordered.
+                                        setSelectedStats(orderedItems)
+                                    }}
+                                />
+                            ) : (
+                                defaultSettings.training.statPrioritization.map((stat) => (
+                                    <CustomCheckbox
+                                        key={stat}
+                                        id={`stat-${stat.toLowerCase()}`}
+                                        checked={selectedStats.includes(stat)}
+                                        onCheckedChange={() => toggleStat(stat, selectedStats, setSelectedStats)}
+                                        label={stat}
+                                        className="my-2"
+                                    />
+                                ))
+                            )}
+
+                            <View style={styles.buttonRow}>
+                                <CustomButton
+                                    onPress={() => {
+                                        if (mode === "priority") {
+                                            // For prioritization, reset to default and dismiss modal.
+                                            setSelectedStats(defaultSettings.training.statPrioritization)
+                                            setModalVisible(false)
+                                        } else {
+                                            // For blacklist, just clear the list.
+                                            clearAll(setSelectedStats)
+                                        }
+                                    }}
+                                    variant="destructive"
+                                >
+                                    Clear All
+                                </CustomButton>
+                                <CustomButton onPress={() => selectAll(setSelectedStats, selectedStats)} variant="outline">
+                                    Select All
+                                </CustomButton>
+                            </View>
+                        </TouchableOpacity>
+                    </TouchableOpacity>
+                </Modal>
+            </View>
+        )
+
+        if (id) {
+            return (
+                <SearchableItem id={id} title={title} description={description}>
+                    {content}
+                </SearchableItem>
+            )
+        }
+
+        return content
+    }
 
     return (
         <View style={styles.root}>
             <PageHeader title="Training Settings" />
 
-            <ScrollView nestedScrollEnabled={true} showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1 }}>
+            <SearchPageProvider page="TrainingSettings" scrollViewRef={scrollViewRef}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    nestedScrollEnabled={true}
+                    showsVerticalScrollIndicator={false}
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                >
                 <View className="m-1">
-                    <ProfileSelector
-                        currentTrainingSettings={trainingSettings}
-                        currentTrainingStatTargetSettings={trainingStatTargetSettings}
-                        onOverwriteSettings={handleOverwriteSettings}
-                        onNoChangesDetected={() => {
-                            setSnackbarMessage("Current Training settings are already the same.")
-                            setSnackbarVisible(true)
-                        }}
-                        onError={(message) => {
-                            setSnackbarMessage(message)
-                            setSnackbarVisible(true)
-                        }}
-                    />
+                    <SearchableItem id="training-settings-profile-selector" title="Profile Selector" description="Profiles constitute only the Training settings and stat targets." style={{ marginBottom: 16 }}>
+                        <ProfileSelector
+                            currentTrainingSettings={trainingSettings}
+                            currentTrainingStatTargetSettings={trainingStatTargetSettings}
+                            onOverwriteSettings={handleOverwriteSettings}
+                            onNoChangesDetected={() => {
+                                setSnackbarMessage("Current Training settings are already the same.")
+                                setSnackbarVisible(true)
+                            }}
+                            onError={(message) => {
+                                setSnackbarMessage(message)
+                                setSnackbarVisible(true)
+                            }}
+                        />
+                    </SearchableItem>
+
                     {renderStatSelector(
                         "Blacklist",
                         blacklistItems,
@@ -369,6 +395,7 @@ const TrainingSettings = () => {
                         setBlacklistModalVisible,
                         "Select which stats to exclude from training. These stats will be skipped during training sessions.",
                         "checkbox",
+                        "training-blacklist",
                     )}
 
                     {renderStatSelector(
@@ -379,6 +406,7 @@ const TrainingSettings = () => {
                         setPrioritizationModalVisible,
                         "Select the priority order of the stats. The stats will be trained in the order they are selected. If none are selected, then the default order will be used.",
                         "priority",
+                        "training-prioritization",
                     )}
 
                     <View style={styles.section}>
@@ -389,22 +417,24 @@ const TrainingSettings = () => {
                             label="Disable Training on Maxed Stats"
                             description="When enabled, training will be skipped for stats that have reached their maximum value."
                             className="my-2"
+                            searchId="disable-training-on-maxed-stats"
                         />
-                        {disableTrainingOnMaxedStat && (
-                            <CustomSlider
-                                value={manualStatCap || defaultSettings.training.manualStatCap}
-                                placeholder={defaultSettings.training.manualStatCap}
-                                onValueChange={(value) => updateTrainingSetting("manualStatCap", value)}
-                                min={1000}
-                                max={2000}
-                                step={10}
-                                label="Manual Stat Cap"
-                                labelUnit=""
-                                showValue={true}
-                                showLabels={true}
-                                description="Set a custom stat cap for all stats. Training will be skipped when any stat reaches this value (if 'Disable Training on Maxed Stats' is enabled)."
-                            />
-                        )}
+                        <CustomSlider
+                            value={manualStatCap || defaultSettings.training.manualStatCap}
+                            placeholder={defaultSettings.training.manualStatCap}
+                            onValueChange={(value) => updateTrainingSetting("manualStatCap", value)}
+                            min={1000}
+                            max={2000}
+                            step={10}
+                            label="Manual Stat Cap"
+                            labelUnit=""
+                            showValue={true}
+                            showLabels={true}
+                            description="Set a custom stat cap for all stats. Training will be skipped when any stat reaches this value (if 'Disable Training on Maxed Stats' is enabled)."
+                            searchId="manual-stat-cap"
+                            searchCondition={disableTrainingOnMaxedStat}
+                            parentId="disable-training-on-maxed-stats"
+                        />
                     </View>
 
                     <View style={styles.section}>
@@ -420,6 +450,7 @@ const TrainingSettings = () => {
                             showValue={true}
                             showLabels={true}
                             description="Set the maximum acceptable failure chance for training sessions. Training with higher failure rates will be avoided."
+                            searchId="maximum-failure-chance"
                         />
                     </View>
 
@@ -431,37 +462,40 @@ const TrainingSettings = () => {
                             label="Enable Riskier Training"
                             description="When enabled, trainings with high main stat gains will use a separate, higher maximum failure chance threshold."
                             className="my-2"
+                            searchId="enable-riskier-training"
                         />
-                        {enableRiskyTraining && (
-                            <>
-                                <CustomSlider
-                                    value={riskyTrainingMinStatGain || defaultSettings.training.riskyTrainingMinStatGain}
-                                    placeholder={defaultSettings.training.riskyTrainingMinStatGain}
-                                    onValueChange={(value) => updateTrainingSetting("riskyTrainingMinStatGain", value)}
-                                    min={20}
-                                    max={100}
-                                    step={5}
-                                    label="Minimum Main Stat Gain Threshold"
-                                    labelUnit=""
-                                    showValue={true}
-                                    showLabels={true}
-                                    description="When a training's main stat gain meets or exceeds this value, it will be considered for risky training."
-                                />
-                                <CustomSlider
-                                    value={riskyTrainingMaxFailureChance || defaultSettings.training.riskyTrainingMaxFailureChance}
-                                    placeholder={defaultSettings.training.riskyTrainingMaxFailureChance}
-                                    onValueChange={(value) => updateTrainingSetting("riskyTrainingMaxFailureChance", value)}
-                                    min={5}
-                                    max={95}
-                                    step={5}
-                                    label="Risky Training Maximum Failure Chance"
-                                    labelUnit="%"
-                                    showValue={true}
-                                    showLabels={true}
-                                    description="Set the maximum acceptable failure chance for risky training sessions with high main stat gains."
-                                />
-                            </>
-                        )}
+                        <CustomSlider
+                            value={riskyTrainingMinStatGain || defaultSettings.training.riskyTrainingMinStatGain}
+                            placeholder={defaultSettings.training.riskyTrainingMinStatGain}
+                            onValueChange={(value) => updateTrainingSetting("riskyTrainingMinStatGain", value)}
+                            min={20}
+                            max={100}
+                            step={5}
+                            label="Minimum Main Stat Gain Threshold"
+                            labelUnit=""
+                            showValue={true}
+                            showLabels={true}
+                            description="When a training's main stat gain meets or exceeds this value, it will be considered for risky training."
+                            searchId="risky-training-min-stat-gain"
+                            searchCondition={enableRiskyTraining}
+                            parentId="enable-riskier-training"
+                        />
+                        <CustomSlider
+                            value={riskyTrainingMaxFailureChance || defaultSettings.training.riskyTrainingMaxFailureChance}
+                            placeholder={defaultSettings.training.riskyTrainingMaxFailureChance}
+                            onValueChange={(value) => updateTrainingSetting("riskyTrainingMaxFailureChance", value)}
+                            min={5}
+                            max={95}
+                            step={5}
+                            label="Risky Training Maximum Failure Chance"
+                            labelUnit="%"
+                            showValue={true}
+                            showLabels={true}
+                            description="Set the maximum acceptable failure chance for risky training sessions with high main stat gains."
+                            searchId="risky-training-max-failure-chance"
+                            searchCondition={enableRiskyTraining}
+                            parentId="enable-riskier-training"
+                        />
                     </View>
 
                     {renderStatSelector(
@@ -472,6 +506,7 @@ const TrainingSettings = () => {
                         setSparkStatTargetModalVisible,
                         "Select which stats should receive priority to get to at least 600 to get the best chance to receive 3* sparks.",
                         "checkbox",
+                        "focus-on-sparks",
                     )}
 
                     <View style={styles.section}>
@@ -482,6 +517,7 @@ const TrainingSettings = () => {
                             label="Prioritize Skill Hints"
                             description="When enabled, the bot will prioritize acquiring skill hints, bypassing stat prioritization and blacklist, while still being constrained by the failure chance thresholds."
                             className="my-2"
+                            searchId="enable-prioritize-skill-hints"
                         />
                     </View>
 
@@ -493,6 +529,7 @@ const TrainingSettings = () => {
                             label="Must Rest before Summer"
                             description="Forces the bot to rest during June Late Phase in Classic and Senior Years to ensure enough energy for Summer Training in July."
                             className="my-2"
+                            searchId="must-rest-before-summer"
                         />
                     </View>
 
@@ -504,6 +541,7 @@ const TrainingSettings = () => {
                             label="Train Wit During Finale"
                             description="When enabled, the bot will train Wit during URA finale turns (73, 74, 75) instead of recovering energy or mood, even if the failure chance is high."
                             className="my-2"
+                            searchId="train-wit-during-finale"
                         />
                     </View>
 
@@ -515,6 +553,7 @@ const TrainingSettings = () => {
                             label="Enable Rainbow Training Bonus"
                             description="When enabled (Year 2+), rainbow trainings receive a significant bonus to their score, making them more likely to be selected. This is highly dependent on device configuration and may result in false positives."
                             className="my-2"
+                            searchId="enable-rainbow-training-bonus"
                         />
                     </View>
 
@@ -533,6 +572,9 @@ const TrainingSettings = () => {
                                 ]}
                                 placeholder="Select distance"
                                 width={200}
+                                searchId="preferred-distance-override"
+                                searchTitle="Preferred Distance Override"
+                                searchDescription="Set the preferred race distance for training targets."
                             />
                         </View>
                         <Text style={[styles.label, { fontSize: 14, color: colors.foreground, opacity: 0.7, marginTop: 4 }]}>
@@ -548,6 +590,7 @@ const TrainingSettings = () => {
                         <CustomTitle
                             title="Stat Targets by Distance"
                             description="Set target values for each stat based on race distance. The bot will prioritize training stats that are below these targets."
+                            searchId="stat-targets-by-distance"
                         />
                     </View>
 
@@ -830,7 +873,8 @@ const TrainingSettings = () => {
                         ]}
                     />
                 </View>
-            </ScrollView>
+                </ScrollView>
+            </SearchPageProvider>
             <Snackbar
                 visible={snackbarVisible}
                 onDismiss={() => setSnackbarVisible(false)}
