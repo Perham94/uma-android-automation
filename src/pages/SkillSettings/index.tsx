@@ -1,4 +1,4 @@
-import { useMemo,  useContext, useEffect } from "react"
+import { useMemo,  useContext, useEffect, useRef } from "react"
 import { View, Text, ScrollView, StyleSheet } from "react-native"
 import { useNavigation } from "@react-navigation/native"
 import { Divider } from "react-native-paper"
@@ -10,6 +10,7 @@ import CustomSlider from "../../components/CustomSlider"
 import CustomTitle from "../../components/CustomTitle"
 import PageHeader from "../../components/PageHeader"
 import { BotStateContext, defaultSettings } from "../../context/BotStateContext"
+import { SearchPageProvider } from "../../context/SearchPageContext"
 import { skillPlanSettingsPages } from "../SkillPlanSettings"
 import InfoContainer from "../../components/InfoContainer"
 
@@ -17,6 +18,7 @@ const SkillSettings = () => {
     const { colors } = useTheme()
     const navigation = useNavigation()
     const bsc = useContext(BotStateContext)
+    const scrollViewRef = useRef<ScrollView>(null)
 
     const { settings, setSettings } = bsc
 
@@ -99,7 +101,8 @@ const SkillSettings = () => {
     return (
         <View style={styles.root}>
             <PageHeader title="Skill Settings" />
-            <ScrollView nestedScrollEnabled={true} showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1 }}>
+            <SearchPageProvider page="SkillSettings" scrollViewRef={scrollViewRef}>
+            <ScrollView ref={scrollViewRef} nestedScrollEnabled={true} showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1 }}>
                 <View style={styles.inputContainer}>
                     <Text style={styles.description}>Allows configuration of automated skill point spending.</Text>
                     <Text style={styles.description}>
@@ -108,6 +111,7 @@ const SkillSettings = () => {
                     </Text>
                     <Divider style={{ marginBottom: 16 }} />
                     <CustomCheckbox
+                        searchId="enable-skill-point-check"
                         checked={bsc.settings.skills.enableSkillPointCheck}
                         onCheckedChange={(checked) => {
                             bsc.setSettings({
@@ -119,53 +123,58 @@ const SkillSettings = () => {
                         description="Enables check for a certain skill point threshold. When the threshold is reached, the bot is stopped. This can be changed to allow the selected Skill Plan to spend those points instead of stopping the bot."
                     />
 
-                    {bsc.settings.skills.enableSkillPointCheck && (
-                        <View style={{ marginTop: 8 }}>
-                            <CustomSlider
-                                value={bsc.settings.skills.skillPointCheck}
-                                placeholder={bsc.defaultSettings.skills.skillPointCheck}
-                                onValueChange={(value) => {
-                                    bsc.setSettings({
-                                        ...bsc.settings,
-                                        skills: { ...bsc.settings.skills, skillPointCheck: value },
-                                    })
-                                }}
-                                onSlidingComplete={(value) => {
-                                    bsc.setSettings({
-                                        ...bsc.settings,
-                                        skills: { ...bsc.settings.skills, skillPointCheck: value },
-                                    })
-                                }}
-                                min={100}
-                                max={2000}
-                                step={10}
-                                label="Skill Point Threshold"
-                                labelUnit=""
-                                showValue={true}
-                                showLabels={true}
-                            />
-                            <CustomCheckbox
-                                checked={bsc.settings.skills.plans.skillPointCheck.enabled}
-                                onCheckedChange={(checked) => {
-                                    bsc.setSettings({
-                                        ...bsc.settings,
-                                        skills: {
-                                            ...bsc.settings.skills,
-                                            plans: {
-                                                ...bsc.settings.skills.plans,
-                                                skillPointCheck: {
-                                                    ...bsc.settings.skills.plans.skillPointCheck,
-                                                    enabled: checked,
-                                                },
+                    <View style={bsc.settings.skills.enableSkillPointCheck ? { marginTop: 8 } : { display: "none" }}>
+                        <CustomSlider
+                            searchId="skill-point-check"
+                            searchCondition={bsc.settings.skills.enableSkillPointCheck}
+                            parentId="enable-skill-point-check"
+                            value={bsc.settings.skills.skillPointCheck}
+                            placeholder={bsc.defaultSettings.skills.skillPointCheck}
+                            onValueChange={(value) => {
+                                bsc.setSettings({
+                                    ...bsc.settings,
+                                    skills: { ...bsc.settings.skills, skillPointCheck: value },
+                                })
+                            }}
+                            onSlidingComplete={(value) => {
+                                bsc.setSettings({
+                                    ...bsc.settings,
+                                    skills: { ...bsc.settings.skills, skillPointCheck: value },
+                                })
+                            }}
+                            min={100}
+                            max={2000}
+                            step={10}
+                            label="Skill Point Threshold"
+                            description="The number of skill points to accumulate before stopping the bot."
+                            labelUnit=""
+                            showValue={true}
+                            showLabels={true}
+                        />
+                        <CustomCheckbox
+                            searchId="skill-point-check-plan"
+                            searchCondition={bsc.settings.skills.enableSkillPointCheck}
+                            parentId="enable-skill-point-check"
+                            checked={bsc.settings.skills.plans.skillPointCheck.enabled}
+                            onCheckedChange={(checked) => {
+                                bsc.setSettings({
+                                    ...bsc.settings,
+                                    skills: {
+                                        ...bsc.settings.skills,
+                                        plans: {
+                                            ...bsc.settings.skills.plans,
+                                            skillPointCheck: {
+                                                ...bsc.settings.skills.plans.skillPointCheck,
+                                                enabled: checked,
                                             },
                                         },
-                                    })
-                                }}
-                                label="Enable Skill Plan Upon Meeting Threshold"
-                                description="Instead of stopping the bot, this will run the Skill Plan to spend the skill points when the threshold is met."
-                            />
-                        </View>
-                    )}
+                                    },
+                                })
+                            }}
+                            label="Enable Skill Plan Upon Meeting Threshold"
+                            description="Instead of stopping the bot, this will run the Skill Plan to spend the skill points when the threshold is met."
+                        />
+                    </View>
                 </View>
                 <CustomTitle title="Skill Style Overrides" description="Override which types of skills the bot can purchase." />
                 <Text style={styles.description}>
@@ -174,8 +183,8 @@ const SkillSettings = () => {
                 </Text>
                 <View>
                     <View style={styles.inputContainer}>
-                        <Text style={styles.inputLabel}>Running Style</Text>
                         <CustomSelect
+                            searchId="skill-plan-running-style"
                             options={[
                                 { value: "inherit", label: "Use [Racing Settings] -> [Original Race Strategy]" },
                                 { value: "no_preference", label: "Any" },
@@ -187,6 +196,8 @@ const SkillSettings = () => {
                             value={preferredRunningStyle}
                             defaultValue={defaultSettings.skills.preferredRunningStyle}
                             onValueChange={(value) => updateSkillsSetting("preferredRunningStyle", value)}
+                            label="Running Style for Skills"
+                            description="Dictates which skills are considered for purchase based on the preferred running style."
                             placeholder="Select Running Style"
                         />
                         <InfoContainer>
@@ -239,8 +250,8 @@ const SkillSettings = () => {
                         </InfoContainer>
                     </View>
                     <View style={styles.inputContainer}>
-                        <Text style={styles.inputLabel}>Track Distance</Text>
                         <CustomSelect
+                            searchId="preferred-distance-override"
                             options={[
                                 { value: "inherit", label: "Use [Training Settings] -> [Preferred Distance Override]" },
                                 { value: "no_preference", label: "Any" },
@@ -252,12 +263,14 @@ const SkillSettings = () => {
                             value={preferredTrackDistance}
                             defaultValue={defaultSettings.skills.preferredTrackDistance}
                             onValueChange={(value) => updateSkillsSetting("preferredTrackDistance", value)}
+                            label="Track Distance for Skills"
+                            description="Dictates which skills are considered for purchase based on the track distance."
                             placeholder="Select Track Distance"
                         />
                     </View>
                     <View style={styles.inputContainer}>
-                        <Text style={styles.inputLabel}>Track Surface</Text>
                         <CustomSelect
+                            searchId="preferred-track-surface"
                             options={[
                                 { value: "no_preference", label: "Any" },
                                 { value: "turf", label: "Turf" },
@@ -266,6 +279,8 @@ const SkillSettings = () => {
                             value={preferredTrackSurface}
                             defaultValue={defaultSettings.skills.preferredTrackSurface}
                             onValueChange={(value) => updateSkillsSetting("preferredTrackSurface", value)}
+                            label="Track Surface for Skills"
+                            description="Dictates which skills are considered for purchase based on the terrain."
                             placeholder="Select Track Surface"
                         />
                         <InfoContainer>
@@ -291,6 +306,7 @@ const SkillSettings = () => {
                     </View>
                 </View>
             </ScrollView>
+            </SearchPageProvider>
         </View>
     )
 }
