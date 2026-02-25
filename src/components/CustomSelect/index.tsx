@@ -84,7 +84,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
             )}
             {description && (
                 <View>
-                    <Text style={{ fontSize: 14, color: colors.foreground, opacity: 0.7 }}>{description}</Text>
+                    <Text style={{ fontSize: 14, color: colors.foreground, opacity: 0.7, marginBottom: 4 }}>{description}</Text>
                 </View>
             )}
             <Select onValueChange={handleValueChange} value={value as any} defaultValue={defaultValue as any} disabled={disabled}>
