@@ -3,11 +3,13 @@ import { createDrawerNavigator } from "@react-navigation/drawer"
 import { createNativeStackNavigator } from "@react-navigation/native-stack"
 import { PortalHost } from "@rn-primitives/portal"
 import { StatusBar } from "expo-status-bar"
-import { SafeAreaView } from "react-native-safe-area-context"
+import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context"
 import { BotStateProvider } from "./context/BotStateContext"
 import { MessageLogProvider } from "./context/MessageLogContext"
 import { SettingsProvider } from "./context/SettingsContext"
 import { ThemeProvider, useTheme } from "./context/ThemeContext"
+import { SearchProvider } from "./context/SearchRegistryContext"
+import { ProfileProvider } from "./context/ProfileContext"
 import { useBootstrap } from "./hooks/useBootstrap"
 import Home from "./pages/Home"
 import Settings from "./pages/Settings"
@@ -45,15 +47,7 @@ function SettingsStack() {
             <Stack.Screen name="SkillSettings" component={SkillSettings} />
             {Object.entries(skillPlanSettingsPages).map(([key, config]) => (
                 <Stack.Screen name={config.name}>
-                    {(props) => (
-                        <SkillPlanSettings
-                            {...props}
-                            planKey={config.planKey}
-                            name={config.name}
-                            title={config.title}
-                            description={config.description}
-                        />
-                    )}
+                    {(props) => <SkillPlanSettings {...props} planKey={config.planKey} name={config.name} title={config.title} description={config.description} />}
                 </Stack.Screen>
             ))}
             <Stack.Screen name="EventLogVisualizer" component={EventLogVisualizer} />
@@ -106,21 +100,27 @@ function AppContent() {
     const { theme, colors } = useTheme()
 
     return (
-        <BotStateProvider>
-            <MessageLogProvider>
-                <SettingsProvider>
-                    <AppWithBootstrap theme={theme} colors={colors} />
-                </SettingsProvider>
-            </MessageLogProvider>
-        </BotStateProvider>
+        <SearchProvider>
+            <BotStateProvider>
+                <ProfileProvider>
+                    <MessageLogProvider>
+                        <SettingsProvider>
+                            <AppWithBootstrap theme={theme} colors={colors} />
+                        </SettingsProvider>
+                    </MessageLogProvider>
+                </ProfileProvider>
+            </BotStateProvider>
+        </SearchProvider>
     )
 }
 
 function App() {
     return (
-        <ThemeProvider>
-            <AppContent />
-        </ThemeProvider>
+        <SafeAreaProvider>
+            <ThemeProvider>
+                <AppContent />
+            </ThemeProvider>
+        </SafeAreaProvider>
     )
 }
 

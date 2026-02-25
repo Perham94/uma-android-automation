@@ -2,7 +2,8 @@ import React, { useState, useEffect, useMemo, useCallback } from "react"
 import { View, StyleSheet, TouchableOpacity, Text } from "react-native"
 import { useTheme } from "../../context/ThemeContext"
 import CustomSelect from "../CustomSelect"
-import { useProfileManager, DEFAULT_PROFILE_NAME } from "../../hooks/useProfileManager"
+import { useProfileManager } from "../../hooks/useProfileManager"
+import { DEFAULT_PROFILE_NAME } from "../../context/ProfileContext"
 import ProfileManagerModal from "../ProfileManagerModal"
 import ProfileCreationModal from "../ProfileCreationModal"
 import { Settings } from "../../context/BotStateContext"
@@ -33,36 +34,39 @@ const ProfileSelector: React.FC<ProfileSelectorProps> = ({ currentTrainingSettin
     const [selectedProfileName, setSelectedProfileName] = useState<string>(DEFAULT_PROFILE_NAME)
     const [pendingProfileSwitch, setPendingProfileSwitch] = useState<string | null>(null)
 
-    const styles = useMemo(() => StyleSheet.create({
-        container: {
-            marginBottom: 20,
-            padding: 16,
-            backgroundColor: colors.background,
-            borderRadius: 8,
-            borderWidth: 1,
-            borderColor: colors.border,
-        },
-        row: {
-            flexDirection: "row",
-            alignItems: "center",
-            gap: 12,
-        },
-        selectContainer: {
-            flex: 1,
-        },
-        iconButton: {
-            padding: 8,
-            borderRadius: 8,
-            backgroundColor: colors.secondary,
-            justifyContent: "center",
-            alignItems: "center",
-        },
-        description: {
-            fontSize: 12,
-            color: colors.foreground,
-            opacity: 0.7,
-        },
-    }), [colors])
+    const styles = useMemo(
+        () =>
+            StyleSheet.create({
+                container: {
+                    padding: 16,
+                    backgroundColor: colors.background,
+                    borderRadius: 8,
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                },
+                row: {
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 12,
+                },
+                selectContainer: {
+                    flex: 1,
+                },
+                iconButton: {
+                    padding: 8,
+                    borderRadius: 8,
+                    backgroundColor: colors.secondary,
+                    justifyContent: "center",
+                    alignItems: "center",
+                },
+                description: {
+                    fontSize: 12,
+                    color: colors.foreground,
+                    opacity: 0.7,
+                },
+            }),
+        [colors],
+    )
 
     // Initialize and sync selected profile with current active profile and available profiles.
     useEffect(() => {
@@ -145,7 +149,7 @@ const ProfileSelector: React.FC<ProfileSelectorProps> = ({ currentTrainingSettin
                 setSelectedProfileName(getDefaultSelectedProfile(profiles))
             }
         },
-        [profiles, onOverwriteSettings]
+        [profiles, onOverwriteSettings],
     )
 
     // Handle pending profile switch after profiles have been reloaded.

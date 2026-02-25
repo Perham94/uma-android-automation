@@ -1,15 +1,8 @@
-import { useState, useEffect, useCallback } from "react"
+import { useCallback } from "react"
 import { databaseManager } from "../lib/database"
 import { logWithTimestamp, logErrorWithTimestamp } from "../lib/logger"
-import { Settings, defaultSettings } from "../context/BotStateContext"
-
-export interface Profile {
-    id: number
-    name: string
-    settings: Partial<Settings>
-    created_at: string
-    updated_at: string
-}
+import { Settings } from "../context/BotStateContext"
+import { Profile, DEFAULT_PROFILE_NAME, useProfileContext } from "../context/ProfileContext"
 
 /**
  * Type for settings categories.
@@ -17,19 +10,12 @@ export interface Profile {
 export type SettingsCategory = "training" | "trainingStatTarget"
 
 /**
- * The reserved name for the default profile.
- */
-export const DEFAULT_PROFILE_NAME = "Default Profile"
-
-/**
  * Hook for managing profiles.
  *
  * @param onError - Optional callback to handle errors for UI display (e.g., Snackbar).
  */
 export const useProfileManager = (onError?: (message: string) => void) => {
-    const [profiles, setProfiles] = useState<Profile[]>([])
-    const [currentProfileName, setCurrentProfileName] = useState<string | null>(null)
-    const [isLoading, setIsLoading] = useState(true)
+    const { profiles, currentProfileName, isLoading, loadProfiles, loadCurrentProfileName, setCurrentProfileName } = useProfileContext()
 
     /**
      * Find a profile by ID in the profiles array.
@@ -41,7 +27,7 @@ export const useProfileManager = (onError?: (message: string) => void) => {
         (id: number): Profile | undefined => {
             return profiles.find((p) => p.id === id)
         },
-        [profiles]
+        [profiles],
     )
 
     /**
@@ -54,7 +40,7 @@ export const useProfileManager = (onError?: (message: string) => void) => {
         (name: string): Profile | undefined => {
             return profiles.find((p) => p.name === name)
         },
-        [profiles]
+        [profiles],
     )
 
     /**
@@ -68,7 +54,7 @@ export const useProfileManager = (onError?: (message: string) => void) => {
         (name: string, excludeId?: number): boolean => {
             return profiles.some((p) => p.id !== excludeId && p.name.toLowerCase() === name.toLowerCase())
         },
-        [profiles]
+        [profiles],
     )
 
     /**
@@ -109,58 +95,6 @@ export const useProfileManager = (onError?: (message: string) => void) => {
 
         return diff
     }, [])
-
-    /**
-     * Load all profiles from the database.
-     *
-     * @returns A promise that resolves when the profiles are loaded.
-     */
-    const loadProfiles = useCallback(async () => {
-        try {
-            setIsLoading(true)
-
-            const dbProfiles = await databaseManager.getAllProfiles()
-
-            const parsedProfiles: Profile[] = dbProfiles.map((p) => ({
-                id: p.id,
-                name: p.name,
-                settings: JSON.parse(p.settings),
-                created_at: p.created_at,
-                updated_at: p.updated_at,
-            }))
-
-            // Sort profiles alphabetically.
-            parsedProfiles.sort((a, b) => a.name.localeCompare(b.name))
-
-            setProfiles(parsedProfiles)
-            logWithTimestamp(`[ProfileManager] Loaded ${parsedProfiles.length} profiles.`)
-        } catch (error) {
-            logErrorWithTimestamp("[ProfileManager] Failed to load profiles:", error)
-            setProfiles([])
-        } finally {
-            setIsLoading(false)
-        }
-    }, [])
-
-    /**
-     * Load the current active profile name.
-     *
-     * @returns A promise that resolves when the current profile name is loaded.
-     */
-    const loadCurrentProfileName = useCallback(async () => {
-        try {
-            const profileName = await databaseManager.getCurrentProfileName()
-            setCurrentProfileName(profileName)
-        } catch (error) {
-            logErrorWithTimestamp("[ProfileManager] Failed to load current profile name:", error)
-            setCurrentProfileName(null)
-        }
-    }, [])
-
-    useEffect(() => {
-        loadProfiles()
-        loadCurrentProfileName()
-    }, [loadProfiles, loadCurrentProfileName])
 
     /**
      * Create a new profile from current settings.
@@ -205,7 +139,7 @@ export const useProfileManager = (onError?: (message: string) => void) => {
                 return 0
             }
         },
-        [loadProfiles, profiles, hasNameConflict, onError]
+        [loadProfiles, profiles, hasNameConflict, onError],
     )
 
     /**
@@ -221,7 +155,7 @@ export const useProfileManager = (onError?: (message: string) => void) => {
             updates: {
                 name?: string
                 settings?: Partial<Settings>
-            }
+            },
         ): Promise<void> => {
             try {
                 const existingProfile = findProfileById(id)
@@ -265,7 +199,7 @@ export const useProfileManager = (onError?: (message: string) => void) => {
                 onError?.(errorMessage)
             }
         },
-        [profiles, loadProfiles, findProfileById, hasNameConflict, onError]
+        [profiles, loadProfiles, findProfileById, hasNameConflict, onError],
     )
 
     /**
@@ -309,7 +243,7 @@ export const useProfileManager = (onError?: (message: string) => void) => {
                 onError?.(errorMessage)
             }
         },
-        [profiles, currentProfileName, loadProfiles, findProfileById, onError]
+        [profiles, currentProfileName, loadProfiles, findProfileById, setCurrentProfileName, onError],
     )
 
     /**
@@ -347,7 +281,7 @@ export const useProfileManager = (onError?: (message: string) => void) => {
                 return null
             }
         },
-        [profiles, findProfileByName, onError]
+        [profiles, findProfileByName, setCurrentProfileName, onError],
     )
 
     /**
@@ -390,7 +324,7 @@ export const useProfileManager = (onError?: (message: string) => void) => {
                 onError?.(errorMessage)
             }
         },
-        [profiles, findProfileById, onError]
+        [profiles, findProfileById, onError],
     )
 
     return {
@@ -398,6 +332,7 @@ export const useProfileManager = (onError?: (message: string) => void) => {
         currentProfileName,
         isLoading,
         loadProfiles,
+        loadCurrentProfileName,
         createProfile,
         updateProfile,
         deleteProfile,

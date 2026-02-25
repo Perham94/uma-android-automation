@@ -4,6 +4,7 @@ import { Checkbox } from "../ui/checkbox"
 import { Label } from "../ui/label"
 import { Text } from "../ui/text"
 import { useTheme } from "../../context/ThemeContext"
+import SearchableItem from "../SearchableItem"
 
 interface CustomCheckboxProps {
     id?: string
@@ -13,12 +14,33 @@ interface CustomCheckboxProps {
     description?: string | null
     className?: string
     style?: ViewStyle
+    // Search props
+    searchId?: string
+    searchTitle?: string
+    searchDescription?: string
+    searchCondition?: boolean
+    parentId?: string
+    children?: React.ReactNode
 }
 
-const CustomCheckbox: React.FC<CustomCheckboxProps> = ({ id = undefined, checked, onCheckedChange, label, description, className = "", style }) => {
+const CustomCheckbox: React.FC<CustomCheckboxProps> = ({
+    id = undefined,
+    checked,
+    onCheckedChange,
+    label,
+    description,
+    className = "",
+    style,
+    searchId,
+    searchTitle,
+    searchDescription,
+    searchCondition,
+    parentId,
+    children,
+}) => {
     const { colors } = useTheme()
 
-    return (
+    const content = (
         <View className={`flex-row items-start gap-3 ${className}`} style={style}>
             <Checkbox id={id} checked={checked} onCheckedChange={onCheckedChange} className="dark:border-gray-400" />
 
@@ -37,9 +59,20 @@ const CustomCheckbox: React.FC<CustomCheckboxProps> = ({ id = undefined, checked
                         {description}
                     </Text>
                 )}
+                {children}
             </View>
         </View>
     )
+
+    if (searchId) {
+        return (
+            <SearchableItem id={searchId} title={searchTitle || label} description={searchDescription || description || undefined} parentId={parentId} condition={searchCondition}>
+                {content}
+            </SearchableItem>
+        )
+    }
+
+    return content
 }
 
 export default CustomCheckbox

@@ -1,0 +1,86 @@
+import { createContext, useContext, useState, ReactNode, useCallback } from "react"
+import searchConfig from "../data/searchConfig"
+
+export interface SearchOption {
+    /** The unique identifier for this item. */
+    id: string
+    /** The searchable title. */
+    title: string
+    /** The searchable description. */
+    description: string
+    /** The target route name to navigate to. */
+    page: string
+    /** The ID of the parent item, if any. */
+    parentId?: string
+}
+
+interface SearchContextType {
+    /** The global registry of all searchable items. */
+    searchIndex: Record<string, SearchOption>
+    /** Function to register a new searchable item. */
+    registerItem: (item: SearchOption) => void
+}
+
+const SearchContext = createContext<SearchContextType | undefined>(undefined)
+
+/**
+ * Builds the initial search index from the static search config.
+ * This replaces the HeadlessRenderer approach which rendered all pages
+ * invisibly just to collect metadata, causing a UI freeze.
+ */
+const buildInitialIndex = (): Record<string, SearchOption> => {
+    const index: Record<string, SearchOption> = {}
+    for (const item of searchConfig) {
+        index[item.id] = item
+    }
+    return index
+}
+
+/**
+ * Provides the global registry of all searchable items and the function to register new items.
+ * The index is pre-populated from the static search config on mount.
+ * @param children The children of the provider.
+ */
+export const SearchProvider = ({ children }: { children: ReactNode }) => {
+    // Pre-populate the search index from the static config.
+    const [searchIndex, setSearchIndex] = useState<Record<string, SearchOption>>(buildInitialIndex)
+
+    /**
+     * Registers a new searchable item or updates an existing one.
+     * Items from the static config are already in the index, so this
+     * only triggers a state update when the parentId changes dynamically
+     * (e.g., when a conditional toggle changes).
+     */
+    const registerItem = useCallback((item: SearchOption) => {
+        setSearchIndex((prev) => {
+            if (prev[item.id]) {
+                // If it already exists, update it if the parentId has changed like when the setting is toggled on/off and conditional state changes.
+                if (prev[item.id].parentId !== item.parentId) {
+                    return {
+                        ...prev,
+                        [item.id]: item,
+                    }
+                }
+                return prev
+            }
+            return {
+                ...prev,
+                [item.id]: item,
+            }
+        })
+    }, [])
+
+    return <SearchContext.Provider value={{ searchIndex, registerItem }}>{children}</SearchContext.Provider>
+}
+
+/**
+ * Hook to access the search registry context.
+ * Returns the search index and registration function.
+ */
+export const useSearchRegistry = () => {
+    const context = useContext(SearchContext)
+    if (context === undefined) {
+        throw new Error("useSearchRegistry must be used within a SearchProvider")
+    }
+    return context
+}

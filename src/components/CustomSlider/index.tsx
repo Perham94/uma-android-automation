@@ -1,8 +1,9 @@
-import React, { useMemo,  useState, useRef, useEffect } from "react"
+import React, { useMemo, useState, useRef, useEffect } from "react"
 import { View, Text, StyleSheet, Animated, LayoutChangeEvent, ViewStyle } from "react-native"
 import Slider from "@react-native-community/slider"
 import { useTheme } from "../../context/ThemeContext"
 import { Input } from "../ui/input"
+import SearchableItem from "../SearchableItem"
 
 interface CustomSliderProps {
     value: number
@@ -18,6 +19,13 @@ interface CustomSliderProps {
     showLabels?: boolean
     description?: string
     style?: ViewStyle
+    // Search props
+    searchId?: string
+    searchTitle?: string
+    searchDescription?: string
+    searchCondition?: boolean
+    parentId?: string
+    children?: React.ReactNode
 }
 
 const CustomSlider: React.FC<CustomSliderProps> = ({
@@ -34,6 +42,12 @@ const CustomSlider: React.FC<CustomSliderProps> = ({
     showLabels = true,
     description,
     style,
+    searchId,
+    searchTitle,
+    searchDescription,
+    searchCondition,
+    parentId,
+    children,
 }) => {
     const { colors } = useTheme()
     const [isDragging, setIsDragging] = useState(false)
@@ -45,92 +59,96 @@ const CustomSlider: React.FC<CustomSliderProps> = ({
     const thumbScale = useRef(new Animated.Value(1)).current
     const tooltipOpacity = useRef(new Animated.Value(0)).current
 
-    const styles = useMemo(() => StyleSheet.create({
-        container: {
-            marginVertical: 16,
-        },
-        label: {
-            fontSize: 16,
-            fontWeight: "600",
-            color: colors.foreground,
-            marginBottom: 12,
-        },
-        sliderContainer: {
-            marginHorizontal: 20,
-            position: "relative",
-        },
-        valueContainer: {
-            alignItems: "center",
-            marginTop: 8,
-            flexDirection: "row",
-            justifyContent: "space-between",
-            marginHorizontal: 20,
-        },
-        labelText: {
-            fontSize: 12,
-            color: colors.primary,
-        },
-        descriptionText: {
-            fontSize: 14,
-            color: colors.foreground,
-            opacity: 0.7,
-            marginBottom: 8,
-            marginTop: -4,
-        },
-        customThumb: {
-            position: "absolute",
-            width: 20,
-            height: 20,
-            borderRadius: 10,
-            backgroundColor: colors.primary,
-            zIndex: 1,
-            top: 10, // Position it in the middle of the slider height.
-        },
-        tooltip: {
-            position: "absolute",
-            backgroundColor: colors.primary,
-            paddingHorizontal: 12,
-            paddingVertical: 8,
-            borderRadius: 6,
-            top: -45,
-            transform: [{ translateX: -20 }],
-            zIndex: 50,
-            shadowColor: "#000",
-            shadowOffset: {
-                width: 0,
-                height: 2,
-            },
-            shadowOpacity: 0.25,
-            shadowRadius: 3.84,
-            elevation: 5,
-        },
-        tooltipText: {
-            color: colors.background,
-            fontSize: 12,
-            fontWeight: "600",
-            textAlign: "center",
-        },
-        inputContainer: {
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-        },
-        input: {
-            width: 80,
-            textAlign: "center",
-            fontSize: 18,
-            fontWeight: "600",
-            color: colors.foreground,
-            backgroundColor: colors.input,
-            borderColor: colors.foreground,
-        },
-        unitText: {
-            fontSize: 18,
-            fontWeight: "600",
-            color: colors.foreground,
-            marginLeft: 4,
-        },
-    }), [colors])
+    const styles = useMemo(
+        () =>
+            StyleSheet.create({
+                container: {
+                    marginVertical: 16,
+                },
+                label: {
+                    fontSize: 16,
+                    fontWeight: "600",
+                    color: colors.foreground,
+                    marginBottom: 12,
+                },
+                sliderContainer: {
+                    marginHorizontal: 20,
+                    position: "relative",
+                },
+                valueContainer: {
+                    alignItems: "center",
+                    marginTop: 8,
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    marginHorizontal: 20,
+                },
+                labelText: {
+                    fontSize: 12,
+                    color: colors.primary,
+                },
+                descriptionText: {
+                    fontSize: 14,
+                    color: colors.foreground,
+                    opacity: 0.7,
+                    marginBottom: 8,
+                    marginTop: -4,
+                },
+                customThumb: {
+                    position: "absolute",
+                    width: 20,
+                    height: 20,
+                    borderRadius: 10,
+                    backgroundColor: colors.primary,
+                    zIndex: 1,
+                    top: 10, // Position it in the middle of the slider height.
+                },
+                tooltip: {
+                    position: "absolute",
+                    backgroundColor: colors.primary,
+                    paddingHorizontal: 12,
+                    paddingVertical: 8,
+                    borderRadius: 6,
+                    top: -45,
+                    transform: [{ translateX: -20 }],
+                    zIndex: 50,
+                    shadowColor: "#000",
+                    shadowOffset: {
+                        width: 0,
+                        height: 2,
+                    },
+                    shadowOpacity: 0.25,
+                    shadowRadius: 3.84,
+                    elevation: 5,
+                },
+                tooltipText: {
+                    color: colors.background,
+                    fontSize: 12,
+                    fontWeight: "600",
+                    textAlign: "center",
+                },
+                inputContainer: {
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                },
+                input: {
+                    width: 80,
+                    textAlign: "center",
+                    fontSize: 18,
+                    fontWeight: "600",
+                    color: colors.foreground,
+                    backgroundColor: colors.input,
+                    borderColor: colors.foreground,
+                },
+                unitText: {
+                    fontSize: 18,
+                    fontWeight: "600",
+                    color: colors.foreground,
+                    marginLeft: 4,
+                },
+            }),
+        [colors],
+    )
 
     const calculateTooltipPosition = (currentValue: number) => {
         if (sliderWidth === 0) return 0
@@ -251,7 +269,7 @@ const CustomSlider: React.FC<CustomSliderProps> = ({
         setSliderWidth(width)
     }
 
-    return (
+    const content = (
         <View style={[styles.container, style]}>
             {label && <Text style={styles.label}>{label}</Text>}
             {description && <Text style={styles.descriptionText}>{description}</Text>}
@@ -320,8 +338,19 @@ const CustomSlider: React.FC<CustomSliderProps> = ({
                     <Text style={styles.labelText}>{showLabels ? max + labelUnit : ""}</Text>
                 </View>
             )}
+            {children}
         </View>
     )
+
+    if (searchId) {
+        return (
+            <SearchableItem id={searchId} title={searchTitle || label || ""} description={searchDescription || description || undefined} parentId={parentId} condition={searchCondition}>
+                {content}
+            </SearchableItem>
+        )
+    }
+
+    return content
 }
 
 export default CustomSlider
