@@ -27,7 +27,7 @@ interface SearchableItemProps {
 }
 
 /**
- * The inner content which consumes useRoute. This is only rendered when NOT in headless mode.
+ * The inner content which consumes useRoute for highlight and scroll-to behavior.
  * @param id The ID of the item.
  * @param children The children of the item.
  * @param scrollViewRef The ref of the parent ScrollView.
@@ -117,7 +117,7 @@ const SearchableItemContent = ({ id, children, scrollViewRef, style }: Searchabl
  * @param style Optional style to apply to the item.
  */
 const SearchableItem = ({ id, title, description, page, children, scrollViewRef, parentId, condition, style }: SearchableItemProps) => {
-    const { registerItem, isHeadlessRender } = useSearchRegistry()
+    const { registerItem } = useSearchRegistry()
     const pageContext = useSearchPage()
 
     const finalPage = page || pageContext?.page
@@ -169,12 +169,6 @@ const SearchableItem = ({ id, title, description, page, children, scrollViewRef,
             registerItem({ id, title: finalTitle, description: finalDescription, page: finalPage, parentId: effectiveParentId })
         }
     }, [id, finalTitle, finalDescription, finalPage, parentId, condition, registerItem])
-
-    // In background indexing mode, we only render the children to traverse the React tree.
-    // This allows nested items to register without executing animations or layout measurements.
-    if (isHeadlessRender) {
-        return <>{children}</>
-    }
 
     // If a condition is explicitly passed and is false, do not render the content.
     // This allows conditionally hidden items to remain searchable and fallback to their parent.
