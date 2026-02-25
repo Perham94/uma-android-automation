@@ -485,8 +485,15 @@ const RacingPlanSettings = () => {
 
     const renderRaceList = () => {
         return (
-            <View style={styles.section}>
-                <SearchableItem id="planned-races" title="Planned Races" description="Select which races the bot should prioritize using opportunity cost analysis." style={styles.section}>
+            <View style={enableRacingPlan ? styles.section : { display: "none" }}>
+                <SearchableItem
+                    id="planned-races"
+                    title="Planned Races"
+                    description="Select which races the bot should prioritize using opportunity cost analysis."
+                    style={styles.section}
+                    condition={enableRacingPlan}
+                    parentId="enable-racing-plan"
+                >
                 <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 12, gap: 12 }}>
                     <View style={{ flex: 1 }}>
                         <Text style={styles.sectionTitle}>Planned Races</Text>
@@ -591,12 +598,8 @@ const RacingPlanSettings = () => {
                         />
                     </View>
 
-                    {enableRacingPlan && (
-                        <>
-                            {renderOptions()}
-                            {renderRaceList()}
-                        </>
-                    )}
+                    {renderOptions()}
+                    {renderRaceList()}
                 </View>
             </ScrollView>
             </SearchPageProvider>
