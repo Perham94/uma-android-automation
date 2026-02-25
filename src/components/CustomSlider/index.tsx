@@ -1,8 +1,9 @@
-import React, { useMemo,  useState, useRef, useEffect } from "react"
+import React, { useMemo, useState, useRef, useEffect } from "react"
 import { View, Text, StyleSheet, Animated, LayoutChangeEvent, ViewStyle } from "react-native"
 import Slider from "@react-native-community/slider"
 import { useTheme } from "../../context/ThemeContext"
 import { Input } from "../ui/input"
+import SearchableItem from "../SearchableItem"
 
 interface CustomSliderProps {
     value: number
@@ -18,6 +19,13 @@ interface CustomSliderProps {
     showLabels?: boolean
     description?: string
     style?: ViewStyle
+    // Search props
+    searchId?: string
+    searchTitle?: string
+    searchDescription?: string
+    searchCondition?: boolean
+    parentId?: string
+    children?: React.ReactNode
 }
 
 const CustomSlider: React.FC<CustomSliderProps> = ({
@@ -34,6 +42,12 @@ const CustomSlider: React.FC<CustomSliderProps> = ({
     showLabels = true,
     description,
     style,
+    searchId,
+    searchTitle,
+    searchDescription,
+    searchCondition,
+    parentId,
+    children,
 }) => {
     const { colors } = useTheme()
     const [isDragging, setIsDragging] = useState(false)
@@ -255,7 +269,7 @@ const CustomSlider: React.FC<CustomSliderProps> = ({
         setSliderWidth(width)
     }
 
-    return (
+    const content = (
         <View style={[styles.container, style]}>
             {label && <Text style={styles.label}>{label}</Text>}
             {description && <Text style={styles.descriptionText}>{description}</Text>}
@@ -324,8 +338,19 @@ const CustomSlider: React.FC<CustomSliderProps> = ({
                     <Text style={styles.labelText}>{showLabels ? max + labelUnit : ""}</Text>
                 </View>
             )}
+            {children}
         </View>
     )
+
+    if (searchId) {
+        return (
+            <SearchableItem id={searchId} title={searchTitle || label || ""} description={searchDescription || description || undefined} parentId={parentId} condition={searchCondition}>
+                {content}
+            </SearchableItem>
+        )
+    }
+
+    return content
 }
 
 export default CustomSlider
