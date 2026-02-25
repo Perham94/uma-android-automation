@@ -1,8 +1,9 @@
-import { useMemo,  useContext } from "react"
+import { useMemo,  useContext, useRef } from "react"
 import { View, Text, ScrollView, StyleSheet } from "react-native"
 import { useNavigation } from "@react-navigation/native"
 import { useTheme } from "../../context/ThemeContext"
 import { BotStateContext, defaultSettings } from "../../context/BotStateContext"
+import { SearchPageProvider } from "../../context/SearchPageContext"
 import CustomCheckbox from "../../components/CustomCheckbox"
 import CustomSelect from "../../components/CustomSelect"
 import CustomTitle from "../../components/CustomTitle"
@@ -10,11 +11,13 @@ import { Input } from "../../components/ui/input"
 import NavigationLink from "../../components/NavigationLink"
 import PageHeader from "../../components/PageHeader"
 import WarningContainer from "../../components/WarningContainer"
+import SearchableItem from "../../components/SearchableItem"
 
 const RacingSettings = () => {
     const { colors } = useTheme()
     const navigation = useNavigation()
     const bsc = useContext(BotStateContext)
+    const scrollViewRef = useRef<ScrollView>(null)
 
     const { settings, setSettings } = bsc
     // Merge current racing settings with defaults to handle missing properties.
@@ -100,11 +103,12 @@ const RacingSettings = () => {
         <View style={styles.root}>
             <PageHeader title="Racing Settings" />
 
-            <ScrollView nestedScrollEnabled={true} showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1 }}>
+            <SearchPageProvider page="RacingSettings" scrollViewRef={scrollViewRef}>
+            <ScrollView ref={scrollViewRef} nestedScrollEnabled={true} showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1 }}>
                 <View className="m-1">
                     <View style={styles.section}>
                         <CustomCheckbox
-                            id="enable-farming-fans"
+                            searchId="enable-farming-fans"
                             checked={enableFarmingFans}
                             onCheckedChange={(checked) => updateRacingSetting("enableFarmingFans", checked)}
                             label="Enable Farming Fans"
@@ -113,7 +117,7 @@ const RacingSettings = () => {
                         />
                     </View>
 
-                    <View style={styles.section}>
+                    <SearchableItem id="days-to-run-extra-races" title="Days to Run Extra Races" description="Controls when extra races can be run using modulo arithmetic." style={styles.section}>
                         <Text style={styles.inputLabel}>Days to Run Extra Races</Text>
                         <Input
                             style={styles.input}
@@ -129,11 +133,11 @@ const RacingSettings = () => {
                             Controls when extra races can be run using modulo arithmetic. For example, if set to 5, extra races will only be available on days 5, 10, 15, etc. (when current day % 5 =
                             0). Note: This setting has no effect when Racing Plan is enabled, as Racing Plan controls when races occur based on opportunity cost analysis or mandatory race detection.
                         </Text>
-                    </View>
+                    </SearchableItem>
 
                     <View style={styles.section}>
                         <CustomCheckbox
-                            id="ignore-consecutive-race-warning"
+                            searchId="ignore-consecutive-race-warning"
                             checked={ignoreConsecutiveRaceWarning}
                             onCheckedChange={(checked) => updateRacingSetting("ignoreConsecutiveRaceWarning", checked)}
                             label="Ignore Consecutive Race Warning"
@@ -146,7 +150,7 @@ const RacingSettings = () => {
 
                     <View style={styles.inputContainer}>
                         <CustomCheckbox
-                            id="disable-race-retries"
+                            searchId="disable-race-retries"
                             checked={disableRaceRetries}
                             onCheckedChange={(checked) => updateRacingSetting("disableRaceRetries", checked)}
                             label="Disable Race Retries"
@@ -155,7 +159,9 @@ const RacingSettings = () => {
                         />
                         {disableRaceRetries && (
                             <CustomCheckbox
-                                id="enable-free-race-retry"
+                                searchId="enable-free-race-retry"
+                                searchCondition={disableRaceRetries}
+                                parentId="disable-race-retries"
                                 checked={enableFreeRaceRetry}
                                 onCheckedChange={(checked) => updateRacingSetting("enableFreeRaceRetry", checked)}
                                 label="Allow Daily Free Race Retry"
@@ -164,7 +170,7 @@ const RacingSettings = () => {
                             />
                         )}
                         <CustomCheckbox
-                            id="enable-complete-career-on-failure"
+                            searchId="enable-complete-career-on-failure"
                             checked={enableCompleteCareerOnFailure}
                             onCheckedChange={(checked) => updateRacingSetting("enableCompleteCareerOnFailure", checked)}
                             label="Complete Career on Failure"
@@ -172,7 +178,7 @@ const RacingSettings = () => {
                             className="my-2"
                         />
                         <CustomCheckbox
-                            id="enable-stop-on-mandatory-races"
+                            searchId="enable-stop-on-mandatory-races"
                             checked={enableStopOnMandatoryRaces}
                             onCheckedChange={(checked) => updateRacingSetting("enableStopOnMandatoryRaces", checked)}
                             label="Stop on Mandatory Races"
@@ -184,6 +190,9 @@ const RacingSettings = () => {
                     <View style={styles.inputContainer}>
                         <Text style={styles.inputLabel}>Junior Year Race Strategy</Text>
                         <CustomSelect
+                            searchId="junior-year-race-strategy"
+                            searchTitle="Junior Year Race Strategy"
+                            searchDescription="The race strategy to use for all races during Junior Year."
                             options={[
                                 { value: "Default", label: "Default" },
                                 { value: "Auto", label: "Auto" },
@@ -203,6 +212,9 @@ const RacingSettings = () => {
                     <View style={styles.inputContainer}>
                         <Text style={styles.inputLabel}>Original Race Strategy</Text>
                         <CustomSelect
+                            searchId="original-race-strategy"
+                            searchTitle="Original Race Strategy"
+                            searchDescription="The race strategy to reset to after Junior Year. The bot will use this strategy for races in Year 2 and beyond."
                             options={[
                                 { value: "Default", label: "Default" },
                                 { value: "Auto", label: "Auto" },
@@ -223,7 +235,7 @@ const RacingSettings = () => {
 
                     <View style={styles.section}>
                         <CustomCheckbox
-                            id="enable-force-racing"
+                            searchId="enable-force-racing"
                             checked={enableForceRacing}
                             onCheckedChange={(checked) => updateRacingSetting("enableForceRacing", checked)}
                             label="Force Racing"
@@ -234,7 +246,7 @@ const RacingSettings = () => {
                     </View>
 
                     <CustomCheckbox
-                        id="enable-user-in-game-race-agenda"
+                        searchId="enable-user-in-game-race-agenda"
                         checked={enableUserInGameRaceAgenda}
                         onCheckedChange={(checked) => updateRacingSetting("enableUserInGameRaceAgenda", checked)}
                         label="Enable User In-Game Race Agenda"
@@ -247,6 +259,11 @@ const RacingSettings = () => {
                     {enableUserInGameRaceAgenda && (
                         <View style={styles.section}>
                             <CustomSelect
+                                searchId="user-in-game-race-agenda"
+                                searchTitle="User In-Game Race Agenda"
+                                searchDescription="The in-game race agenda to use when 'Enable User In-Game Race Agenda' is enabled."
+                                searchCondition={enableUserInGameRaceAgenda}
+                                parentId="enable-user-in-game-race-agenda"
                                 placeholder="Select an Agenda"
                                 width="100%"
                                 options={[
@@ -275,6 +292,7 @@ const RacingSettings = () => {
                     />
                 </View>
             </ScrollView>
+            </SearchPageProvider>
         </View>
     )
 }
