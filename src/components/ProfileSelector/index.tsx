@@ -36,7 +36,6 @@ const ProfileSelector: React.FC<ProfileSelectorProps> = ({ currentTrainingSettin
 
     const styles = useMemo(() => StyleSheet.create({
         container: {
-            marginBottom: 20,
             padding: 16,
             backgroundColor: colors.background,
             borderRadius: 8,
