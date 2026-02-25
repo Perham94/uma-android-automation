@@ -39,6 +39,8 @@ export interface PerformanceLoggerOptions {
 
 export class PerformanceLogger {
     public static ENABLED = false
+    public static SUPPRESS_LOGGING = true
+
     private metrics: PerformanceMetric[] = []
     private options: PerformanceLoggerOptions
 
