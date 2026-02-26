@@ -38,7 +38,7 @@ const Stack = createNativeStackNavigator()
  */
 function SettingsStack() {
     return (
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Navigator screenOptions={{ headerShown: false, freezeOnBlur: true }}>
             <Stack.Screen name="SettingsMain" component={Settings} />
             <Stack.Screen name="TrainingSettings" component={TrainingSettings} />
             <Stack.Screen name="TrainingEventSettings" component={TrainingEventSettings} />
