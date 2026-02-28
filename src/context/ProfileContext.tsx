@@ -112,16 +112,19 @@ export const ProfileProvider: React.FC<{ children: ReactNode }> = ({ children })
     }, [loadProfiles, loadCurrentProfileName])
 
     // Memoize the provider value to prevent cascading re-renders.
-    const value = useMemo(() => ({
-        profiles,
-        currentProfileName,
-        isLoading,
-        loadProfiles,
-        loadCurrentProfileName,
-        setProfiles,
-        setCurrentProfileName,
-        setIsLoading,
-    }), [profiles, currentProfileName, isLoading, loadProfiles, loadCurrentProfileName])
+    const value = useMemo(
+        () => ({
+            profiles,
+            currentProfileName,
+            isLoading,
+            loadProfiles,
+            loadCurrentProfileName,
+            setProfiles,
+            setCurrentProfileName,
+            setIsLoading,
+        }),
+        [profiles, currentProfileName, isLoading, loadProfiles, loadCurrentProfileName]
+    )
 
     return <ProfileContext.Provider value={value}>{children}</ProfileContext.Provider>
 }

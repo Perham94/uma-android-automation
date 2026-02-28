@@ -113,7 +113,7 @@ const ProfileComparison: React.FC<ProfileComparisonProps> = ({ comparison, onCon
                     marginTop: 12,
                 },
             }),
-        [colors],
+        [colors]
     )
 
     if (!hasChanges) {

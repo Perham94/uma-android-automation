@@ -153,7 +153,7 @@ const ImportSettingsPreview = () => {
                     backgroundColor: colors.background,
                 },
             }),
-        [colors],
+        [colors]
     )
 
     /**
@@ -169,7 +169,7 @@ const ImportSettingsPreview = () => {
             CommonActions.reset({
                 index: 0,
                 routes: [{ name: "SettingsMain" }],
-            }),
+            })
         )
     }
 
@@ -182,7 +182,7 @@ const ImportSettingsPreview = () => {
             CommonActions.reset({
                 index: 0,
                 routes: [{ name: "SettingsMain" }],
-            }),
+            })
         )
     }
 

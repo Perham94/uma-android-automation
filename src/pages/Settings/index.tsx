@@ -49,7 +49,7 @@ const Settings = () => {
                     backgroundColor: colors.background,
                 },
             }),
-        [colors],
+        [colors]
     )
 
     //////////////////////////////////////////////////

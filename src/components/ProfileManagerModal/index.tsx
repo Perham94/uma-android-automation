@@ -1,4 +1,4 @@
-import React, { useMemo,  useState, useEffect, useCallback, useRef } from "react"
+import React, { useMemo, useState, useEffect, useCallback, useRef } from "react"
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal as RNModal } from "react-native"
 import { useTheme } from "../../context/ThemeContext"
 import CustomButton from "../CustomButton"
@@ -118,99 +118,103 @@ const ProfileManagerModal: React.FC<ProfileManagerModalProps> = ({
         isScrolling.current = false
     }
 
-    const styles = useMemo(() => StyleSheet.create({
-        modal: {
-            flex: 1,
-            justifyContent: "center",
-            alignItems: "center",
-            backgroundColor: "rgba(70, 70, 70, 0.5)",
-        },
-        /**
-         * The main content area of the modal.
-         * Using maxHeight: "80%" ensures it stays on screen on all devices.
-         * flexShrink: 1 allows it to grow with content but stay within screen limits.
-         */
-        modalContent: {
-            backgroundColor: colors.background,
-            borderRadius: 12,
-            padding: 20,
-            width: "90%",
-            maxHeight: "80%",
-            overflow: "hidden",
-            flexShrink: 1,
-        },
-        header: {
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: 20,
-        },
-        title: {
-            fontSize: 20,
-            fontWeight: "bold",
-            color: colors.foreground,
-        },
-        closeButton: {
-            padding: 4,
-        },
-        profileList: {
-            marginTop: 0,
-        },
-        /**
-         * The main ScrollView for the modal content.
-         * Using flexShrink: 1 allows it to occupy the remaining space
-         * and trigger scrolling when content exceeds modalContent maxHeight.
-         *
-         * NOTE: Manual touch handlers are implemented in the component logic to ensure scrolling reliability.
-         */
-        mainScroll: {
-            flexShrink: 1,
-        },
-        mainScrollContent: {
-            flexGrow: 1,
-            paddingBottom: 20, // Extra padding to ensure bottom content is reachable.
-        },
-        profileItem: {
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-            padding: 12,
-            marginBottom: 8,
-            backgroundColor: colors.secondary,
-            borderRadius: 8,
-        },
-        profileName: {
-            fontSize: 16,
-            color: colors.foreground,
-            flex: 1,
-        },
-        profileNameInput: {
-            flex: 1,
-            marginRight: 8,
-        },
-        profileActions: {
-            flexDirection: "row",
-            gap: 8,
-        },
-        actionButton: {
-            padding: 8,
-        },
-        buttonRow: {
-            flexDirection: "row",
-            justifyContent: "space-between",
-            gap: 8,
-            marginTop: 16,
-        },
-        emptyState: {
-            padding: 20,
-            alignItems: "center",
-        },
-        emptyText: {
-            fontSize: 14,
-            color: colors.foreground,
-            opacity: 0.6,
-        },
-    }), [colors])
+    const styles = useMemo(
+        () =>
+            StyleSheet.create({
+                modal: {
+                    flex: 1,
+                    justifyContent: "center",
+                    alignItems: "center",
+                    backgroundColor: "rgba(70, 70, 70, 0.5)",
+                },
+                /**
+                 * The main content area of the modal.
+                 * Using maxHeight: "80%" ensures it stays on screen on all devices.
+                 * flexShrink: 1 allows it to grow with content but stay within screen limits.
+                 */
+                modalContent: {
+                    backgroundColor: colors.background,
+                    borderRadius: 12,
+                    padding: 20,
+                    width: "90%",
+                    maxHeight: "80%",
+                    overflow: "hidden",
+                    flexShrink: 1,
+                },
+                header: {
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: 20,
+                },
+                title: {
+                    fontSize: 20,
+                    fontWeight: "bold",
+                    color: colors.foreground,
+                },
+                closeButton: {
+                    padding: 4,
+                },
+                profileList: {
+                    marginTop: 0,
+                },
+                /**
+                 * The main ScrollView for the modal content.
+                 * Using flexShrink: 1 allows it to occupy the remaining space
+                 * and trigger scrolling when content exceeds modalContent maxHeight.
+                 *
+                 * NOTE: Manual touch handlers are implemented in the component logic to ensure scrolling reliability.
+                 */
+                mainScroll: {
+                    flexShrink: 1,
+                },
+                mainScrollContent: {
+                    flexGrow: 1,
+                    paddingBottom: 20, // Extra padding to ensure bottom content is reachable.
+                },
+                profileItem: {
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    padding: 12,
+                    marginBottom: 8,
+                    backgroundColor: colors.secondary,
+                    borderRadius: 8,
+                },
+                profileName: {
+                    fontSize: 16,
+                    color: colors.foreground,
+                    flex: 1,
+                },
+                profileNameInput: {
+                    flex: 1,
+                    marginRight: 8,
+                },
+                profileActions: {
+                    flexDirection: "row",
+                    gap: 8,
+                },
+                actionButton: {
+                    padding: 8,
+                },
+                buttonRow: {
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    gap: 8,
+                    marginTop: 16,
+                },
+                emptyState: {
+                    padding: 20,
+                    alignItems: "center",
+                },
+                emptyText: {
+                    fontSize: 14,
+                    color: colors.foreground,
+                    opacity: 0.6,
+                },
+            }),
+        [colors]
+    )
 
     useEffect(() => {
         if (visible) {
@@ -235,7 +239,7 @@ const ProfileManagerModal: React.FC<ProfileManagerModalProps> = ({
                 setEditingProfileId(profileId)
             }
         },
-        [profiles],
+        [profiles]
     )
 
     /**
@@ -344,7 +348,7 @@ const ProfileManagerModal: React.FC<ProfileManagerModalProps> = ({
                 onNoChangesDetected?.(profile.name)
             }
         },
-        [profiles, onOverwriteSettings, compareWithProfile, currentTrainingSettings, currentTrainingStatTargetSettings, onNoChangesDetected],
+        [profiles, onOverwriteSettings, compareWithProfile, currentTrainingSettings, currentTrainingStatTargetSettings, onNoChangesDetected]
     )
 
     /**
@@ -370,7 +374,7 @@ const ProfileManagerModal: React.FC<ProfileManagerModalProps> = ({
                 onError?.(errorMessage)
             }
         },
-        [currentTrainingSettings, currentTrainingStatTargetSettings, updateProfile, onProfileUpdated, onClose, onError],
+        [currentTrainingSettings, currentTrainingStatTargetSettings, updateProfile, onProfileUpdated, onClose, onError]
     )
 
     /**

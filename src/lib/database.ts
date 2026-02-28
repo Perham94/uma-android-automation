@@ -742,7 +742,7 @@ export class DatabaseManager {
 
                 // Execute all skills in batch using prepared statement.
                 for (const skill of skills) {
-                    let versions: string = "";
+                    let versions: string = ""
                     if (skill.versions !== null) {
                         versions = skill.versions.join(",")
                     }

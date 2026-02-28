@@ -1,4 +1,4 @@
-import React, { useMemo,  useState, useEffect, useRef } from "react"
+import React, { useMemo, useState, useEffect, useRef } from "react"
 import { View, Text, StyleSheet, TouchableOpacity, Modal, TextInput, ScrollView, ViewStyle } from "react-native"
 import { useTheme } from "../../context/ThemeContext"
 import CustomCheckbox from "../CustomCheckbox"
@@ -163,144 +163,148 @@ const MultiSelector: React.FC<MultiSelectorProps> = ({
     // Filter options based on search query.
     const filteredOptions = options.filter((option) => option.toLowerCase().includes(searchQuery.toLowerCase()))
 
-    const styles = useMemo(() => StyleSheet.create({
-        container: {
-            marginBottom: 24,
-        },
-        title: {
-            fontSize: 18,
-            fontWeight: "600",
-            color: colors.foreground,
-            marginBottom: 12,
-        },
-        description: {
-            fontSize: 14,
-            color: colors.foreground,
-            opacity: 0.7,
-            marginBottom: 16,
-            lineHeight: 20,
-        },
-        selectAllContainer: {
-            marginBottom: 16,
-        },
-        multiSelectorContainer: {
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-            marginBottom: 16,
-        },
-        multiSelectorButton: {
-            flexDirection: "row",
-            alignItems: "center",
-            backgroundColor: colors.primary,
-            paddingHorizontal: 16,
-            paddingVertical: 12,
-            borderRadius: 8,
-            flex: 1,
-            marginRight: 12,
-        },
-        multiSelectorButtonDisabled: {
-            flexDirection: "row",
-            alignItems: "center",
-            backgroundColor: colors.muted || colors.border,
-            paddingHorizontal: 16,
-            paddingVertical: 12,
-            borderRadius: 8,
-            flex: 1,
-            marginRight: 12,
-            opacity: 0.6,
-        },
-        multiSelectorButtonText: {
-            color: colors.background,
-            fontWeight: "600",
-            marginLeft: 8,
-        },
-        multiSelectorButtonTextDisabled: {
-            color: colors.foreground,
-            fontWeight: "600",
-            marginLeft: 8,
-        },
-        selectedCount: {
-            fontSize: 12,
-            color: colors.foreground,
-            opacity: 0.6,
-        },
-        disabledNote: {
-            fontSize: 12,
-            color: colors.foreground,
-            opacity: 0.5,
-            fontStyle: "italic",
-        },
-        modalOverlay: {
-            flex: 1,
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-            justifyContent: "center",
-            alignItems: "center",
-        },
-        modalContent: {
-            backgroundColor: colors.background,
-            borderRadius: 16,
-            padding: 20,
-            width: "90%",
-            maxHeight: "80%",
-        },
-        modalHeader: {
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: 20,
-        },
-        modalTitle: {
-            fontSize: 20,
-            fontWeight: "bold",
-            color: colors.foreground,
-        },
-        closeButton: {
-            padding: 8,
-        },
-        searchContainer: {
-            flexDirection: "row",
-            alignItems: "center",
-            backgroundColor: colors.card,
-            borderWidth: 1,
-            borderColor: colors.border,
-            borderRadius: 8,
-            paddingHorizontal: 12,
-            marginBottom: 20,
-        },
-        searchInput: {
-            flex: 1,
-            paddingVertical: 12,
-            color: colors.foreground,
-            fontSize: 16,
-            backgroundColor: "transparent",
-        },
-        optionsList: {
-            maxHeight: 400,
-        },
-        optionItem: {
-            marginBottom: 8,
-            paddingLeft: 8,
-            borderWidth: 1,
-            borderColor: colors.border,
-            borderRadius: 8,
-        },
-        noResults: {
-            textAlign: "center",
-            color: colors.foreground,
-            opacity: 0.6,
-            padding: 20,
-        },
-        buttonRow: {
-            flexDirection: "row",
-            justifyContent: "space-between",
-            marginTop: 20,
-        },
-        clearSearchButton: {
-            padding: 8,
-            marginLeft: 8,
-        },
-    }), [colors])
+    const styles = useMemo(
+        () =>
+            StyleSheet.create({
+                container: {
+                    marginBottom: 24,
+                },
+                title: {
+                    fontSize: 18,
+                    fontWeight: "600",
+                    color: colors.foreground,
+                    marginBottom: 12,
+                },
+                description: {
+                    fontSize: 14,
+                    color: colors.foreground,
+                    opacity: 0.7,
+                    marginBottom: 16,
+                    lineHeight: 20,
+                },
+                selectAllContainer: {
+                    marginBottom: 16,
+                },
+                multiSelectorContainer: {
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    marginBottom: 16,
+                },
+                multiSelectorButton: {
+                    flexDirection: "row",
+                    alignItems: "center",
+                    backgroundColor: colors.primary,
+                    paddingHorizontal: 16,
+                    paddingVertical: 12,
+                    borderRadius: 8,
+                    flex: 1,
+                    marginRight: 12,
+                },
+                multiSelectorButtonDisabled: {
+                    flexDirection: "row",
+                    alignItems: "center",
+                    backgroundColor: colors.muted || colors.border,
+                    paddingHorizontal: 16,
+                    paddingVertical: 12,
+                    borderRadius: 8,
+                    flex: 1,
+                    marginRight: 12,
+                    opacity: 0.6,
+                },
+                multiSelectorButtonText: {
+                    color: colors.background,
+                    fontWeight: "600",
+                    marginLeft: 8,
+                },
+                multiSelectorButtonTextDisabled: {
+                    color: colors.foreground,
+                    fontWeight: "600",
+                    marginLeft: 8,
+                },
+                selectedCount: {
+                    fontSize: 12,
+                    color: colors.foreground,
+                    opacity: 0.6,
+                },
+                disabledNote: {
+                    fontSize: 12,
+                    color: colors.foreground,
+                    opacity: 0.5,
+                    fontStyle: "italic",
+                },
+                modalOverlay: {
+                    flex: 1,
+                    backgroundColor: "rgba(0, 0, 0, 0.5)",
+                    justifyContent: "center",
+                    alignItems: "center",
+                },
+                modalContent: {
+                    backgroundColor: colors.background,
+                    borderRadius: 16,
+                    padding: 20,
+                    width: "90%",
+                    maxHeight: "80%",
+                },
+                modalHeader: {
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: 20,
+                },
+                modalTitle: {
+                    fontSize: 20,
+                    fontWeight: "bold",
+                    color: colors.foreground,
+                },
+                closeButton: {
+                    padding: 8,
+                },
+                searchContainer: {
+                    flexDirection: "row",
+                    alignItems: "center",
+                    backgroundColor: colors.card,
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                    borderRadius: 8,
+                    paddingHorizontal: 12,
+                    marginBottom: 20,
+                },
+                searchInput: {
+                    flex: 1,
+                    paddingVertical: 12,
+                    color: colors.foreground,
+                    fontSize: 16,
+                    backgroundColor: "transparent",
+                },
+                optionsList: {
+                    maxHeight: 400,
+                },
+                optionItem: {
+                    marginBottom: 8,
+                    paddingLeft: 8,
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                    borderRadius: 8,
+                },
+                noResults: {
+                    textAlign: "center",
+                    color: colors.foreground,
+                    opacity: 0.6,
+                    padding: 20,
+                },
+                buttonRow: {
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    marginTop: 20,
+                },
+                clearSearchButton: {
+                    padding: 8,
+                    marginLeft: 8,
+                },
+            }),
+        [colors]
+    )
 
     return (
         <View style={[styles.container, style]}>
@@ -309,13 +313,7 @@ const MultiSelector: React.FC<MultiSelectorProps> = ({
 
             {/* Select All Checkbox */}
             <View style={styles.selectAllContainer}>
-                <CustomCheckbox
-                    checked={selectAll}
-                    onCheckedChange={handleSelectAll}
-                    label={selectAllLabel}
-                    description={selectAllDescription}
-                    className="my-2"
-                />
+                <CustomCheckbox checked={selectAll} onCheckedChange={handleSelectAll} label={selectAllLabel} description={selectAllDescription} className="my-2" />
             </View>
 
             {/* Multi-Selector Button */}
@@ -375,12 +373,7 @@ const MultiSelector: React.FC<MultiSelectorProps> = ({
                             {filteredOptions.length > 0 ? (
                                 filteredOptions.map((option) => (
                                     <View key={option} style={styles.optionItem}>
-                                        <CustomCheckbox
-                                            checked={selectedOptions.includes(option)}
-                                            onCheckedChange={(checked) => handleOptionToggle(option, checked)}
-                                            label={option}
-                                            className="my-1"
-                                        />
+                                        <CustomCheckbox checked={selectedOptions.includes(option)} onCheckedChange={(checked) => handleOptionToggle(option, checked)} label={option} className="my-1" />
                                     </View>
                                 ))
                             ) : (

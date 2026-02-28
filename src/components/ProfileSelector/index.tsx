@@ -84,7 +84,7 @@ const ProfileSelector: React.FC<ProfileSelectorProps> = ({ currentTrainingSettin
                     opacity: 0.7,
                 },
             }),
-        [colors],
+        [colors]
     )
 
     // Initialize and sync selected profile with current active profile and available profiles.
@@ -172,7 +172,7 @@ const ProfileSelector: React.FC<ProfileSelectorProps> = ({ currentTrainingSettin
                 setSelectedProfileName(getDefaultSelectedProfile(profiles))
             }
         },
-        [profiles, onOverwriteSettings],
+        [profiles, onOverwriteSettings]
     )
 
     // Handle pending profile switch after profiles have been reloaded.

@@ -532,7 +532,7 @@ const TrainingEventSettings = () => {
                     padding: 20,
                 },
             }),
-        [colors],
+        [colors]
     )
 
     return (

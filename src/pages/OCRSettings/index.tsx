@@ -48,7 +48,7 @@ const OCRSettings = () => {
                     marginBottom: 24,
                 },
             }),
-        [colors],
+        [colors]
     )
 
     return (

@@ -82,7 +82,7 @@ const SearchableItemContent = ({ id, children, scrollViewRef, style }: Searchabl
                             },
                             () => {
                                 console.warn("Failed to measure layout for scrolling from SearchableItem.")
-                            },
+                            }
                         )
                     } catch (e) {
                         console.warn("Error measuring layout while scrolling from SearchableItem.", e)

@@ -34,7 +34,7 @@ const DebugSettings = () => {
                     backgroundColor: colors.background,
                 },
             }),
-        [colors],
+        [colors]
     )
 
     return (

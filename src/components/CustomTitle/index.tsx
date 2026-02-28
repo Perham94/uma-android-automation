@@ -54,7 +54,7 @@ const CustomTitle = ({ title, description, style, searchId, searchTitle, searchD
                     lineHeight: 20,
                 },
             }),
-        [colors],
+        [colors]
     )
 
     const content = (

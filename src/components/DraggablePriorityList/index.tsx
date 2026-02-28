@@ -79,11 +79,11 @@ const DraggablePriorityList: React.FC<DraggablePriorityListProps> = ({ items, se
 
         // Get deselected items that should remain visible.
         const deselectedItems = items.map((item) => item.id).filter((id) => !selectedItems.includes(id))
-        
+
         // Use the selectedItems order as-is, then append deselected items.
         const finalOrdered = [...selectedItems, ...deselectedItems]
         setOrderedItems(finalOrdered)
-        
+
         // Update drag order ref with the selected items in their order.
         dragOrderRef.current = selectedItems
     }, [selectedItems, items])

@@ -108,7 +108,7 @@ const SkillSettings = () => {
                     marginTop: 2,
                 },
             }),
-        [colors],
+        [colors]
     )
 
     return (

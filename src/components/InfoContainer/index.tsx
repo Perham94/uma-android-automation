@@ -35,7 +35,7 @@ const InfoContainer = ({ style, children }: Props) => {
                     lineHeight: 20,
                 },
             }),
-        [colors],
+        [colors]
     )
 
     return <View style={[styles.container, style]}>{typeof children === "string" ? <Text style={styles.text}>{children}</Text> : children}</View>

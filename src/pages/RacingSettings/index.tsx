@@ -16,7 +16,7 @@ import { usePerformanceLogging } from "../../hooks/usePerformanceLogging"
 
 /**
  * The Racing Settings page.
- * Provides configuration for fan farming, race retries, mandatory race handling, race strategies (Junior vs. Original), 
+ * Provides configuration for fan farming, race retries, mandatory race handling, race strategies (Junior vs. Original),
  * force racing, in-game race agenda, and navigation to the Racing Plan Settings sub-page.
  */
 const RacingSettings = () => {
@@ -109,7 +109,7 @@ const RacingSettings = () => {
                     marginTop: 4,
                 },
             }),
-        [colors],
+        [colors]
     )
 
     return (

@@ -16,25 +16,29 @@ type Props = {
 const FileDivider: React.FC<Props> = ({ divider }) => {
     const { colors } = useTheme()
 
-    const styles = useMemo(() => StyleSheet.create({
-        container: {
-            flexDirection: "row",
-            alignItems: "center",
-            marginVertical: 12,
-            marginHorizontal: 12,
-        },
-        line: {
-            flex: 1,
-            height: 1,
-            backgroundColor: colors.lightlyMuted,
-        },
-        text: {
-            marginHorizontal: 12,
-            fontSize: 12,
-            fontWeight: "500",
-            color: colors.lightlyMuted,
-        },
-    }), [colors])
+    const styles = useMemo(
+        () =>
+            StyleSheet.create({
+                container: {
+                    flexDirection: "row",
+                    alignItems: "center",
+                    marginVertical: 12,
+                    marginHorizontal: 12,
+                },
+                line: {
+                    flex: 1,
+                    height: 1,
+                    backgroundColor: colors.lightlyMuted,
+                },
+                text: {
+                    marginHorizontal: 12,
+                    fontSize: 12,
+                    fontWeight: "500",
+                    color: colors.lightlyMuted,
+                },
+            }),
+        [colors]
+    )
 
     return (
         <View style={styles.container}>

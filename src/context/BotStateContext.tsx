@@ -195,7 +195,7 @@ export const defaultSettings: Settings = {
                 raceName: race.name,
                 date: race.date,
                 priority: index,
-            })),
+            }))
         ),
         racingPlanData: JSON.stringify(racesData),
         minFansThreshold: 0,
@@ -416,17 +416,20 @@ export const BotStateProvider = ({ children }: any): React.ReactElement => {
     }, [])
 
     // Memoize the provider value to prevent cascading re-renders.
-    const providerValues = useMemo<BotStateProviderProps>(() => ({
-        readyStatus,
-        setReadyStatus,
-        defaultSettings,
-        settings,
-        setSettings: setSettingsWithLogging,
-        appName,
-        setAppName,
-        appVersion,
-        setAppVersion,
-    }), [readyStatus, settings, appName, appVersion, setSettingsWithLogging])
+    const providerValues = useMemo<BotStateProviderProps>(
+        () => ({
+            readyStatus,
+            setReadyStatus,
+            defaultSettings,
+            settings,
+            setSettings: setSettingsWithLogging,
+            appName,
+            setAppName,
+            appVersion,
+            setAppVersion,
+        }),
+        [readyStatus, settings, appName, appVersion, setSettingsWithLogging]
+    )
 
     return <BotStateContext.Provider value={providerValues}>{children}</BotStateContext.Provider>
 }

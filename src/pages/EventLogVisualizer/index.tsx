@@ -23,7 +23,7 @@ type MixedRecord = DayRecord | GapRecord | FileDividerRecord
 
 /**
  * The Event Log Visualizer page.
- * Allows users to import bot log files and view a day-by-day timeline of actions, gap notices for missing days, file dividers, 
+ * Allows users to import bot log files and view a day-by-day timeline of actions, gap notices for missing days, file dividers,
  * and aggregated year summaries with action counts, stat gains, and elapsed time.
  */
 const EventLogVisualizer: React.FC = () => {
@@ -96,7 +96,7 @@ const EventLogVisualizer: React.FC = () => {
                     color: colors.foreground,
                 },
             }),
-        [colors],
+        [colors]
     )
 
     /**
@@ -158,7 +158,7 @@ const EventLogVisualizer: React.FC = () => {
             }
             return <DayRow record={item} showTriggers={showTriggers} />
         },
-        [showTriggers],
+        [showTriggers]
     )
 
     /**

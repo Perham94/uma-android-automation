@@ -157,7 +157,7 @@ const SkillPlanSettings: FC<SkillPlanSettingsProps> = ({ planKey, name, title, d
                 },
             })
         },
-        [bsc.settings, planKey, setSettings],
+        [bsc.settings, planKey, setSettings]
     )
 
     /**
@@ -182,7 +182,7 @@ const SkillPlanSettings: FC<SkillPlanSettingsProps> = ({ planKey, name, title, d
             // Update the racing plan with the changes.
             updateSkillsSetting("plan", newPlanIds.join(","))
         },
-        [planIds, updateSkillsSetting],
+        [planIds, updateSkillsSetting]
     )
 
     /**
@@ -267,7 +267,7 @@ const SkillPlanSettings: FC<SkillPlanSettingsProps> = ({ planKey, name, title, d
                     marginBottom: 16,
                 },
             }),
-        [colors],
+        [colors]
     )
 
     const renderOptions = () => {

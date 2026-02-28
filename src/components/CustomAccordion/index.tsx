@@ -65,7 +65,7 @@ const CustomAccordion: React.FC<CustomAccordionProps> = ({ sections, type = "sin
                     marginBottom: 0,
                 },
             }),
-        [colors],
+        [colors]
     )
 
     return (

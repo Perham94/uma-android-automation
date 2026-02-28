@@ -705,7 +705,7 @@ ${longTargetsString}
                 showError("Failed to copy message")
             }
         },
-        [showError],
+        [showError]
     )
 
     /**
@@ -715,7 +715,7 @@ ${longTargetsString}
      */
     const renderLogItem = useCallback(
         ({ item }: { item: LogMessage }) => <LogItem item={item} fontSize={fontSize} onLongPress={handleLongPress} enableMessageIdDisplay={bsc.settings.misc.enableMessageIdDisplay} />,
-        [fontSize, handleLongPress, bsc.settings.misc.enableMessageIdDisplay],
+        [fontSize, handleLongPress, bsc.settings.misc.enableMessageIdDisplay]
     )
 
     /**

@@ -462,14 +462,17 @@ export const useSettingsManager = () => {
         }
     }
 
-    return useMemo(() => ({
-        saveSettings,
-        saveSettingsImmediate,
-        loadSettings,
-        importSettings,
-        exportSettings,
-        resetSettings,
-        openDataDirectory,
-        isSaving: isSaving || isSQLiteSaving,
-    }), [saveSettings, saveSettingsImmediate, loadSettings, importSettings, exportSettings, resetSettings, openDataDirectory, isSaving, isSQLiteSaving])
+    return useMemo(
+        () => ({
+            saveSettings,
+            saveSettingsImmediate,
+            loadSettings,
+            importSettings,
+            exportSettings,
+            resetSettings,
+            openDataDirectory,
+            isSaving: isSaving || isSQLiteSaving,
+        }),
+        [saveSettings, saveSettingsImmediate, loadSettings, importSettings, exportSettings, resetSettings, openDataDirectory, isSaving, isSQLiteSaving]
+    )
 }

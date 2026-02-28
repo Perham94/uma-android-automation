@@ -44,11 +44,14 @@ export const MessageLogProvider = ({ children }: any): React.ReactElement => {
     }, [])
 
     // Memoize the provider value to prevent cascading re-renders.
-    const providerValues = useMemo<MessageLogProviderProps>(() => ({
-        messageLog,
-        setMessageLog,
-        addMessageToLog,
-    }), [messageLog, addMessageToLog])
+    const providerValues = useMemo<MessageLogProviderProps>(
+        () => ({
+            messageLog,
+            setMessageLog,
+            addMessageToLog,
+        }),
+        [messageLog, addMessageToLog]
+    )
 
     return <MessageLogContext.Provider value={providerValues}>{children}</MessageLogContext.Provider>
 }

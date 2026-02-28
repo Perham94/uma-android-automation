@@ -52,7 +52,7 @@ interface PlannedRace {
 
 /**
  * The Racing Plan Settings page.
- * Provides smart race planning with opportunity cost analysis, configurable quality thresholds, terrain/grade/distance filters, 
+ * Provides smart race planning with opportunity cost analysis, configurable quality thresholds, terrain/grade/distance filters,
  * time decay factors, and a selectable list of planned races.
  */
 const RacingPlanSettings = () => {
@@ -208,7 +208,7 @@ const RacingPlanSettings = () => {
         if (preferredGrades.includes(grade)) {
             updateRacingSetting(
                 "preferredGrades",
-                preferredGrades.filter((g: string) => g !== grade),
+                preferredGrades.filter((g: string) => g !== grade)
             )
         } else {
             updateRacingSetting("preferredGrades", [...preferredGrades, grade])
@@ -223,7 +223,7 @@ const RacingPlanSettings = () => {
         if (preferredDistances.includes(distance)) {
             updateRacingSetting(
                 "preferredDistances",
-                preferredDistances.filter((d: string) => d !== distance),
+                preferredDistances.filter((d: string) => d !== distance)
             )
         } else {
             updateRacingSetting("preferredDistances", [...preferredDistances, distance])
@@ -311,7 +311,7 @@ const RacingPlanSettings = () => {
                     fontWeight: "600",
                 },
             }),
-        [colors],
+        [colors]
     )
 
     /**

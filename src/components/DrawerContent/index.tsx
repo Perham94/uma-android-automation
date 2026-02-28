@@ -165,7 +165,7 @@ const DrawerContent: React.FC<DrawerContentComponentProps> = (props) => {
                     fontWeight: "500",
                 },
             }),
-        [colors],
+        [colors]
     )
 
     // Define the menu item configurations for the drawer.
@@ -339,7 +339,7 @@ const DrawerContent: React.FC<DrawerContentComponentProps> = (props) => {
                     CommonActions.navigate({
                         name: "Settings",
                         params: { screen: "SettingsMain", initial: false },
-                    }),
+                    })
                 )
             } else {
                 // Settings sub-pages: navigate to Settings drawer, then to the specific screen.
@@ -347,7 +347,7 @@ const DrawerContent: React.FC<DrawerContentComponentProps> = (props) => {
                     CommonActions.navigate({
                         name: "Settings",
                         params: { screen: routeName, initial: false },
-                    }),
+                    })
                 )
             }
         }, 0)

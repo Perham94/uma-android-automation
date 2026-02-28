@@ -26,7 +26,7 @@ export const SearchPageProvider = ({ page, scrollViewRef, children }: { page: st
 }
 
 /**
- * Hook to access the search page context. Does not throw an error if the context is not found, 
+ * Hook to access the search page context. Does not throw an error if the context is not found,
  * so it can be used by components that are not wrapped in a provider.
  * @returns The search page context with the page name and ScrollView ref.
  */

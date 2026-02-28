@@ -60,7 +60,7 @@ const HighlightedText = ({ text, query, style, highlightColor }: { text: string;
                     </Text>
                 ) : (
                     <Text key={idx}>{part}</Text>
-                ),
+                )
             )}
         </Text>
     )
@@ -305,7 +305,7 @@ const PageHeader = ({ title, showHomeButton = true, titleComponent, centerCompon
                     letterSpacing: 1,
                 },
             }),
-        [colors],
+        [colors]
     )
 
     return (

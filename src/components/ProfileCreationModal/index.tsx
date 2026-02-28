@@ -44,103 +44,107 @@ const ProfileCreationModal: React.FC<ProfileCreationModalProps> = ({ visible, on
     const [profileName, setProfileName] = useState("")
     const [isCreating, setIsCreating] = useState(false)
 
-    const styles = useMemo(() => StyleSheet.create({
-        modal: {
-            flex: 1,
-            justifyContent: "center",
-            alignItems: "center",
-            backgroundColor: "rgba(70, 70, 70, 0.5)",
-        },
-        modalContent: {
-            backgroundColor: colors.background,
-            borderRadius: 12,
-            padding: 20,
-            width: "90%",
-            maxHeight: "80%",
-        },
-        header: {
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: 20,
-        },
-        title: {
-            fontSize: 20,
-            fontWeight: "bold",
-            color: colors.foreground,
-        },
-        closeButton: {
-            padding: 4,
-        },
-        input: {
-            marginBottom: 16,
-        },
-        settingsPreview: {
-            marginTop: 16,
-            marginBottom: 16,
-            padding: 12,
-            backgroundColor: colors.secondary,
-            borderRadius: 8,
-            height: 200,
-        },
-        previewTitle: {
-            fontSize: 14,
-            fontWeight: "600",
-            color: colors.foreground,
-            marginBottom: 8,
-        },
-        previewText: {
-            fontSize: 12,
-            color: colors.foreground,
-            opacity: 0.7,
-        },
-        tableContainer: {
-            marginTop: 12,
-        },
-        tableTitle: {
-            fontSize: 12,
-            fontWeight: "600",
-            color: colors.foreground,
-            marginBottom: 8,
-        },
-        table: {
-            borderWidth: 1,
-            borderColor: colors.foreground + "40",
-            borderRadius: 4,
-            overflow: "hidden",
-            backgroundColor: colors.secondary,
-        },
-        tableRow: {
-            flexDirection: "row",
-            borderBottomWidth: 1,
-            borderBottomColor: colors.foreground + "30",
-        },
-        tableCell: {
-            flex: 1,
-            padding: 8,
-            borderRightWidth: 1,
-            borderRightColor: colors.foreground + "30",
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: colors.secondary,
-        },
-        tableHeaderText: {
-            fontSize: 9,
-            fontWeight: "600",
-            color: colors.foreground,
-        },
-        tableCellText: {
-            fontSize: 9,
-            color: colors.foreground,
-            opacity: 0.8,
-        },
-        buttonRow: {
-            flexDirection: "row",
-            justifyContent: "space-between",
-            gap: 8,
-            marginTop: 16,
-        },
-    }), [colors])
+    const styles = useMemo(
+        () =>
+            StyleSheet.create({
+                modal: {
+                    flex: 1,
+                    justifyContent: "center",
+                    alignItems: "center",
+                    backgroundColor: "rgba(70, 70, 70, 0.5)",
+                },
+                modalContent: {
+                    backgroundColor: colors.background,
+                    borderRadius: 12,
+                    padding: 20,
+                    width: "90%",
+                    maxHeight: "80%",
+                },
+                header: {
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: 20,
+                },
+                title: {
+                    fontSize: 20,
+                    fontWeight: "bold",
+                    color: colors.foreground,
+                },
+                closeButton: {
+                    padding: 4,
+                },
+                input: {
+                    marginBottom: 16,
+                },
+                settingsPreview: {
+                    marginTop: 16,
+                    marginBottom: 16,
+                    padding: 12,
+                    backgroundColor: colors.secondary,
+                    borderRadius: 8,
+                    height: 200,
+                },
+                previewTitle: {
+                    fontSize: 14,
+                    fontWeight: "600",
+                    color: colors.foreground,
+                    marginBottom: 8,
+                },
+                previewText: {
+                    fontSize: 12,
+                    color: colors.foreground,
+                    opacity: 0.7,
+                },
+                tableContainer: {
+                    marginTop: 12,
+                },
+                tableTitle: {
+                    fontSize: 12,
+                    fontWeight: "600",
+                    color: colors.foreground,
+                    marginBottom: 8,
+                },
+                table: {
+                    borderWidth: 1,
+                    borderColor: colors.foreground + "40",
+                    borderRadius: 4,
+                    overflow: "hidden",
+                    backgroundColor: colors.secondary,
+                },
+                tableRow: {
+                    flexDirection: "row",
+                    borderBottomWidth: 1,
+                    borderBottomColor: colors.foreground + "30",
+                },
+                tableCell: {
+                    flex: 1,
+                    padding: 8,
+                    borderRightWidth: 1,
+                    borderRightColor: colors.foreground + "30",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: colors.secondary,
+                },
+                tableHeaderText: {
+                    fontSize: 9,
+                    fontWeight: "600",
+                    color: colors.foreground,
+                },
+                tableCellText: {
+                    fontSize: 9,
+                    color: colors.foreground,
+                    opacity: 0.8,
+                },
+                buttonRow: {
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    gap: 8,
+                    marginTop: 16,
+                },
+            }),
+        [colors]
+    )
 
     // Format the training settings into a preview string.
     const settingsPreview = useMemo(() => {

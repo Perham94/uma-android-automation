@@ -188,7 +188,7 @@ const CustomSlider: React.FC<CustomSliderProps> = ({
                     marginLeft: 4,
                 },
             }),
-        [colors],
+        [colors]
     )
 
     /**

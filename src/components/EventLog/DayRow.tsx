@@ -20,70 +20,74 @@ type Props = {
 const DayRow: React.FC<Props> = ({ record, showTriggers }) => {
     const { colors } = useTheme()
 
-    const styles = useMemo(() => StyleSheet.create({
-        container: {
-            paddingVertical: 12,
-            paddingHorizontal: 12,
-            borderRadius: 8,
-            borderWidth: 1,
-            marginBottom: 10,
-            backgroundColor: colors.card,
-            borderColor: colors.border,
-        },
-        headerRow: {
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-            marginBottom: 4,
-        },
-        title: {
-            fontSize: 16,
-            fontWeight: "600",
-            color: colors.foreground,
-        },
-        date: {
-            fontSize: 12,
-            color: colors.lightlyMuted,
-        },
-        summary: {
-            fontSize: 14,
-            marginBottom: 8,
-            color: colors.foreground,
-        },
-        flagsRow: {
-            flexDirection: "row",
-            flexWrap: "wrap",
-            gap: 10,
-        },
-        flag: {
-            flexDirection: "row",
-            alignItems: "center",
-            marginRight: 8,
-            marginBottom: 6,
-        },
-        flagDot: {
-            marginRight: 6,
-        },
-        flagLabel: {
-            fontSize: 12,
-            color: colors.lightlyMuted,
-        },
-        triggersContainer: {
-            marginTop: 8,
-        },
-        triggerSection: {
-            marginBottom: 6,
-        },
-        triggerTitle: {
-            color: colors.lightlyMuted,
-            fontWeight: "600",
-            marginBottom: 2,
-        },
-        triggerLine: {
-            color: colors.lightlyMuted,
-            fontSize: 12,
-        },
-    }), [colors])
+    const styles = useMemo(
+        () =>
+            StyleSheet.create({
+                container: {
+                    paddingVertical: 12,
+                    paddingHorizontal: 12,
+                    borderRadius: 8,
+                    borderWidth: 1,
+                    marginBottom: 10,
+                    backgroundColor: colors.card,
+                    borderColor: colors.border,
+                },
+                headerRow: {
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    marginBottom: 4,
+                },
+                title: {
+                    fontSize: 16,
+                    fontWeight: "600",
+                    color: colors.foreground,
+                },
+                date: {
+                    fontSize: 12,
+                    color: colors.lightlyMuted,
+                },
+                summary: {
+                    fontSize: 14,
+                    marginBottom: 8,
+                    color: colors.foreground,
+                },
+                flagsRow: {
+                    flexDirection: "row",
+                    flexWrap: "wrap",
+                    gap: 10,
+                },
+                flag: {
+                    flexDirection: "row",
+                    alignItems: "center",
+                    marginRight: 8,
+                    marginBottom: 6,
+                },
+                flagDot: {
+                    marginRight: 6,
+                },
+                flagLabel: {
+                    fontSize: 12,
+                    color: colors.lightlyMuted,
+                },
+                triggersContainer: {
+                    marginTop: 8,
+                },
+                triggerSection: {
+                    marginBottom: 6,
+                },
+                triggerTitle: {
+                    color: colors.lightlyMuted,
+                    fontWeight: "600",
+                    marginBottom: 2,
+                },
+                triggerLine: {
+                    color: colors.lightlyMuted,
+                    fontSize: 12,
+                },
+            }),
+        [colors]
+    )
 
     /**
      * Renders the trigger information for a specific action type.

@@ -22,7 +22,7 @@ import { usePerformanceLogging } from "../../hooks/usePerformanceLogging"
 
 /**
  * The Training Settings page.
- * Provides configuration for stat prioritization, blacklists, failure chance thresholds, spark targets, risky training, distance overrides, 
+ * Provides configuration for stat prioritization, blacklists, failure chance thresholds, spark targets, risky training, distance overrides,
  * stat target sliders per distance, and profile management (creation, switching, and overwriting).
  */
 const TrainingSettings = () => {
@@ -42,10 +42,10 @@ const TrainingSettings = () => {
 
     // Initialize local state from settings, with fallback to defaults.
     const [statPrioritizationItems, setStatPrioritizationItems] = useState<string[]>(() =>
-        settings.training?.statPrioritization !== undefined ? settings.training.statPrioritization : defaultSettings.training.statPrioritization,
+        settings.training?.statPrioritization !== undefined ? settings.training.statPrioritization : defaultSettings.training.statPrioritization
     )
     const [blacklistItems, setBlacklistItems] = useState<string[]>(() =>
-        settings.training?.trainingBlacklist !== undefined ? settings.training.trainingBlacklist : defaultSettings.training.trainingBlacklist,
+        settings.training?.trainingBlacklist !== undefined ? settings.training.trainingBlacklist : defaultSettings.training.trainingBlacklist
     )
     const [sparkStatTargetItems, setSparkStatTargetItems] = useState<string[]>(() => {
         const value = settings.training?.focusOnSparkStatTarget
@@ -69,7 +69,7 @@ const TrainingSettings = () => {
             statPrioritization: statPrioritizationItems,
             focusOnSparkStatTarget: sparkStatTargetItems,
         }),
-        [settings.training, blacklistItems, statPrioritizationItems, sparkStatTargetItems],
+        [settings.training, blacklistItems, statPrioritizationItems, sparkStatTargetItems]
     )
 
     const trainingStatTargetSettings = useMemo(() => ({ ...defaultSettings.trainingStatTarget, ...settings.trainingStatTarget }), [settings.trainingStatTarget])
@@ -167,15 +167,18 @@ const TrainingSettings = () => {
      * @param key The key of the training setting to update.
      * @param value The value to set the setting to.
      */
-    const updateTrainingSetting = useCallback((key: keyof typeof settings.training, value: any) => {
-        setSettings((prev) => ({
-            ...prev,
-            training: {
-                ...prev.training,
-                [key]: value,
-            },
-        }))
-    }, [setSettings])
+    const updateTrainingSetting = useCallback(
+        (key: keyof typeof settings.training, value: any) => {
+            setSettings((prev) => ({
+                ...prev,
+                training: {
+                    ...prev.training,
+                    [key]: value,
+                },
+            }))
+        },
+        [setSettings]
+    )
 
     /**
      * Overwrite the current settings with settings from a selected profile.
@@ -222,15 +225,18 @@ const TrainingSettings = () => {
      * @param key The key of the stat target setting to update.
      * @param value The value to set the target to.
      */
-    const updateTrainingStatTarget = useCallback((key: keyof typeof settings.trainingStatTarget, value: any) => {
-        setSettings((prev) => ({
-            ...prev,
-            trainingStatTarget: {
-                ...prev.trainingStatTarget,
-                [key]: value,
-            },
-        }))
-    }, [setSettings])
+    const updateTrainingStatTarget = useCallback(
+        (key: keyof typeof settings.trainingStatTarget, value: any) => {
+            setSettings((prev) => ({
+                ...prev,
+                trainingStatTarget: {
+                    ...prev.trainingStatTarget,
+                    [key]: value,
+                },
+            }))
+        },
+        [setSettings]
+    )
 
     const styles = useMemo(
         () =>
@@ -298,7 +304,7 @@ const TrainingSettings = () => {
                     marginTop: 20,
                 },
             }),
-        [colors],
+        [colors]
     )
 
     /**
@@ -356,7 +362,7 @@ const TrainingSettings = () => {
         setModalVisible: React.Dispatch<React.SetStateAction<boolean>>,
         description?: string,
         mode: "checkbox" | "priority" = "checkbox",
-        id?: string,
+        id?: string
     ) => {
         const content = (
             <View style={styles.section}>
@@ -476,7 +482,7 @@ const TrainingSettings = () => {
                             setBlacklistModalVisible,
                             "Select which stats to exclude from training. These stats will be skipped during training sessions.",
                             "checkbox",
-                            "training-blacklist",
+                            "training-blacklist"
                         )}
 
                         {renderStatSelector(
@@ -487,7 +493,7 @@ const TrainingSettings = () => {
                             setPrioritizationModalVisible,
                             "Select the priority order of the stats. The stats will be trained in the order they are selected. If none are selected, then the default order will be used.",
                             "priority",
-                            "training-prioritization",
+                            "training-prioritization"
                         )}
 
                         <View style={styles.section}>
@@ -585,7 +591,7 @@ const TrainingSettings = () => {
                             setSparkStatTargetModalVisible,
                             "Select which stats should receive priority to get to at least 600 to get the best chance to receive 3* sparks.",
                             "checkbox",
-                            "focus-on-sparks",
+                            "focus-on-sparks"
                         )}
 
                         <View style={styles.section}>
