@@ -100,6 +100,15 @@ This project is separated into a React Native frontend configured via Expo and a
 5. To test Android builds, execute `yarn android` to compile and install the application directly on your device. Use `yarn build` for release APK generation.
 6. *Note*: Do not run the React Native shell app directly from Android Studio. Always rely on the Expo Metro bundler for correct bridging.
 
+# Connect to bluestack from Android studio
+
+1. First turn on ADB on bluestack.
+2. Next go and open with notepad this certain file `C:\ProgramData\BlueStacks_nxt\bluestacks.conf`
+3. Inside that file change `bst.instance.Pie64.adb_port="5555"` to `"5554"`.
+4. Same thing with the `bst.instance.Pie64.status.adb_port="5555"` to `"5554"` and after save and close it.
+5. Open Android studio and use the terminal or cmd and write `adb connect "bluestack ip adress":5554` 
+6. Android studio should be reconized, you can use step 4 and 5 in previous chapter for direct testing.
+
 # Technologies Used
 
 1. [eng.traineddata from tessdata](https://github.com/tesseract-ocr/tessdata)
