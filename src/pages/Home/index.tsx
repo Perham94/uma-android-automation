@@ -1,10 +1,10 @@
 import * as Application from "expo-application"
 import MessageLog from "../../components/MessageLog"
-import { useContext, useEffect, useState } from "react"
+import { useContext, useEffect, useRef, useState } from "react"
 import { BotStateContext } from "../../context/BotStateContext"
 import { useSettings } from "../../context/SettingsContext"
 import { logWithTimestamp, logErrorWithTimestamp } from "../../lib/logger"
-import { DeviceEventEmitter, StyleSheet, View, NativeModules } from "react-native"
+import { Animated, DeviceEventEmitter, StyleSheet, View, NativeModules } from "react-native"
 import { Snackbar } from "react-native-paper"
 import { MessageLogContext } from "../../context/MessageLogContext"
 import { useTheme } from "../../context/ThemeContext"
@@ -113,17 +113,13 @@ const Home = () => {
             const metrics = await StartModule.getDeviceDimensions()
             setDeviceMetrics(metrics)
 
-            const { width, height, dpi } = metrics
-            const isWidth1080 = Math.min(width, height) === 1080
-            const is1920 = Math.max(width, height) === 1920
-            const is2340 = Math.max(width, height) === 2340
+            const { width, dpi } = metrics
+            const isWidth1080 = width === 1080
 
-            if (!isWidth1080 || (!is1920 && !is2340)) {
-                setUnsupportedReason(`unsupported resolution: ${width}x${height}`)
-            } else if (is1920 && dpi !== 240) {
-                setUnsupportedReason(`unsupported DPI: ${dpi} (expected 240)`)
-            } else if (is2340 && dpi !== 450) {
-                setUnsupportedReason(`unsupported DPI: ${dpi} (expected 450)`)
+            if (!isWidth1080) {
+                setUnsupportedReason(`unsupported width: ${width} (suggested 1080)`)
+            } else if (dpi !== 240 && dpi !== 450) {
+                setUnsupportedReason(`unsupported DPI: ${dpi} (suggested 240 or 450)`)
             } else {
                 setUnsupportedReason(null)
             }
@@ -189,9 +185,23 @@ const Home = () => {
                                 <TooltipContent sideOffset={12} side="bottom" style={{ maxWidth: 350, backgroundColor: colors.warningBg, borderColor: colors.warningBorder, borderWidth: 1 }}>
                                     <Text
                                         style={{ color: colors.warningText }}
-                                    >{`Current device display: ${deviceMetrics?.width}x${deviceMetrics?.height} DPI ${deviceMetrics?.dpi}.\n\nBe warned that performance will be degraded due to ${unsupportedReason}. Use 1080x1920 DPI 240 or 1080x2340 DPI 450 for optimal performance.`}</Text>
+                                    >{`Current Display: ${deviceMetrics?.width}x${deviceMetrics?.height} (${deviceMetrics?.dpi} DPI).
+
+Warning: Performance may be degraded due to ${unsupportedReason}.
+
+Supported Configurations:
+• 1080x1920 @ 240 DPI
+• 1080x2340 @ 450 DPI
+
+Note: Height is not as important to meet as the width. In addition, DPI is tied to the width and height together. How to calculate your specific DPI:
+
+DPI = sqrt(width^2 + height^2) / diagonal
+
+where width and height of the screen is in pixels, and diagonal is the diagonal size of the physical screen in inches.`}</Text>
                                 </TooltipContent>
                             </Tooltip>
+                        ) : deviceMetrics ? (
+                            <Ionicons name="checkmark-circle-outline" size={24} color="green" />
                         ) : (
                             !bsc.readyStatus &&
                             !isRunning && (
