@@ -166,6 +166,13 @@ export interface Settings {
         recordingFrameRate: number
         recordingResolutionScale: number
     }
+
+    // Discord settings
+    discord: {
+        enableDiscordNotifications: boolean
+        discordToken: string
+        discordUserID: string
+    }
 }
 
 // Set the default settings.
@@ -346,6 +353,11 @@ export const defaultSettings: Settings = {
         recordingBitRate: 6,
         recordingFrameRate: 30,
         recordingResolutionScale: 1.0,
+    },
+    discord: {
+        enableDiscordNotifications: false,
+        discordToken: "",
+        discordUserID: "",
     },
 }
 

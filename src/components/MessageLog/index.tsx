@@ -370,6 +370,11 @@ ${longTargetsString}
 🔍 Start Training Screen OCR Test: ${settings.debug.debugMode_startTrainingScreenOCRTest ? "✅" : "❌"}
 🔍 Hide String Comparison Results: ${settings.debug.enableHideOCRComparisonResults ? "✅" : "❌"}
 
+---------- Discord Options ----------
+🔔 Discord Notifications: ${settings.discord?.enableDiscordNotifications ? "✅" : "❌"}
+👤 Discord User ID: ${settings.discord?.discordUserID ? "Configured" : "Not Set"}
+🔑 Discord Bot Token: ${settings.discord?.discordToken ? "Configured" : "Not Set"}
+
 ****************************************`
     }, [bsc.settings])
 
