@@ -384,6 +384,11 @@ export const useSettingsManager = () => {
             delete settingsForExport.misc.formattedSettingsString
             delete settingsForExport.misc.currentProfileName
 
+            // Remove sensitive Discord credentials from export.
+            if (settingsForExport.discord) {
+                delete settingsForExport.discord.discordToken
+            }
+
             const exportData = {
                 ...settingsForExport,
                 profiles: profiles.length > 0 ? profiles : undefined,
