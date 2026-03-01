@@ -164,6 +164,16 @@ const Settings = () => {
         )
     }
 
+    const renderDiscordLink = () => {
+        return (
+            <NavigationLink
+                title="Go to Discord Settings"
+                description="Configure Discord bot notifications to receive DM updates when the bot stops."
+                onPress={() => navigation.navigate("DiscordSettings" as never)}
+            />
+        )
+    }
+
     const renderMiscSettings = () => {
         return (
             <View style={{ marginTop: 16 }}>
@@ -334,6 +344,7 @@ const Settings = () => {
                         {renderRacingLink()}
                         {renderSkillsLink()}
                         {renderEventLogVisualizerLink()}
+                        {renderDiscordLink()}
                         {renderDebugLink()}
                         {renderMiscSettings()}
                     </View>
