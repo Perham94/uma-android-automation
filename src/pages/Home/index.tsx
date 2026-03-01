@@ -16,6 +16,9 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "../../components/ui/too
 import PageHeader from "../../components/PageHeader"
 import { usePerformanceLogging } from "../../hooks/usePerformanceLogging"
 
+import scenarios from "../../data/scenarios.json"
+import SelectButton from "../../components/SelectButton"
+
 const styles = StyleSheet.create({
     root: {
         flex: 1,
@@ -172,6 +175,16 @@ const Home = () => {
                 style={{ width: "100%" }}
                 centerComponent={
                     <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                        <SelectButton
+                            options={scenarios}
+                            value={bsc.settings.general.scenario}
+                            onValueChange={(value) => {
+                                const newScenario = value || ""
+                                bsc.setSettings({ ...bsc.settings, general: { ...bsc.settings.general, scenario: newScenario } })
+                                bsc.setReadyStatus(newScenario !== "")
+                            }}
+                            //placeholder="Select a Scenario"
+                        />
                         <CustomButton variant={isRunning ? "destructive" : isDark ? "default" : "secondary"} onPress={handleButtonPress} isLoading={isRunning} style={styles.button}>
                             {isRunning ? "Stop" : bsc.readyStatus ? "Start" : "Not Ready"}
                         </CustomButton>
