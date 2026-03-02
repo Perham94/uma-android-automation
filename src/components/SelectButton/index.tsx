@@ -1,31 +1,17 @@
 /** @format */
 
-import React, { useRef, useState, useMemo } from 'react';
-import { View, LayoutChangeEvent, ViewStyle, PressableProps, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
-import { Text } from '../ui/text';
-import { useTheme } from '../../context/ThemeContext';
-import {
-    Option,
-    Select,
-    SelectContent,
-    SelectGroup,
-    SelectItem,
-    SelectLabel,
-    SelectTrigger,
-    SelectValue,
-    NativeSelectScrollView,
-} from '../ui/select';
-import CustomButton from '../CustomButton';
-import CustomSelect from '../CustomSelect';
+import React, { useRef, useState, useMemo } from "react"
+import { View, LayoutChangeEvent, ViewStyle, PressableProps, StyleSheet } from "react-native"
+import { useTheme } from "../../context/ThemeContext"
+import { Option, Select, SelectContent, SelectGroup, SelectItem, SelectLabel, NativeSelectScrollView } from "../ui/select"
+import CustomButton from "../CustomButton"
 import { Ionicons } from "@expo/vector-icons"
-import SearchableItem from '../SearchableItem';
 import * as SelectPrimitive from "@rn-primitives/select"
 
-
 interface SelectOption {
-    value: string;
-    label: string;
-    disabled?: boolean;
+    value: string
+    label: string
+    disabled?: boolean
 }
 
 interface SelectButtonProps extends PressableProps {
@@ -102,7 +88,7 @@ const SelectButton: React.FC<SelectButtonProps> = ({
             case "error":
                 return colors.error
             default:
-                return isDark ? colors.secondary: colors.primary
+                return isDark ? colors.secondary : colors.primary
         }
     }
 
@@ -167,8 +153,8 @@ const SelectButton: React.FC<SelectButtonProps> = ({
                     backgroundColor: colors.border,
                 },
             }),
-        [colors],
-    );
+        [colors]
+    )
 
     /**
      * Callback fired when the trigger layout changes.
@@ -189,7 +175,6 @@ const SelectButton: React.FC<SelectButtonProps> = ({
     const handleValueChange = (option: Option) => {
         if (onValueChange) {
             onValueChange(option?.value || "")
-            
         }
         if (setValue) {
             setValue(option?.value || "")
@@ -207,33 +192,16 @@ const SelectButton: React.FC<SelectButtonProps> = ({
     }
 
     return (
-        <Select
-            onValueChange={handleValueChange}
-            value={value as any}
-            defaultValue={defaultValue as any}
-        >
+        <Select onValueChange={handleValueChange} value={value as any} defaultValue={defaultValue as any}>
             <View style={styles.container} ref={triggerRef} onLayout={onTriggerLayout}>
-                <CustomButton
-                    style={styles.button}
-                    variant={variant}
-                    icon={getIcon()}
-                    iconPosition={iconPosition}
-                    size={size}
-                    isLoading={false}
-                    onPress={onPressButton}
-                >
+                <CustomButton style={styles.button} variant={variant} icon={getIcon()} iconPosition={iconPosition} size={size} isLoading={false} onPress={onPressButton}>
                     {value || defaultValue ? currentLabel ?? "ERROR" : placeholder}
                 </CustomButton>
                 <View style={styles.verticalRuleContainer}>
                     <View style={styles.verticalRule} />
                 </View>
                 <SelectPrimitive.Trigger asChild>
-                    <CustomButton
-                        style={styles.buttonDropdown}
-                        variant={variant}
-                        size={size}
-                        isLoading={false}
-                    >
+                    <CustomButton style={styles.buttonDropdown} variant={variant} size={size} isLoading={false}>
                         <Ionicons name="caret-down" size={20} color={getTextColor()} />
                     </CustomButton>
                 </SelectPrimitive.Trigger>
@@ -254,12 +222,7 @@ const SelectButton: React.FC<SelectButtonProps> = ({
                         {groupLabel && <SelectLabel>{groupLabel}</SelectLabel>}
                         {options &&
                             options.map((option) => (
-                                <SelectItem
-                                    key={option.value}
-                                    label={option.label}
-                                    value={option.value}
-                                    disabled={option.disabled}
-                                >
+                                <SelectItem key={option.value} label={option.label} value={option.value} disabled={option.disabled}>
                                     {option.label}
                                 </SelectItem>
                             ))}
@@ -268,7 +231,6 @@ const SelectButton: React.FC<SelectButtonProps> = ({
             </SelectContent>
         </Select>
     )
+}
 
-};
-
-export default React.memo(SelectButton);
+export default React.memo(SelectButton)

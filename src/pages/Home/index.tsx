@@ -8,7 +8,6 @@ import { Animated, DeviceEventEmitter, StyleSheet, View, NativeModules } from "r
 import { Snackbar } from "react-native-paper"
 import { MessageLogContext } from "../../context/MessageLogContext"
 import { useTheme } from "../../context/ThemeContext"
-import CustomButton from "../../components/CustomButton"
 import { Text } from "../../components/ui/text"
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../../components/ui/alert-dialog"
 import { Ionicons } from "@expo/vector-icons"
@@ -210,8 +209,8 @@ const Home = () => {
         ]
         const warningText: string = warningTextLines.join("\n")
 
-        if (unsupportedReason){
-            return ( 
+        if (unsupportedReason) {
+            return (
                 <Tooltip delayDuration={150}>
                     <TooltipTrigger>
                         <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
@@ -219,9 +218,7 @@ const Home = () => {
                         </Animated.View>
                     </TooltipTrigger>
                     <TooltipContent sideOffset={12} side="bottom" style={{ maxWidth: 350, backgroundColor: colors.warningBg, borderColor: colors.warningBorder, borderWidth: 1 }}>
-                        <Text
-                            style={{ color: colors.warningText }}
-                        >{warningText}</Text>
+                        <Text style={{ color: colors.warningText }}>{warningText}</Text>
                     </TooltipContent>
                 </Tooltip>
             )
