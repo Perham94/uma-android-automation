@@ -325,10 +325,10 @@ interface ComponentInterface: BaseComponentInterface {
     }
 
     /** Checks if the component is in a disabled state.
-     * 
+     *
      * @param imageUtils See [BaseComponentInterface.checkDisabled]
      * @param sourceBitmap See [BaseComponentInterface.checkDisabled]
-     * 
+     *
      * @return See [BaseComponentInterface.checkDisabled]
      */
     override fun checkDisabled(imageUtils: CustomImageUtils, sourceBitmap: Bitmap?): Boolean? {
