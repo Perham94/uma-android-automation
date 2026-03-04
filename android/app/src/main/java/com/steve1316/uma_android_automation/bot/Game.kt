@@ -22,32 +22,7 @@ import com.steve1316.uma_android_automation.types.BoundingBox
 import com.steve1316.uma_android_automation.types.Aptitude
 import com.steve1316.uma_android_automation.types.Mood
 
-import com.steve1316.uma_android_automation.components.ButtonBack
-import com.steve1316.uma_android_automation.components.ButtonCancel
-import com.steve1316.uma_android_automation.components.ButtonChangeRunningStyle
-import com.steve1316.uma_android_automation.components.ButtonCompleteCareer
-import com.steve1316.uma_android_automation.components.ButtonCraneGame
-import com.steve1316.uma_android_automation.components.ButtonCraneGameOk
-import com.steve1316.uma_android_automation.components.ButtonHomeFansInfo
-import com.steve1316.uma_android_automation.components.ButtonHomeFullStats
-import com.steve1316.uma_android_automation.components.ButtonInfirmary
-import com.steve1316.uma_android_automation.components.ButtonInheritance
-import com.steve1316.uma_android_automation.components.ButtonNext
-import com.steve1316.uma_android_automation.components.ButtonNextRaceEnd
-import com.steve1316.uma_android_automation.components.ButtonOk
-import com.steve1316.uma_android_automation.components.ButtonSkip
-import com.steve1316.uma_android_automation.components.ButtonUnityCupRace
-import com.steve1316.uma_android_automation.components.ComponentInterface
-import com.steve1316.uma_android_automation.components.DialogInterface
-import com.steve1316.uma_android_automation.components.DialogUtils
-import com.steve1316.uma_android_automation.components.IconGoalRibbon
-import com.steve1316.uma_android_automation.components.IconRaceDayRibbon
-import com.steve1316.uma_android_automation.components.IconTazuna
-import com.steve1316.uma_android_automation.components.LabelConnecting
-import com.steve1316.uma_android_automation.components.LabelEnergy
-import com.steve1316.uma_android_automation.components.LabelNowLoading
-import com.steve1316.uma_android_automation.components.LabelOrdinaryCuties
-import com.steve1316.uma_android_automation.components.LabelStatTableHeaderSkillPoints
+import com.steve1316.uma_android_automation.components.*
 
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
