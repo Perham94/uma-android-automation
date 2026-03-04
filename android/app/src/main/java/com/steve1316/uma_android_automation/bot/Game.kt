@@ -748,7 +748,7 @@ class Game(val myContext: Context) {
             MessageLog.i(TAG, "[CRANE GAME] Event exited.")
 		} else if (ButtonNextRaceEnd.click(imageUtils, sourceBitmap = sourceBitmap)) {
 			MessageLog.i(TAG, "[MISC] Ended a leftover race.")
-		} else if (imageUtils.findImageWithBitmap("race_not_enough_fans", sourceBitmap, region = imageUtils.regionMiddle, suppressError = true) != null) {
+		} else if (IconRaceNotEnoughFans.check(imageUtils, sourceBitmap = sourceBitmap)) {
 			MessageLog.i(TAG, "[MISC] There was a popup about insufficient fans.")
 			racing.encounteredRacingPopup = true
             ButtonCancel.click(imageUtils, sourceBitmap = sourceBitmap)
