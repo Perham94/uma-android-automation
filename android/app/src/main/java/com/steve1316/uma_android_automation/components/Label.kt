@@ -99,3 +99,8 @@ object LabelNowLoading : ComponentInterface {
     override val TAG: String = "[${MainActivity.loggerTag}]LabelNowLoading"
     override val template = Template("components/label/now_loading", region = Region.bottomHalf)
 }
+
+object LabelOrdinaryCuties : ComponentInterface {
+    override val TAG: String = "[${MainActivity.loggerTag}]LabelOrdinaryCuties"
+    override val template = Template("components/label/ordinary_cuties", region = Region.middle)
+}

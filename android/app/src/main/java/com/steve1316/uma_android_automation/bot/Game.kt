@@ -44,6 +44,7 @@ import com.steve1316.uma_android_automation.components.IconTazuna
 import com.steve1316.uma_android_automation.components.LabelConnecting
 import com.steve1316.uma_android_automation.components.LabelEnergy
 import com.steve1316.uma_android_automation.components.LabelNowLoading
+import com.steve1316.uma_android_automation.components.LabelOrdinaryCuties
 import com.steve1316.uma_android_automation.components.LabelStatTableHeaderSkillPoints
 
 import kotlinx.coroutines.delay
@@ -763,7 +764,7 @@ class Game(val myContext: Context) {
                 return false
             }
         } else if (
-            imageUtils.findImageWithBitmap("ordinary_cuties", region = imageUtils.regionMiddle, sourceBitmap = sourceBitmap) != null &&
+            LabelOrdinaryCuties.check(imageUtils, sourceBitmap = sourceBitmap) &&
             ButtonCraneGameOk.check(imageUtils = imageUtils, sourceBitmap = sourceBitmap)
         ) {
             ButtonCraneGameOk.click(imageUtils = imageUtils, sourceBitmap = sourceBitmap)
