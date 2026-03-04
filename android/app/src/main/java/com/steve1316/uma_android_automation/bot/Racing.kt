@@ -1232,7 +1232,7 @@ class Racing (private val game: Game) {
         // Only load the agenda once per career.
         if (!enableUserInGameRaceAgenda || hasLoadedUserRaceAgenda || game.currentDate.bIsFinaleSeason) {
             return
-        } else if (game.imageUtils.findImage("race_maiden_criteria", tries = 1, region = game.imageUtils.regionTopHalf).first != null) {
+        } else if (LabelRaceCriteriaMaiden.check(game.imageUtils)) {
             MessageLog.i(TAG, "[RACE] A maiden race needs to be won first before applying the user's race agenda.")
             return
         }
@@ -1503,7 +1503,7 @@ class Racing (private val game: Game) {
 
         // Check for fan requirement on the main screen.
         val sourceBitmap = sourceBitmap ?: game.imageUtils.getSourceBitmap()
-        val needsFanRequirement = game.imageUtils.findImageWithBitmap("race_fans_criteria", sourceBitmap, region = game.imageUtils.regionTopHalf, customConfidence = 0.90) != null
+        val needsFanRequirement = LabelRaceCriteriaFans.check(game.imageUtils, sourceBitmap = sourceBitmap, confidence = 0.9)
         if (needsFanRequirement) {
             hasFanRequirement = true
             MessageLog.i(TAG, "[RACE] Fan requirement criteria detected on main screen. Forcing racing to fulfill requirement.")
@@ -1515,12 +1515,12 @@ class Racing (private val game: Game) {
             }
             
             // Check for trophy requirement on the main screen.
-            val needsTrophyRequirement = game.imageUtils.findImageWithBitmap("race_trophies_criteria", sourceBitmap, region = game.imageUtils.regionTopHalf, customConfidence = 0.90) != null
+            val needsTrophyRequirement = LabelRaceCriteriaTrophies.check(game.imageUtils, sourceBitmap = sourceBitmap, confidence = 0.9)
             if (needsTrophyRequirement) {
                 hasTrophyRequirement = true
                 
                 // Check for Pre-OP or above criteria.
-                val needsPreOpOrAbove = game.imageUtils.findImageWithBitmap("race_pre_op_or_above_criteria", sourceBitmap, region = game.imageUtils.regionTopHalf, customConfidence = 0.90) != null
+                val needsPreOpOrAbove = LabelRaceCriteriaPreOpOrAbove.check(game.imageUtils, sourceBitmap = sourceBitmap, confidence = 0.9)
                 if (needsPreOpOrAbove) {
                     hasPreOpOrAboveRequirement = true
                     MessageLog.i(TAG, "[RACE] Trophy requirement with Pre-OP or above criteria detected. Any race can be run to fulfill the requirement.")
@@ -1529,7 +1529,7 @@ class Racing (private val game: Game) {
                 }
 
                 // Check for G3 or above criteria.
-                val needsG3OrAbove = game.imageUtils.findImageWithBitmap("race_g3_or_above_criteria", sourceBitmap, region = game.imageUtils.regionTopHalf, customConfidence = 0.90) != null
+                val needsG3OrAbove = LabelRaceCriteriaG3OrAbove.check(game.imageUtils, sourceBitmap = sourceBitmap, confidence = 0.9)
                 if (needsG3OrAbove) {
                     hasG3OrAboveRequirement = true
                     MessageLog.i(TAG, "[RACE] Trophy requirement with G3 or above criteria detected. Any race can be run to fulfill the requirement.")
