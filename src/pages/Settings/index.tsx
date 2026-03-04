@@ -363,7 +363,7 @@ const Settings = () => {
                     labelUnit="s"
                     showValue={true}
                     showLabels={true}
-                    description="Sets the delay between actions and imaging operations. Lowering this will make the bot run much faster."
+                    description="Sets the delay between actions and imaging operations. Lowering this will make the bot run much faster at the risk of the bot losing track of its location after loading/connecting screens."
                 />
 
                 <CustomSlider
@@ -383,7 +383,7 @@ const Settings = () => {
                     labelUnit="s"
                     showValue={true}
                     showLabels={true}
-                    description="Sets the delay between clicking buttons that open dialogs and handling the dialogs. Lowering this will make the bot run faster at an increased risk of the bot incorrectly handling dialogs that pop up."
+                    description="Sets the delay between clicking a button that opens dialog and actually handling the dialog. Lowering this will make the bot run faster at an increased risk of the bot incorrectly handling dialogs that pop up."
                 />
 
                 <CustomSlider
