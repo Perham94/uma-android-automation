@@ -289,7 +289,7 @@ class Racing (private val game: Game) {
         }
 
         // If there are no races available, cancel the racing process.
-        if (game.imageUtils.findImage("race_none_available", tries = 1, region = game.imageUtils.regionMiddle, suppressError = true).first != null) {
+        if (LabelThereAreNoRacesToCompeteIn.check(game.imageUtils)) {
             MessageLog.i(TAG, "[RACE] There are no races to compete in. Canceling the racing process and doing something else.")
             MessageLog.i(TAG, "********************")
             // Clear requirement flags since we cannot proceed with racing.

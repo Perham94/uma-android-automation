@@ -184,3 +184,8 @@ object LabelRaceCriteriaTrophies : ComponentInterface {
     override val TAG: String = "[${MainActivity.loggerTag}]LabelRaceCriteriaTrophies"
     override val template = Template("components/label/race_criteria_trophies", region = Region.topHalf)
 }
+
+object LabelThereAreNoRacesToCompeteIn : ComponentInterface {
+    override val TAG: String = "[${MainActivity.loggerTag}]LabelThereAreNoRacesToCompeteIn"
+    override val template = Template("components/label/there_are_no_races_to_compete_in", region = Region.middle)
+}
