@@ -581,7 +581,7 @@ class Game(val myContext: Context) {
                 // Otherwise, recover mood as normal.
                 // Note that if a date was already completed, the Recreation popup will still show so it will require an additional step to recover mood.
                 recreationDateCompleted = true
-                if (!findAndTapImage("recover_mood", sourceBitmap, tries = 1, region = imageUtils.regionBottomHalf, suppressError = true)) {
+                if (!ButtonRecreation.click(imageUtils, sourceBitmap = sourceBitmap)) {
                     ButtonRestAndRecreation.click(imageUtils, sourceBitmap = sourceBitmap)
                 }
 
@@ -612,7 +612,7 @@ class Game(val myContext: Context) {
      * @return True if the Recreation date event was successfully completed. False otherwise.
      */
     fun handleRecreationDate(recoverMoodIfCompleted: Boolean = false): Boolean {
-        return if (findAndTapImage("recover_mood", tries = 1, region = imageUtils.regionBottomHalf)) {
+        return if (ButtonRecreation.click(imageUtils)) {
             // Tap OK for the possibility of a scheduled race warning popup.
             wait(0.25)
             ButtonOk.click(imageUtils, region = imageUtils.regionMiddle)
