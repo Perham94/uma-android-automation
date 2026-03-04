@@ -529,7 +529,7 @@ class Game(val myContext: Context) {
 		
 		// Otherwise, fall back to the regular energy recovery logic.
 		return when {
-			findAndTapImage("recover_energy", sourceBitmap, tries = 1, region = imageUtils.regionBottomHalf) -> {
+			ButtonRest.click(imageUtils, sourceBitmap = sourceBitmap) -> {
                 ButtonOk.click(imageUtils, region = imageUtils.regionMiddle)
                 // Another OK tap for the possibility of a scheduled race warning popup.
                 wait(0.25)
