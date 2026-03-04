@@ -1321,7 +1321,7 @@ class Racing (private val game: Game) {
                     val timeoutMs: Int = 5000
                     val startTime: Long = System.currentTimeMillis()
                     while (System.currentTimeMillis() - startTime < timeoutMs) {
-                        var dialog = game.campaign.handleDialogs(
+                        val dialog = game.campaign.handleDialogs(
                             args = mapOf<String, Boolean>(
                                 "bShouldDefer" to true,
                                 "bShouldWait" to true,
@@ -1345,6 +1345,8 @@ class Racing (private val game: Game) {
                             // Not a problem, just continue with loop and timeout when
                             // the time comes.
                             null -> {}
+                            // Fall back to the base dialog handler if we get a dialog
+                            // that we weren't expecting.
                             else -> {
                                 MessageLog.e(TAG, "[RACE] Unknown dialog detected: ${dialog.name}. Falling back to base dialog handler.")
                                 game.campaign.handleDialogs()
