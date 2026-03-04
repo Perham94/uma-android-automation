@@ -639,21 +639,12 @@ class Racing (private val game: Game) {
                 }
             }
 
-            // If there is a popup warning about repeating races 3+ times, stop the process and do something else other than racing.
-            // Note that if the Racing Plan is set to be mandatory, then this popup is dismissed.
-            if (game.imageUtils.findImage("race_repeat_warning").first != null) {
-                if (!enableForceRacing && !enableMandatoryRacingPlan) {
-                    raceRepeatWarningCheck = true
-                    MessageLog.i(TAG, "[RACE] Closing popup warning of doing more than 3+ races and setting flag to prevent racing for now. Canceling the racing process and doing something else.")
-                    ButtonCancel.click(game.imageUtils)
-                    // Clear requirement flags since we cannot proceed with racing.
-                    clearRacingRequirementFlags()
-                    MessageLog.i(TAG, "********************")
-                    return false
-                } else {
-                    ButtonOk.click(game.imageUtils, region = game.imageUtils.regionMiddle)
-                    game.wait(1.0)
-                }
+            // Check for the consecutive race dialog before proceeding.
+            val overrideIgnore: Boolean = enableForceRacing || enableMandatoryRacingPlan
+            val (bWasDialogHandled, dialog) = game.campaign.handleDialogs(args = mapOf("overrideIgnoreConsecutiveRaceWarning" to overrideIgnore))
+            if (dialog != null && dialog.name == "consecutive_race_warning" && !overrideIgnore) {
+                MessageLog.i(TAG, "[RACE] Consecutive race warning but conditions dictate to not race. Skipping...")
+                return false
             }
 
             // There is an extra race.

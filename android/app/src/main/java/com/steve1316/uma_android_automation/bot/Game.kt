@@ -723,10 +723,6 @@ class Game(val myContext: Context) {
 			wait(2.0)
 			ButtonNext.click(imageUtils)
 			wait(1.0)
-        } else if (imageUtils.findImageWithBitmap("race_repeat_warning", sourceBitmap, region = imageUtils.regionTopHalf) != null) {
-            MessageLog.i(TAG, "[MISC] Consecutive race warning detected on the screen so dismissing the popup.")
-            ButtonCancel.click(imageUtils, sourceBitmap = sourceBitmap)
-            wait(1.0)
         } else if (ButtonCraneGame.check(imageUtils = imageUtils, sourceBitmap = sourceBitmap)) {
             if (enableCraneGameAttempt) {
                 handleCraneGame()
