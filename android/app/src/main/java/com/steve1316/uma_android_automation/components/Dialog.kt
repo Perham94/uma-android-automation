@@ -351,6 +351,7 @@ object DialogObjects {
         DialogNotices,                      // Main Screen
         DialogOpenSoon,                     // Shop (only when clicking inactive daily sales button)
         DialogOptions,                      // Anywhere
+        DialogOverwrite,                    // Career -> Agenda
         DialogPerks,                        // Career -> Career Profile dialog
         DialogPlacing,                      // Career -> DialogTryAgain
         DialogPresents,                     // Main Screen (i think?)
@@ -990,6 +991,18 @@ object DialogOptions : DialogInterface {
     override val buttons: List<ComponentInterface> = listOf(
         ButtonCancel,
         ButtonSave,
+    )
+}
+
+object DialogOverwrite : DialogInterface {
+    override val TAG: String = "[${MainActivity.loggerTag}]DialogOverwrite"
+    override val name: String = "overwrite"
+    override val title: String = "Overwrite"
+    override val closeButton = null
+    override val okButton: BaseComponentInterface = ButtonOverwrite
+    override val buttons: List<BaseComponentInterface> = listOf(
+        ButtonCancel,
+        ButtonOverwrite,
     )
 }
 

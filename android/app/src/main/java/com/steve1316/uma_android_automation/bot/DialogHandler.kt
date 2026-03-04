@@ -108,6 +108,7 @@ open class DialogHandler(val game: Game) {
 					dialog.close(imageUtils = game.imageUtils)
 				}
 			}
+            "overwrite" -> dialog.ok(game.imageUtils)
 			"race_playback" -> {
 				// Select portrait mode to prevent game from switching to landscape.
 				RadioPortrait.click(game.imageUtils)
