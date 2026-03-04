@@ -1218,7 +1218,17 @@ class Training(private val game: Game) {
 				}
 			}
 
-			game.findAndTapImage("training_${trainingSelected.name.lowercase()}", region = game.imageUtils.regionBottomHalf, taps = 3)
+            val trainingButtons: Map<StatName, ComponentInterface> = mapOf(
+                StatName.SPEED to ButtonTrainingSpeed,
+                StatName.STAMINA to ButtonTrainingStamina,
+                StatName.POWER to ButtonTrainingPower,
+                StatName.GUTS to ButtonTrainingGuts,
+                StatName.WIT to ButtonTrainingWit,
+            )
+
+            // These values are hardcoded and exhaustive. A KeyError would be a programmer error.
+            val trainingButton: ComponentInterface = trainingButtons[trainingSelected]!!
+            trainingButton.click(game.imageUtils, taps = 3)
             game.wait(1.0)
 
             // Dismiss any popup warning about a scheduled race.
