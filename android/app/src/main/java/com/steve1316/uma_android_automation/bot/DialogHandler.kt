@@ -123,6 +123,7 @@ open class DialogHandler(val game: Game) {
 				dialog.ok(game.imageUtils)
 			}
 			"runners" -> dialog.close(imageUtils = game.imageUtils)
+            "schedule_cancellation" -> dialog.close(game.imageUtils)
             "schedule_race" -> dialog.close(imageUtils = game.imageUtils)
 			"strategy" -> {
 				if (!game.trainee.bHasUpdatedAptitudes) {
