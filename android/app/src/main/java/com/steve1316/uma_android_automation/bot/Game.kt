@@ -632,7 +632,7 @@ class Game(val myContext: Context) {
                     ButtonCancel.click(imageUtils)
                     true
                 }
-            } else if (findAndTapImage("recreation_dating_progress", region = imageUtils.regionMiddle)) {
+            } else if (LabelEventProgress.click(imageUtils)) {
                 MessageLog.i(TAG, "[RECREATION_DATE] Recreation date can be done.")
                 true
             } else {
