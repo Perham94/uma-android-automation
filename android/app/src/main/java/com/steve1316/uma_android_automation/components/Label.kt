@@ -109,3 +109,43 @@ object LabelStatMaxed : ComponentInterface {
     override val TAG: String = "[${MainActivity.loggerTag}]LabelStatMaxed"
     override val template = Template("components/label/stat_maxed")
 }
+
+object LabelStatAptitudeA : ComponentInterface {
+    override val TAG: String = "[${MainActivity.loggerTag}]LabelStatAptitudeA"
+    override val template = Template("components/label/stat_aptitude_A")
+}
+
+object LabelStatAptitudeB : ComponentInterface {
+    override val TAG: String = "[${MainActivity.loggerTag}]LabelStatAptitudeB"
+    override val template = Template("components/label/stat_aptitude_B")
+}
+
+object LabelStatAptitudeC : ComponentInterface {
+    override val TAG: String = "[${MainActivity.loggerTag}]LabelStatAptitudeC"
+    override val template = Template("components/label/stat_aptitude_C")
+}
+
+object LabelStatAptitudeD : ComponentInterface {
+    override val TAG: String = "[${MainActivity.loggerTag}]LabelStatAptitudeD"
+    override val template = Template("components/label/stat_aptitude_D")
+}
+
+object LabelStatAptitudeE : ComponentInterface {
+    override val TAG: String = "[${MainActivity.loggerTag}]LabelStatAptitudeE"
+    override val template = Template("components/label/stat_aptitude_E")
+}
+
+object LabelStatAptitudeF : ComponentInterface {
+    override val TAG: String = "[${MainActivity.loggerTag}]LabelStatAptitudeF"
+    override val template = Template("components/label/stat_aptitude_F")
+}
+
+object LabelStatAptitudeG : ComponentInterface {
+    override val TAG: String = "[${MainActivity.loggerTag}]LabelStatAptitudeG"
+    override val template = Template("components/label/stat_aptitude_G")
+}
+
+object LabelStatAptitudeS : ComponentInterface {
+    override val TAG: String = "[${MainActivity.loggerTag}]LabelStatAptitudeS"
+    override val template = Template("components/label/stat_aptitude_S")
+}
