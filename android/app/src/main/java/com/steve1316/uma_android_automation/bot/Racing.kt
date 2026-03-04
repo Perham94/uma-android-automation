@@ -574,7 +574,7 @@ class Racing (private val game: Game) {
 
         // Confirm the selection and the resultant popup and then wait for the game to load.
         ButtonRace.click(imageUtils = game.imageUtils)
-        game.wait(0.5, skipWaitingForLoading = true)
+        game.wait(game.dialogWaitDelay)
         val (bWasDialogHandled, dialog) = game.campaign.handleDialogs()
         if (!bWasDialogHandled || (dialog != null && dialog.name != "race_details")) {
             Log.w(TAG, "[RACE] Failed to handle dialogs. Aborting racing...")
@@ -734,7 +734,7 @@ class Racing (private val game: Game) {
         } else if (isScheduledRace) {
             MessageLog.i(TAG, "[RACE] Confirming the scheduled race dialog...")
             ButtonRace.click(game.imageUtils, tries = 30)
-            game.waitForLoading()
+            game.wait(game.dialogWaitDelay)
         }
 
         // Confirm the selection and the resultant popup and then wait for the game to load.
@@ -1252,7 +1252,7 @@ class Racing (private val game: Game) {
             game.waitForLoading()
             return
         }
-        game.waitForLoading()
+        game.wait(game.dialogWaitDelay)
 
         // Now tap on the My Agenda button.
         if (!game.findAndTapImage("race_my_agenda", tries = 1, region = game.imageUtils.regionBottomHalf)) {
@@ -1263,7 +1263,7 @@ class Racing (private val game: Game) {
             game.waitForLoading()
             return
         }
-        game.waitForLoading()
+        game.wait(game.dialogWaitDelay)
         
         // Check if an agenda is already loaded. If so, then the user must have loaded this earlier in the career so no need to select it again.
         if (game.imageUtils.findImage("race_agenda_empty", tries = 1, region = game.imageUtils.regionTopHalf).first == null) {
@@ -1310,11 +1310,15 @@ class Racing (private val game: Game) {
                 if (agendaText == selectedUserAgenda) {
                     MessageLog.i(TAG, "[RACE] ✓ Found $selectedUserAgenda. Tapping the Load List button...")
                     game.gestureUtils.tap(buttonLocation.x, buttonLocation.y, "race_agenda_load_list")
-                    game.wait(0.5)
+                    // Clicking this button triggers connection to server or may
+                    // cause a dialog to open. Either way we should wait.
+                    game.wait(game.dialogWaitDelay)
                     
                     // Tap the overwrite button.
-                    game.findAndTapImage("race_agenda_overwrite", tries = 1, region = game.imageUtils.regionMiddle)
-                    game.waitForLoading()
+                    if(game.findAndTapImage("race_agenda_overwrite", tries = 1, region = game.imageUtils.regionMiddle)) {
+                        // Clicking this button triggers connection to server.
+                        game.waitForLoading()
+                    }
                     
                     foundAgenda = true
                     break
@@ -1803,7 +1807,7 @@ class Racing (private val game: Game) {
 			// read the aptitudes in from there.
 			MessageLog.i(TAG, "Setting running style and performing temporary initial aptitude check.")
 			ButtonChangeRunningStyle.click(imageUtils = game.imageUtils, tries = 10)
-			game.wait(0.5, skipWaitingForLoading = true)
+			game.wait(game.dialogWaitDelay, skipWaitingForLoading = true)
 			var tries = 10
 			while (tries > 0 && !game.campaign.handleDialogs().first) {
 				tries--
@@ -1819,7 +1823,7 @@ class Racing (private val game: Game) {
 			}
 
 			ButtonChangeRunningStyle.click(imageUtils = game.imageUtils, tries = 10)
-			game.wait(0.5, skipWaitingForLoading = true)
+			game.wait(game.dialogWaitDelay, skipWaitingForLoading = true)
 			var tries = 10
 			while (tries > 0 && !game.campaign.handleDialogs().first) {
 				tries--
@@ -1846,14 +1850,18 @@ class Racing (private val game: Game) {
                 // Attempt to skip the race.
                 ButtonViewResults.click(game.imageUtils, sourceBitmap = bitmap) -> {
                     MessageLog.i(TAG, "[RACE] Clicked ViewResults button to skip race.")
+                    // Clicking this button triggers connection to server.
+                    game.waitForLoading()
                 }
                 // If the race skip is locked.
                 ButtonViewResultsLocked.check(game.imageUtils, sourceBitmap = bitmap) -> {
                     MessageLog.i(TAG, "[RACE] Skip is locked. Preparing to run the race manually.")
                     ButtonRaceManual.click(game.imageUtils, sourceBitmap = bitmap)
+                    game.waitForLoading()
                 }
                 ButtonRaceManual.click(game.imageUtils, sourceBitmap = bitmap) -> {
                     MessageLog.i(TAG, "[RACE] Started the manual race.")
+                    game.waitForLoading()
                 }
                 ButtonRace.click(game.imageUtils, sourceBitmap = bitmap) -> {
                     MessageLog.i(TAG, "[RACE] Dismissed the list of participants.")
@@ -1915,6 +1923,8 @@ class Racing (private val game: Game) {
                 // This is also the exit point for this function.
                 ButtonNextRaceEnd.click(game.imageUtils, sourceBitmap = bitmap, taps = 5) -> {
                     MessageLog.i(TAG, "[RACE] Clicked on Next (race end) button.")
+                    // Clicking this button triggers connection to server.
+                    game.waitForLoading()
                     return true
                 }
                 // Tap on the screen to progress through screens.

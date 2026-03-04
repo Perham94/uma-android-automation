@@ -75,7 +75,8 @@ class UnityCup(game: Game) : Campaign(game) {
                 // returning to ensure that we do not accidentally call handleDialogs()
                 // and end up right back in here and instantly increment again before
                 // this dialog has a chance to close.
-                game.wait(0.5, skipWaitingForLoading = true)
+                // We also want to wait for loading in case we clicked the OK button.
+                game.wait(0.5)
                 return Pair(true, dialog)
             }
             else -> return Pair(false, dialog)
@@ -158,10 +159,12 @@ class UnityCup(game: Game) : Campaign(game) {
                     MessageLog.d(TAG, "[UNITY_CUP] Going to opponent selection screen...")
                     selectedOpponentIndex = 0
                     bOverrideOpponentSelection = false
+                    game.waitForLoading()
                 }
                 game.findAndTapImage("unitycup_final_race", sourceBitmap = sourceBitmap) -> {
                     MessageLog.i(TAG, "[UNITY_CUP] Final race detected with Team Zenith.")
                     bIsFinals = true
+                    game.waitForLoading()
                 }
                 // Handle opponent selection.
                 ButtonSelectOpponent.check(imageUtils = game.imageUtils, sourceBitmap = sourceBitmap) -> {
@@ -180,17 +183,19 @@ class UnityCup(game: Game) : Campaign(game) {
                     ButtonSelectOpponent.click(imageUtils = game.imageUtils, sourceBitmap = sourceBitmap)
                     // Clicking SelectOpponent requires connect to server. Don't skip
                     // waiting for loading otherwise we might miss handling a dialog.
-                    game.wait(0.5)
+                    game.wait(game.dialogWaitDelay)
                 }
                 // If the skip button is locked, need to manually run the race.
                 ButtonViewResultsLocked.check(game.imageUtils, sourceBitmap = sourceBitmap) -> {
                     MessageLog.d(TAG, "[UNITY_CUP] Race skip is locked. Manually running race...")
                     game.findAndTapImage("unitycup_race_manual", region = game.imageUtils.regionBottomHalf)
+                    game.waitForLoading()
                     game.racing.runRaceWithRetries()
                 }
                 // Skip the race if possible.
                 ButtonUnityCupSeeAllRaceResults.click(game.imageUtils, sourceBitmap = sourceBitmap) -> {
                     MessageLog.d(TAG, "[UNITY_CUP] Skipping to race results.")
+                    game.waitForLoading()
                 }
                 // This is our only natural exit point from this function.
                 IconUnityCupRaceEndLogo.check(imageUtils = game.imageUtils, sourceBitmap = sourceBitmap) && ButtonNext.click(imageUtils = game.imageUtils, sourceBitmap = sourceBitmap) -> {
@@ -199,7 +204,10 @@ class UnityCup(game: Game) : Campaign(game) {
                 }
                 ButtonNext.click(imageUtils = game.imageUtils, sourceBitmap = sourceBitmap) -> {}
                 ButtonSkip.click(imageUtils = game.imageUtils, sourceBitmap = sourceBitmap) -> {}
-                ButtonNextRaceEnd.click(imageUtils = game.imageUtils, sourceBitmap = sourceBitmap) -> {}
+                ButtonNextRaceEnd.click(imageUtils = game.imageUtils, sourceBitmap = sourceBitmap) -> {
+                    // Clicking this button triggers connection to server.
+                    game.waitForLoading()
+                }
                 // Exit from function if it runs too long.
                 System.currentTimeMillis() - startTime > executionTimeThresholdMs -> {
                     MessageLog.i(TAG, "[UNITY_CUP] Race event took too long to complete. Aborting...")

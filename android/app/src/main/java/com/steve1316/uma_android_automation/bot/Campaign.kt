@@ -77,7 +77,7 @@ open class Campaign(game: Game) : DialogHandler(game) {
     fun openAptitudesDialog() {
         MessageLog.d(TAG, "Opening aptitudes dialog...")
         ButtonHomeFullStats.click(imageUtils = game.imageUtils)
-        game.wait(0.25, skipWaitingForLoading = true)
+        game.wait(game.dialogWaitDelay, skipWaitingForLoading = true)
     }
 
     /**
@@ -95,7 +95,7 @@ open class Campaign(game: Game) : DialogHandler(game) {
         }
 
         bHasTriedCheckingFansToday = true
-        game.wait(0.25, skipWaitingForLoading = true)
+        game.wait(game.dialogWaitDelay, skipWaitingForLoading = true)
     }
 
     /**
