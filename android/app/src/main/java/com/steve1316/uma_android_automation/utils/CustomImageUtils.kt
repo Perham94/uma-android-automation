@@ -262,7 +262,7 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
         fun detectTrainingFailureChance(sourceBitmap: Bitmap? = null, trainingSelectionLocation: Point? = null): Int {
             // Crop the source screenshot to hold the success percentage only.
             val (trainingSelectionLocation, sourceBitmap) = if (sourceBitmap == null && trainingSelectionLocation == null) {
-                findImage("training_failure_chance")
+                LabelTrainingFailureChance.find(this)
             } else {
                 Pair(trainingSelectionLocation, sourceBitmap)
             }
