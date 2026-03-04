@@ -22,6 +22,7 @@ import com.steve1316.uma_android_automation.components.DialogUtils
 import com.steve1316.uma_android_automation.components.IconDoubleCircle
 import com.steve1316.uma_android_automation.components.IconTrainingEventHorseshoe
 import com.steve1316.uma_android_automation.components.IconUnityCupRaceEndLogo
+import com.steve1316.uma_android_automation.components.IconUnityCupTutorialHeader
 import com.steve1316.uma_android_automation.components.LabelUnityCupOpponentSelectionLaurel
 
 import org.opencv.core.Point
@@ -100,7 +101,7 @@ class UnityCup(game: Game) : Campaign(game) {
 	override fun handleTrainingEvent() {
         MessageLog.i(TAG, "\n[UNITY_CUP] Running handleTrainingEvent() for Unity Cup.")
         if (!tutorialDisabled) {
-            tutorialDisabled = if (game.imageUtils.findImage("unitycup_tutorial_header", tries = 1, region = game.imageUtils.regionTopHalf).first != null) {
+            tutorialDisabled = if (IconUnityCupTutorialHeader.check(game.imageUtils)) {
                 // If the tutorial is detected, select the second option to close it.
                 MessageLog.i(TAG, "\n[UNITY_CUP] Detected tutorial for Unity Cup. Closing it now...")
                 val trainingOptionLocations: ArrayList<Point> = IconTrainingEventHorseshoe.findAll(game.imageUtils)

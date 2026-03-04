@@ -246,3 +246,8 @@ object IconUnityCupSpiritTraining : ComponentInterface {
     override val TAG: String = "[${MainActivity.loggerTag}]IconUnityCupSpiritTraining"
     override val template = Template("components/icon/unitycup_spirit_training", region = Region.topRightThird)
 }
+
+object IconUnityCupTutorialHeader : ComponentInterface {
+    override val TAG: String = "[${MainActivity.loggerTag}]IconUnityCupTutorialHeader"
+    override val template = Template("components/icon/unitycup_tutorial_header", region = Region.topHalf)
+}
