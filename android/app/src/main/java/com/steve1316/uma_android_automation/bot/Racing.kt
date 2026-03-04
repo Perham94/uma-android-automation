@@ -1314,8 +1314,7 @@ class Racing (private val game: Game) {
             val sourceBitmap = game.imageUtils.getSourceBitmap()
             
             // Find all the Load List buttons on the current screen.
-            val loadListButtonLocations = game.imageUtils.findAll("race_agenda_load_list")
-            
+            val loadListButtonLocations: ArrayList<Point> = ButtonRaceAgendaLoadList.findAll(game.imageUtils, sourceBitmap = sourceBitmap)
             if (loadListButtonLocations.isEmpty()) {
                 MessageLog.w(TAG, "[RACE] No Load List buttons found on screen.")
                 break
