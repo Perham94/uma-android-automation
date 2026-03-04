@@ -826,7 +826,7 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
 		var currentBitmap = sourceBitmap ?: getSourceBitmap()
 
 		// Find all Spirit Training icons (there may be multiple for the currently selected training).
-		var spiritTrainingIcons = findAllWithBitmap("unitycup_spirit_training", currentBitmap, region = Region.topRightThird, customConfidence = 0.90)
+		var spiritTrainingIcons: ArrayList<Point> = IconUnityCupSpiritTraining.findAll(this, sourceBitmap = currentBitmap, confidence = 0.9)
 		
 		// If no gauges detected, try one more time after a short delay just in case the icon was bouncing.
 		if (spiritTrainingIcons.isEmpty()) {
@@ -840,14 +840,14 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
 			// Take a new screenshot for the retry.
 			currentBitmap = getSourceBitmap()
 			
-			spiritTrainingIcons = findAllWithBitmap("unitycup_spirit_training", currentBitmap, region = Region.topRightThird, customConfidence = 0.90)
+			spiritTrainingIcons = IconUnityCupSpiritTraining.findAll(this, sourceBitmap = currentBitmap, confidence = 0.9)
 			if (spiritTrainingIcons.isEmpty()) {
 				return null
 			}
 		}
 
 		// Find all Spirit Explosion icons to determine burst readiness.
-		val spiritExplosionIcons = findAllWithBitmap("unitycup_spirit_explosion", currentBitmap, region = Region.topRightThird, customConfidence = 0.90)
+        val spiritExplosionIcons: ArrayList<Point> = IconUnityCupSpiritExplosion.findAll(this, sourceBitmap = currentBitmap, confidence = 0.9)
 
 		// Analyze all gauges for all spirit training icons to count how many can be filled.
 		var numGaugesCanFill = 0

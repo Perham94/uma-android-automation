@@ -236,3 +236,13 @@ object IconEventTitleSpacer : ComponentInterface {
     override val TAG: String = "[${MainActivity.loggerTag}]IconEventTitleSpacer"
     override val template = Template("components/icon/event_title_spacer")
 }
+
+object IconUnityCupSpiritExplosion : ComponentInterface {
+    override val TAG: String = "[${MainActivity.loggerTag}]IconUnityCupSpiritExplosion"
+    override val template = Template("components/icon/unitycup_spirit_explosion", region = Region.topRightThird)
+}
+
+object IconUnityCupSpiritTraining : ComponentInterface {
+    override val TAG: String = "[${MainActivity.loggerTag}]IconUnityCupSpiritTraining"
+    override val template = Template("components/icon/unitycup_spirit_training", region = Region.topRightThird)
+}
