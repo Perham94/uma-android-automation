@@ -379,10 +379,10 @@ class Racing (private val game: Game) {
         }
 
         MessageLog.i(TAG, "[RACE] Confirming the mandatory race selection.")
-        game.findAndTapImage("race_confirm", tries = 3, region = game.imageUtils.regionBottomHalf)
+        ButtonRace.click(game.imageUtils, tries = 3)
         game.wait(1.0)
         MessageLog.i(TAG, "[RACE] Confirming any popup from the mandatory race selection.")
-        game.findAndTapImage("race_confirm", tries = 3, region = game.imageUtils.regionBottomHalf)
+        ButtonRace.click(game.imageUtils, tries = 3)
         game.wait(2.0)
 
         game.waitForLoading()
@@ -746,9 +746,9 @@ class Racing (private val game: Game) {
         }
 
         // Confirm the selection and the resultant popup and then wait for the game to load.
-        game.findAndTapImage("race_confirm", tries = 30, region = game.imageUtils.regionBottomHalf)
+        ButtonRace.click(game.imageUtils, tries = 30)
         game.wait(1.0)
-        game.findAndTapImage("race_confirm", tries = 10, region = game.imageUtils.regionBottomHalf)
+        ButtonRace.click(game.imageUtils, tries = 10)
         game.wait(2.0)
 
         // Handle race strategy override if enabled.
