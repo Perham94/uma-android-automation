@@ -351,6 +351,7 @@ object DialogObjects {
         DialogNotices,                      // Main Screen
         DialogOpenSoon,                     // Shop (only when clicking inactive daily sales button)
         DialogOptions,                      // Anywhere
+        DialogOverwrite,                    // Career -> Agenda
         DialogPerks,                        // Career -> Career Profile dialog
         DialogPlacing,                      // Career -> DialogTryAgain
         DialogPresents,                     // Main Screen (i think?)
@@ -367,6 +368,7 @@ object DialogObjects {
         DialogRestAndRecreation,            // Career
         DialogRewardsCollected,             // Main Screen, Special Events
         DialogRunners,                      // Career -> Race screens
+        DialogScheduleRace,                 // Career -> Agenda
         DialogScheduledRaceAvailable,       // Career
         DialogScheduledRaces,               // Career
         DialogScheduleSettings,             // Career
@@ -992,6 +994,18 @@ object DialogOptions : DialogInterface {
     )
 }
 
+object DialogOverwrite : DialogInterface {
+    override val TAG: String = "[${MainActivity.loggerTag}]DialogOverwrite"
+    override val name: String = "overwrite"
+    override val title: String = "Overwrite"
+    override val closeButton = null
+    override val okButton: ComponentInterface = ButtonOverwrite
+    override val buttons: List<ComponentInterface> = listOf(
+        ButtonCancel,
+        ButtonOverwrite,
+    )
+}
+
 object DialogPerks : DialogInterface {
     override val TAG: String = "[${MainActivity.loggerTag}]DialogPerks"
     override val name: String = "perks"
@@ -1204,6 +1218,17 @@ object DialogRunners : DialogInterface {
     override val TAG: String = "[${MainActivity.loggerTag}]DialogRunners"
     override val name: String = "runners"
     override val title: String = "Runners"
+    override val closeButton = null
+    override val okButton = null
+    override val buttons: List<ComponentInterface> = listOf(
+        ButtonClose,
+    )
+}
+
+object DialogScheduleRace : DialogInterface {
+    override val TAG: String = "[${MainActivity.loggerTag}]DialogScheduleRace"
+    override val name: String = "schedule_race"
+    override val title: String = "Schedule Race"
     override val closeButton = null
     override val okButton = null
     override val buttons: List<ComponentInterface> = listOf(

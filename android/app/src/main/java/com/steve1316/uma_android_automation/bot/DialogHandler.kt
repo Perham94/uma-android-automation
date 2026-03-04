@@ -69,6 +69,12 @@ open class DialogHandler(val game: Game) {
 
 		MessageLog.d(TAG, "[DIALOG] Handle dialog: ${dialog.name}")
 
+        val bShouldDefer = args["bShouldDefer"] as? Boolean ?: false
+        if (bShouldDefer) {
+            MessageLog.d(TAG, "[DIALOG] Dialog handling deferred to calling function.")
+            return Pair(false, dialog)
+        }
+
 		when (dialog.name) {
 			// Generic Dialogs (from Game.kt)
 			"connection_error" -> {
@@ -111,6 +117,7 @@ open class DialogHandler(val game: Game) {
 					dialog.close(imageUtils = game.imageUtils)
 				}
 			}
+            "overwrite" -> dialog.ok(game.imageUtils)
 			"race_playback" -> {
 				// Select portrait mode to prevent game from switching to landscape.
 				RadioPortrait.click(game.imageUtils)
@@ -119,6 +126,7 @@ open class DialogHandler(val game: Game) {
 				dialog.ok(game.imageUtils)
 			}
 			"runners" -> dialog.close(imageUtils = game.imageUtils)
+            "schedule_race" -> dialog.close(imageUtils = game.imageUtils)
 			"strategy" -> {
 				if (!game.trainee.bHasUpdatedAptitudes) {
 					game.trainee.bTemporaryRunningStyleAptitudesUpdated = game.racing.updateRaceScreenRunningStyleAptitudes()

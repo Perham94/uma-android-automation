@@ -599,7 +599,7 @@ object ButtonSkillDown : ButtonInterface {
 
 object ButtonOverwrite : ButtonInterface {
     override val TAG: String = "ButtonOverwrite"
-    override val template = Template("components/button/overwrite", region = Region.rightHalf)
+    override val template = Template("components/button/overwrite", region = Region.bottomHalf)
 }
 
 object ButtonMyAgendas : ButtonInterface {
