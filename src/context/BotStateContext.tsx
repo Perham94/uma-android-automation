@@ -31,7 +31,10 @@ export interface Settings {
         enablePopupCheck: boolean
         enableCraneGameAttempt: boolean
         enableStopBeforeFinals: boolean
+        enableStopAtDate: boolean
+        stopAtDate: string
         waitDelay: number
+        dialogWaitDelay: number
     }
 
     // Racing settings
@@ -182,7 +185,10 @@ export const defaultSettings: Settings = {
         enablePopupCheck: false,
         enableCraneGameAttempt: false,
         enableStopBeforeFinals: false,
+        enableStopAtDate: false,
+        stopAtDate: "Senior January Early",
         waitDelay: 0.5,
+        dialogWaitDelay: 0.5,
     },
     racing: {
         enableFarmingFans: false,

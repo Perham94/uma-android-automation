@@ -14,6 +14,9 @@ import com.steve1316.automation_library.utils.MessageLog
 import com.steve1316.automation_library.utils.MyAccessibilityService
 import com.steve1316.automation_library.utils.SettingsHelper
 import com.steve1316.uma_android_automation.utils.GameDate
+import com.steve1316.uma_android_automation.types.DateYear
+import com.steve1316.uma_android_automation.types.DateMonth
+import com.steve1316.uma_android_automation.types.DatePhase
 import com.steve1316.uma_android_automation.bot.Trainee
 import com.steve1316.uma_android_automation.bot.SkillPlan
 import com.steve1316.uma_android_automation.bot.SkillDatabase
@@ -53,7 +56,10 @@ class Game(val myContext: Context) {
 	private val enablePopupCheck: Boolean = SettingsHelper.getBooleanSetting("general", "enablePopupCheck")
     private val enableCraneGameAttempt: Boolean = SettingsHelper.getBooleanSetting("general", "enableCraneGameAttempt")
     private val enableStopBeforeFinals: Boolean = SettingsHelper.getBooleanSetting("general", "enableStopBeforeFinals")
+    private val enableStopAtDate: Boolean = SettingsHelper.getBooleanSetting("general", "enableStopAtDate")
+    private val stopAtDate: String = SettingsHelper.getStringSetting("general", "stopAtDate")
     private val waitDelay: Double = SettingsHelper.getDoubleSetting("general", "waitDelay")
+    val dialogWaitDelay: Double = SettingsHelper.getDoubleSetting("general", "dialogWaitDelay")
 
 	// Initialize Discord settings from SQLite.
 	init {
@@ -97,6 +103,7 @@ class Game(val myContext: Context) {
     private var recreationDateCompleted: Boolean = false
     private var isFinals: Boolean = false
     private var stopBeforeFinalsInitialTurnNumber: Int = -1
+    private var stopAtDateInitialTurnNumber: Int = -1
     private var scenarioCheckPerformed: Boolean = false
 
     /** Attempts to handle dialogs.
@@ -397,6 +404,50 @@ class Game(val myContext: Context) {
 	}
 
 	/**
+	 * Checks if the bot should stop at the user specified date.
+	 *
+	 * @return True if the bot should stop. Otherwise false.
+	 */
+	fun checkStopAtDate(): Boolean {
+		if (!enableStopAtDate) {
+			Log.d(TAG, "\n[DATE] Flag is false so skipping Stop at Date check.")
+			return false
+		}
+		
+		MessageLog.i(TAG, "\n[DATE] Checking if bot should stop at the specified date: $stopAtDate with current date ${currentDate}.")
+		
+		val parts = stopAtDate.split(" ")
+		if (parts.size != 3) {
+			MessageLog.e(TAG, "[DATE] Invalid Stop at Date format. Expected 'YEAR MONTH PHASE'")
+			return false
+		}
+		
+		val targetYear = try { DateYear.valueOf(parts[0].uppercase()) } catch (e: IllegalArgumentException) { null }
+		val targetMonth = try { DateMonth.valueOf(parts[1].uppercase()) } catch (e: IllegalArgumentException) { null }
+		val targetPhase = try { DatePhase.valueOf(parts[2].uppercase()) } catch (e: IllegalArgumentException) { null }
+		
+		if (targetYear == null || targetMonth == null || targetPhase == null) {
+			MessageLog.e(TAG, "[DATE] Invalid Stop at Date components.")
+			return false
+		}
+		
+		val targetDay = GameDate.toDay(targetYear, targetMonth, targetPhase)
+		
+		// Track initial turn number on first check to avoid stopping immediately if bot starts after the target date
+		if (stopAtDateInitialTurnNumber == -1) {
+			stopAtDateInitialTurnNumber = currentDate.day
+		}
+		
+		if (currentDate.day >= targetDay && stopAtDateInitialTurnNumber <= targetDay) {
+			MessageLog.i(TAG, "[DATE] Reached target date: $stopAtDate (Turn $targetDay). Stopping bot.")
+			notificationMessage = "Stopping bot at the specified date: $stopAtDate (Turn $targetDay)"
+			return true
+		}
+		
+		return false
+	}
+
+	/**
 	 * Checks if the bot has a injury.
 	 *
 	 * @return True if the bot has a injury. Otherwise false.
@@ -413,10 +464,9 @@ class Game(val myContext: Context) {
             false -> {
                 MessageLog.i(TAG, "[INJURY] Injury detected. Attempting to heal...")
                 if (ButtonInfirmary.click(imageUtils, sourceBitmap = sourceBitmap)) {
-                    wait(0.25)
+                    wait(dialogWaitDelay)
                     ButtonOk.click(imageUtils, region = imageUtils.regionMiddle)
-
-                    wait(0.3)
+                    wait(dialogWaitDelay)
 
                     if (IconInfirmaryEventHeader.check(imageUtils)) {
                         MessageLog.i(TAG, "[INJURY] Injury detected and attempted to heal.")
@@ -532,16 +582,18 @@ class Game(val myContext: Context) {
 			ButtonRest.click(imageUtils, sourceBitmap = sourceBitmap) -> {
                 ButtonOk.click(imageUtils, region = imageUtils.regionMiddle)
                 // Another OK tap for the possibility of a scheduled race warning popup.
-                wait(0.25)
+                wait(dialogWaitDelay)
                 ButtonOk.click(imageUtils, region = imageUtils.regionMiddle)
+                waitForLoading()
 				MessageLog.i(TAG, "[ENERGY] Successfully recovered energy.")
 				true
 			}
 			ButtonRestAndRecreation.click(imageUtils, sourceBitmap = sourceBitmap) -> {
 				ButtonOk.click(imageUtils, region = imageUtils.regionMiddle)
                 // Another OK tap for the possibility of a scheduled race warning popup.
-                wait(0.25)
+                wait(dialogWaitDelay)
                 ButtonOk.click(imageUtils, region = imageUtils.regionMiddle)
+                waitForLoading()
 				MessageLog.i(TAG, "[ENERGY] Successfully recovered energy for the Summer.")
 				true
 			}
@@ -586,15 +638,19 @@ class Game(val myContext: Context) {
                 }
 
                 // Tap OK for the possibility of a scheduled race warning popup.
-                wait(0.25)
-                ButtonOk.click(imageUtils, region = imageUtils.regionMiddle)
+                wait(dialogWaitDelay)
+                if (ButtonOk.click(imageUtils, region = imageUtils.regionMiddle)) {
+                    waitForLoading()
+                }
 
                 // The Recreation popup is now open so an additional step is required to recover mood.
                 if (LabelRecreationUmamusume.click(imageUtils)) {
                     MessageLog.i(TAG, "[MOOD] Recreation date is already completed. Recovering mood with the Umamusume now...")
+                    waitForLoading()
                 } else {
                     // Otherwise, dismiss the popup that says to confirm recreation if the user has not set it to skip the confirmation in their in-game settings.
                     ButtonOk.click(imageUtils, region = imageUtils.regionMiddle)
+                    waitForLoading()
                 }
             }
 			true
@@ -613,7 +669,7 @@ class Game(val myContext: Context) {
     fun handleRecreationDate(recoverMoodIfCompleted: Boolean = false): Boolean {
         return if (ButtonRecreation.click(imageUtils)) {
             // Tap OK for the possibility of a scheduled race warning popup.
-            wait(0.25)
+            wait(dialogWaitDelay)
             ButtonOk.click(imageUtils, region = imageUtils.regionMiddle)
 
             MessageLog.i(TAG, "\n[RECREATION_DATE] Recreation has a possible date available.")
@@ -625,6 +681,7 @@ class Game(val myContext: Context) {
                 if (recoverMoodIfCompleted) {
                     MessageLog.i(TAG, "[RECREATION_DATE] Mood requires recovery. Recovering mood with the Umamusume now...")
                     LabelRecreationUmamusume.click(imageUtils)
+                    waitForLoading()
                     true
                 } else {
                     MessageLog.i(TAG, "[RECREATION_DATE] Mood does not require recovery. Moving on...")
@@ -632,6 +689,7 @@ class Game(val myContext: Context) {
                     true
                 }
             } else if (LabelEventProgress.click(imageUtils)) {
+                waitForLoading()
                 MessageLog.i(TAG, "[RECREATION_DATE] Recreation date can be done.")
                 true
             } else {
@@ -740,9 +798,12 @@ class Game(val myContext: Context) {
             ButtonCraneGameOk.check(imageUtils = imageUtils, sourceBitmap = sourceBitmap)
         ) {
             ButtonCraneGameOk.click(imageUtils = imageUtils, sourceBitmap = sourceBitmap)
+            waitForLoading()
             MessageLog.i(TAG, "[CRANE GAME] Event exited.")
 		} else if (ButtonNextRaceEnd.click(imageUtils, sourceBitmap = sourceBitmap)) {
 			MessageLog.i(TAG, "[MISC] Ended a leftover race.")
+            // Clicking this button triggers connection to server.
+            waitForLoading()
 		} else if (IconRaceNotEnoughFans.check(imageUtils, sourceBitmap = sourceBitmap)) {
 			MessageLog.i(TAG, "[MISC] There was a popup about insufficient fans.")
 			racing.encounteredRacingPopup = true

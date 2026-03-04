@@ -639,6 +639,7 @@ class Training(private val game: Game) {
 					MessageLog.i(TAG, "[TRAINING] There is not enough energy for training to be done but the setting to train Wit during the Finale is enabled. Forcing Wit training...")
 					// Directly attempt to tap Wit training.
 					if (ButtonTrainingWit.click(imageUtils = game.imageUtils, taps = 3)) {
+                        game.waitForLoading()
 						MessageLog.i(TAG, "[TRAINING] Successfully forced Wit training during the Finale instead of recovering energy.")
 						firstTrainingCheck = false
 					} else {
@@ -1229,10 +1230,11 @@ class Training(private val game: Game) {
             // These values are hardcoded and exhaustive. A KeyError would be a programmer error.
             val trainingButton: ComponentInterface = trainingButtons[trainingSelected]!!
             trainingButton.click(game.imageUtils, taps = 3)
-            game.wait(1.0)
+            game.wait(game.dialogWaitDelay)
 
             // Dismiss any popup warning about a scheduled race.
             ButtonOk.click(game.imageUtils, region = game.imageUtils.regionMiddle)
+            game.waitForLoading()
 
 			MessageLog.i(TAG, "[TRAINING] Process to execute training completed.")
 		} else {

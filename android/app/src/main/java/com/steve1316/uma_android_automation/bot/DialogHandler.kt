@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.util.Log
 import com.steve1316.automation_library.utils.MessageLog
 import com.steve1316.automation_library.utils.DiscordUtils
+import com.steve1316.automation_library.utils.SettingsHelper
 import com.steve1316.uma_android_automation.MainActivity
 import com.steve1316.uma_android_automation.components.*
 import com.steve1316.uma_android_automation.types.BoundingBox
@@ -53,6 +54,13 @@ open class DialogHandler(val game: Game) {
 	 * The DialogInterface is the detected dialog, or NULL if no dialogs were found.
 	 */
 	open fun handleDialogs(dialog: DialogInterface? = null, args: Map<String, Any> = mapOf()): Pair<Boolean, DialogInterface?> {
+        val bShouldWait = args["bShouldWait"] as? Boolean ?: false
+        val bShouldWaitForLoading = args["bShouldWaitForLoading"] as? Boolean ?: false
+        if (bShouldWait || bShouldWaitForLoading) {
+            MessageLog.d(TAG, "[DIALOG] Waiting before handling dialog due to passed args: dialogWaitDelay=${game.dialogWaitDelay}, bShouldWait=$bShouldWait, bShouldWaitForLoading=$bShouldWaitForLoading")
+            game.wait(game.dialogWaitDelay, skipWaitingForLoading = !bShouldWaitForLoading)
+        }
+
 		val dialog: DialogInterface? = dialog ?: DialogUtils.getDialog(imageUtils = game.imageUtils)
 		if (dialog == null) {
 			Log.d(TAG, "[DIALOG] No dialog found.")
@@ -87,7 +95,6 @@ open class DialogHandler(val game: Game) {
 			"session_error" -> {
 				throw InterruptedException("Session error. Stopping bot...")
 			}
-
 			// Racing Dialogs (from Racing.kt)
 			"consecutive_race_warning" -> {
                 val overrideIgnoreConsecutiveRaceWarning = args["overrideIgnoreConsecutiveRaceWarning"] as? Boolean ?: false
@@ -130,6 +137,8 @@ open class DialogHandler(val game: Game) {
 					"DEFAULT" -> {
 						MessageLog.i(TAG, "[DIALOG] strategy:: Using the default running style.")
 						dialog.ok(imageUtils = game.imageUtils)
+                        // Confirming this dialog triggers connection to server.
+                        game.waitForLoading()
 						game.trainee.bHasSetRunningStyle = true
 						return Pair(true, dialog)
 					}
@@ -180,7 +189,7 @@ open class DialogHandler(val game: Game) {
 						MessageLog.i(TAG, "[RACE] Failed mandatory race. Using daily free race retry...")
 						game.racing.raceRetries--
 						dialog.ok(game.imageUtils)
-						game.wait(0.5, skipWaitingForLoading = true)
+						game.wait(0.5)
 						return Pair(true, dialog)
 					}
 					if (game.racing.enableCompleteCareerOnFailure) {
@@ -188,7 +197,7 @@ open class DialogHandler(val game: Game) {
 						// Manually set retries to -1 to break the race retry loop.
 						game.racing.raceRetries = -1
 						dialog.close(game.imageUtils)
-						game.wait(0.5, skipWaitingForLoading = true)
+						game.wait(0.5)
 						return Pair(true, dialog)
 					}
 					MessageLog.i(TAG, "\n[END] Stopping the bot due to failing a mandatory race.")
@@ -201,10 +210,8 @@ open class DialogHandler(val game: Game) {
 				}
 				game.racing.raceRetries--
 				dialog.ok(game.imageUtils)
-				game.wait(0.5, skipWaitingForLoading = true)
 			}
 			"unlock_requirements" -> dialog.close(imageUtils = game.imageUtils)
-
 			// Campaign Dialogs (from Campaign.kt)
 			"agenda_details" -> dialog.close(imageUtils = game.imageUtils)
 			"bonus_umamusume_details" -> dialog.close(imageUtils = game.imageUtils)
@@ -379,7 +386,6 @@ open class DialogHandler(val game: Game) {
 			}
 			"unity_cup_available" -> dialog.close(imageUtils = game.imageUtils)
 			"unmet_requirements" -> dialog.close(imageUtils = game.imageUtils)
-
 			// Skill List Dialogs (from SkillList.kt)
 			"skill_list_confirmation" -> {
 				dialog.ok(game.imageUtils)
@@ -389,14 +395,13 @@ open class DialogHandler(val game: Game) {
 			}
 			"skill_list_confirm_exit" -> dialog.ok(game.imageUtils)
 			"skills_learned" -> dialog.close(game.imageUtils)
-
 			else -> {
 				Log.w(TAG, "[DIALOG] Unknown dialog \"${dialog.name}\" detected so it will not be handled.")
 				return Pair(false, dialog)
 			}
 		}
 
-		game.wait(0.5, skipWaitingForLoading = true)
+		game.wait(0.5)
 		return Pair(true, dialog)
 	}
 }
