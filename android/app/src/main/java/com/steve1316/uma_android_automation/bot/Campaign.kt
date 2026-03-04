@@ -556,7 +556,7 @@ open class Campaign(game: Game) : DialogHandler(game) {
                     }
 
                     if (hasInjury) {
-                        game.findAndTapImage("ok", sourceBitmap = sourceBitmap, region = game.imageUtils.regionMiddle)
+                        ButtonOk.click(imageUtils, sourceBitmap = sourceBitmap, region = game.imageUtils.regionMiddle)
                         game.wait(3.0)
                         bHasCheckedDateThisTurn = false
                     } else {
@@ -669,7 +669,7 @@ open class Campaign(game: Game) : DialogHandler(game) {
                 } else {
                     MessageLog.v(TAG, "Did not detect the bot being at the following screens: Main, Training Event, Inheritance, Mandatory Race Preparation, Racing and Career End.")
                     // Tap to progress any intermediate screens.
-                    game.tap(350.0, 450.0, "ok", taps = 1)
+                    game.tap(350.0, 450.0, taps = 1)
                 }
             } catch (e: InterruptedException) {
                 val stopReason = e.message ?: "Bot was manually stopped."

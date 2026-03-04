@@ -365,8 +365,7 @@ class Racing (private val game: Game) {
         }
 
         // If there is a popup warning about racing too many times, confirm the popup to continue as this is a mandatory race.
-        if (game.imageUtils.findImage("ok", tries = 1, region = game.imageUtils.regionMiddle).first != null) {
-            game.findAndTapImage("ok", tries = 1, region = game.imageUtils.regionMiddle, suppressError = true)
+        if (ButtonOk.click(imageUtils, region = imageUtils.regionMiddle)) {
             game.wait(2.0)
         }
 
@@ -637,13 +636,13 @@ class Racing (private val game: Game) {
                 if (!enableForceRacing && !enableMandatoryRacingPlan) {
                     raceRepeatWarningCheck = true
                     MessageLog.i(TAG, "[RACE] Closing popup warning of doing more than 3+ races and setting flag to prevent racing for now. Canceling the racing process and doing something else.")
-                    game.findAndTapImage("cancel", region = game.imageUtils.regionBottomHalf)
+                    ButtonCancel.click(imageUtils)
                     // Clear requirement flags since we cannot proceed with racing.
                     clearRacingRequirementFlags()
                     MessageLog.i(TAG, "********************")
                     return false
                 } else {
-                    game.findAndTapImage("ok", tries = 1, region = game.imageUtils.regionMiddle)
+                    ButtonOk.click(imageUtils, region = imageUtils.regionMiddle)
                     game.wait(1.0)
                 }
             }
@@ -1880,7 +1879,7 @@ class Racing (private val game: Game) {
                 // Otherwise click to progress through screens.
                 else -> {
                     MessageLog.d(TAG, "[RACE] runRaceWithRetries: No components detected. Tapping to progress...")
-                    game.tap(350.0, 450.0, "ok", taps = 3)
+                    game.tap(350.0, 450.0, taps = 3)
                 }
             }
         } while (raceRetries >= 0)
@@ -1930,7 +1929,7 @@ class Racing (private val game: Game) {
                     return true
                 }
                 // Tap on the screen to progress through screens.
-                else -> game.tap(350.0, 750.0, "ok", taps = 3)
+                else -> game.tap(350.0, 750.0, taps = 3)
             }
         }
         return false

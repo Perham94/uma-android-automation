@@ -1214,7 +1214,7 @@ class Training(private val game: Game) {
             game.wait(1.0)
 
             // Dismiss any popup warning about a scheduled race.
-            game.findAndTapImage("ok", tries = 1, region = game.imageUtils.regionMiddle, suppressError = true)
+            ButtonOk.click(imageUtils, region = imageUtils.regionMiddle)
 
 			MessageLog.i(TAG, "[TRAINING] Process to execute training completed.")
 		} else {

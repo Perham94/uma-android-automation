@@ -653,7 +653,7 @@ class TrainingEvent(private val game: Game) {
                 iterationCount++
                 
                 // First check for Close button.
-                if (game.findAndTapImage("close", tries = 1, region = game.imageUtils.regionBottomHalf, suppressError = true)) {
+                if (ButtonClose.click(imageUtils)) {
                     MessageLog.i(TAG, "[TRAINING_EVENT] Close button found and clicked. Tutorial event handling complete.")
                     closeButtonFound = true
                     break

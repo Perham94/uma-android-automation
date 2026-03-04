@@ -416,7 +416,7 @@ class Game(val myContext: Context) {
 	fun checkInjury(sourceBitmap: Bitmap? = null): Boolean {
 		MessageLog.i(TAG, "\n[INJURY] Checking if there is an injury that needs healing on ${currentDate}.")
         val sourceBitmap = sourceBitmap ?: imageUtils.getSourceBitmap()
-		val recoverInjuryLocation = imageUtils.findImageWithBitmap("recover_injury", sourceBitmap, region = imageUtils.regionBottomHalf)
+		val recoverInjuryLocation = ButtonInfirmary.findImageWithBitmap(imageUtils, sourceBitmap = sourceBitmap)
 		return if (recoverInjuryLocation != null && imageUtils.checkColorAtCoordinates(
 				recoverInjuryLocation.x.toInt(),
 				recoverInjuryLocation.y.toInt() + 15,
@@ -426,7 +426,7 @@ class Game(val myContext: Context) {
 			if (findAndTapImage("recover_injury", sourceBitmap, tries = 1, region = imageUtils.regionBottomHalf)) {
                 // Tap OK for the possibility of a scheduled race warning popup.
                 wait(0.25)
-                findAndTapImage("ok", tries = 1, region = imageUtils.regionMiddle, suppressError = true)
+                ButtonOk.click(imageUtils, region = imageUtils.regionMiddle)
 
 				wait(0.3)
 				if (imageUtils.findImage("recover_injury_header", tries = 1, region = imageUtils.regionMiddle).first != null) {
@@ -538,18 +538,18 @@ class Game(val myContext: Context) {
 		// Otherwise, fall back to the regular energy recovery logic.
 		return when {
 			findAndTapImage("recover_energy", sourceBitmap, tries = 1, region = imageUtils.regionBottomHalf) -> {
-				findAndTapImage("ok", region = imageUtils.regionMiddle, suppressError = true)
+                ButtonOk.click(imageUtils, region = imageUtils.regionMiddle)
                 // Another OK tap for the possibility of a scheduled race warning popup.
                 wait(0.25)
-                findAndTapImage("ok", tries = 1, region = imageUtils.regionMiddle, suppressError = true)
+                ButtonOk.click(imageUtils, region = imageUtils.regionMiddle)
 				MessageLog.i(TAG, "[ENERGY] Successfully recovered energy.")
 				true
 			}
 			findAndTapImage("recover_energy_summer", sourceBitmap, tries = 1, region = imageUtils.regionBottomHalf) -> {
-				findAndTapImage("ok", region = imageUtils.regionMiddle, suppressError = true)
+				ButtonOk.click(imageUtils, region = imageUtils.regionMiddle)
                 // Another OK tap for the possibility of a scheduled race warning popup.
                 wait(0.25)
-                findAndTapImage("ok", tries = 1, region = imageUtils.regionMiddle, suppressError = true)
+                ButtonOk.click(imageUtils, region = imageUtils.regionMiddle)
 				MessageLog.i(TAG, "[ENERGY] Successfully recovered energy for the Summer.")
 				true
 			}
@@ -595,7 +595,7 @@ class Game(val myContext: Context) {
 
                 // Tap OK for the possibility of a scheduled race warning popup.
                 wait(0.25)
-                findAndTapImage("ok", tries = 1, region = imageUtils.regionMiddle, suppressError = true)
+                ButtonOk.click(imageUtils, region = imageUtils.regionMiddle)
 
                 if (imageUtils.findImage("recreation_umamusume", region = imageUtils.regionMiddle, suppressError = true).first != null) {
                     // The Recreation popup is now open so an additional step is required to recover mood.
@@ -603,7 +603,7 @@ class Game(val myContext: Context) {
                     findAndTapImage("recreation_umamusume", region = imageUtils.regionMiddle)
                 } else {
                     // Otherwise, dismiss the popup that says to confirm recreation if the user has not set it to skip the confirmation in their in-game settings.
-                    findAndTapImage("ok", region = imageUtils.regionMiddle, suppressError = true)
+                    ButtonOk.click(imageUtils, region = imageUtils.regionMiddle)
                 }
             }
 			true
@@ -623,7 +623,7 @@ class Game(val myContext: Context) {
         return if (findAndTapImage("recover_mood", tries = 1, region = imageUtils.regionBottomHalf)) {
             // Tap OK for the possibility of a scheduled race warning popup.
             wait(0.25)
-            findAndTapImage("ok", tries = 1, region = imageUtils.regionMiddle, suppressError = true)
+            ButtonOk.click(imageUtils, region = imageUtils.regionMiddle)
 
             MessageLog.i(TAG, "\n[RECREATION_DATE] Recreation has a possible date available.")
             wait(1.0)
@@ -637,7 +637,7 @@ class Game(val myContext: Context) {
                     true
                 } else {
                     MessageLog.i(TAG, "[RECREATION_DATE] Mood does not require recovery. Moving on...")
-                    findAndTapImage("cancel", region = imageUtils.regionBottomHalf)
+                    ButtonCancel.click(imageUtils)
                     true
                 }
             } else if (findAndTapImage("recreation_dating_progress", region = imageUtils.regionMiddle)) {
@@ -719,7 +719,7 @@ class Game(val myContext: Context) {
 
         val sourceBitmap = imageUtils.getSourceBitmap()
 
-		if (enablePopupCheck && imageUtils.findImageWithBitmap("cancel", sourceBitmap, region = imageUtils.regionBottomHalf) != null) {
+		if (enablePopupCheck && ButtonCancel.check(imageUtils, sourceBitmap = sourceBitmap)) {
 			MessageLog.i(TAG, "\n[END] Bot may have encountered a warning popup. Exiting now...")
 			notificationMessage = "Bot may have encountered a warning popup"
 			if (DiscordUtils.enableDiscordNotifications) {
@@ -734,7 +734,7 @@ class Game(val myContext: Context) {
 			wait(1.0)
         } else if (imageUtils.findImageWithBitmap("race_repeat_warning", sourceBitmap, region = imageUtils.regionTopHalf) != null) {
             MessageLog.i(TAG, "[MISC] Consecutive race warning detected on the screen so dismissing the popup.")
-            findAndTapImage("cancel", sourceBitmap, tries = 1, region = imageUtils.regionBottomHalf)
+            ButtonCancel.click(imageUtils, sourceBitmap = sourceBitmap)
             wait(1.0)
         } else if (ButtonCraneGame.check(imageUtils = imageUtils, sourceBitmap = sourceBitmap)) {
             if (enableCraneGameAttempt) {
@@ -766,8 +766,8 @@ class Game(val myContext: Context) {
 		} else if (imageUtils.findImageWithBitmap("race_not_enough_fans", sourceBitmap, region = imageUtils.regionMiddle, suppressError = true) != null) {
 			MessageLog.i(TAG, "[MISC] There was a popup about insufficient fans.")
 			racing.encounteredRacingPopup = true
-			findAndTapImage("cancel", region = imageUtils.regionBottomHalf)
-		} else if (findAndTapImage("back", sourceBitmap = sourceBitmap, tries = 1, region = imageUtils.regionBottomHalf, suppressError = true)) {
+            ButtonCancel.click(imageUtils, sourceBitmap = sourceBitmap)
+		} else if (ButtonBack.click(imageUtils, sourceBitmap = sourceBitmap)) {
 			MessageLog.i(TAG, "[MISC] Navigating back a screen since all the other misc checks have been completed.")
 			wait(1.0)
 		} else if (ButtonSkip.click(imageUtils = imageUtils, sourceBitmap = sourceBitmap)) {

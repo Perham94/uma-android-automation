@@ -223,7 +223,7 @@ class UnityCup(game: Game) : Campaign(game) {
                     return false
                 }
                 // Tap on the screen to skip past any intermediate screens.
-                else -> game.tap(350.0, 750.0, "ok", taps = 3)
+                else -> game.tap(350.0, 750.0, taps = 3)
             }
         }
 	}
