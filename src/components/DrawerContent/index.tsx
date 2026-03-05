@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect, useContext, useRef } from "react"
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native"
+import { View, Text, StyleSheet, TouchableOpacity, Linking } from "react-native"
 import { DrawerContentScrollView, DrawerContentComponentProps, useDrawerStatus } from "@react-navigation/drawer"
 import { CommonActions } from "@react-navigation/native"
 import { Ionicons } from "@expo/vector-icons"
@@ -171,6 +171,21 @@ const DrawerContent: React.FC<DrawerContentComponentProps> = (props) => {
                 doubleNestedItemTextActive: {
                     color: colors.primary,
                     fontWeight: "500",
+                },
+                footer: {
+                    padding: 20,
+                    borderTopWidth: 1,
+                    borderTopColor: colors.border,
+                },
+                footerButton: {
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                },
+                footerText: {
+                    fontSize: 16,
+                    color: colors.primary,
+                    fontWeight: "600",
                 },
             }),
         [colors]
@@ -494,6 +509,14 @@ const DrawerContent: React.FC<DrawerContentComponentProps> = (props) => {
             </View>
             <View style={styles.menuContainer}>{menuItems.map((item) => renderMenuItem(item, 0))}</View>
         </DrawerContentScrollView>
+        <View style={styles.footer}>
+            <TouchableOpacity onPress={() => Linking.openURL("https://github.com/steve1316/uma-android-automation")} activeOpacity={0.7}>
+                <View style={styles.footerButton}>
+                    <Ionicons name="logo-github" size={32} color={colors.primary} style={{ marginRight: 8 }} />
+                    <Text style={styles.footerText}>Go to GitHub</Text>
+                </View>
+            </TouchableOpacity>
+        </View>
     </>
     )
 }
