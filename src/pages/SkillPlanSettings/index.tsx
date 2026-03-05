@@ -411,7 +411,7 @@ const SkillPlanSettings: FC<SkillPlanSettingsProps> = ({ planKey, name, title, d
                         <Text style={styles.description}>{description}</Text>
                         <Divider style={{ marginBottom: 16 }} />
                         <CustomCheckbox
-                            searchId={`enable-career-complete-skill-plan-${planKey}`}
+                            searchId={`enable-skill-plan-${planKey}`}
                             checked={enabled}
                             onCheckedChange={(checked) => updateSkillsSetting("enabled", checked)}
                             label={`Enable ${title} Plan (Beta)`}
