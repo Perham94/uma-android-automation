@@ -99,6 +99,9 @@ export const skillPlanSettingsPages: DynamicSkillPlanSettingsProps = {
     },
 }
 
+// Convert skills.json to array.
+const skillData: Skill[] = Object.values(skillsData)
+
 /**
  * The Skill Plan Settings page.
  * Configures a specific skill plan's purchasing strategy, inherited/negative skill options,
@@ -127,11 +130,6 @@ const SkillPlanSettings: FC<SkillPlanSettingsProps> = ({ planKey, name, title, d
     const planIds: number[] = useMemo(() => {
         return plan && plan !== "" && typeof plan === "string" ? plan.split(",").map((s) => Number(s)) : []
     }, [plan])
-
-    // Convert skills.json to array.
-    const skillData: Skill[] = useMemo(() => {
-        return Object.values(skillsData)
-    }, [])
 
     // Filter skills based on search and preferences.
     const filteredSkills = useMemo(() => {
