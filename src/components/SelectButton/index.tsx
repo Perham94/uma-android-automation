@@ -6,29 +6,69 @@ import CustomButton from "../CustomButton"
 import { Ionicons } from "@expo/vector-icons"
 import * as SelectPrimitive from "@rn-primitives/select"
 
+/**
+ * Represents an option in the select dropdown.
+ */
 interface SelectOption {
+    /** The value of the option. */
     value: string
+    /** The display label of the option. */
     label: string
+    /** Whether the option is disabled. */
     disabled?: boolean
 }
 
+/**
+ * Props for the SelectButton component.
+ */
 interface SelectButtonProps {
+    /** The visual style variant of the button. */
     variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link" | "success" | "info" | "warning" | "error"
+    /** The size preset for the button. */
     size?: "default" | "sm" | "lg" | "icon"
     icon?: React.ReactElement
+    /** The name of the Ionicons icon to display. */
     iconName?: React.ComponentProps<typeof Ionicons>["name"]
+    /** Whether the icon appears to the left or right of the text. */
     iconPosition?: "left" | "right"
+    /** The list of options for the select dropdown. */
     options?: SelectOption[]
+    /** The label for the option group. */
     groupLabel?: string
+    /** The portal host for the select dropdown. */
     portalHost?: string
+    /** The default selected value. */
     defaultValue?: string
+    /** The placeholder text when no option is selected. */
     placeholder?: string
+    /** The currently selected value. */
     value?: string
+    /** The function to set the selected value. */
     setValue?: React.Dispatch<React.SetStateAction<string>>
+    /** Callback fired when the value changes. */
     onValueChange?: (value: string | undefined) => void
+    /** Callback fired when the button is pressed. */
     onPress?: () => void
 }
 
+/**
+ * A themed, configurable button component that opens a select dropdown.
+ * Automatically applies theme-aware colors based on the selected variant and dark/light mode.
+ * @param variant The visual style variant of the button.
+ * @param size The size preset for the button.
+ * @param icon Optional icon element.
+ * @param iconName The name of the Ionicons icon to display.
+ * @param iconPosition Whether the icon appears left or right.
+ * @param options The list of options.
+ * @param groupLabel The label for the option group.
+ * @param portalHost The portal host for the select dropdown.
+ * @param defaultValue The default selected value.
+ * @param placeholder The placeholder text.
+ * @param value The currently selected value.
+ * @param setValue The function to set the selected value.
+ * @param onValueChange Callback fired when the value changes.
+ * @param onPress Callback fired when the button is pressed.
+ */
 const SelectButton: React.FC<SelectButtonProps> = ({
     variant = "default",
     size = "default",
@@ -45,11 +85,16 @@ const SelectButton: React.FC<SelectButtonProps> = ({
     onValueChange,
     onPress,
 }) => {
+    // The current theme colors and dark mode status.
     const { colors, isDark } = useTheme()
 
+    // Reference to the trigger element to measure its width.
     const triggerRef = useRef<View>(null)
+    
+    // The width of the trigger element to match the dropdown width.
     const [triggerWidth, setTriggerWidth] = useState<number>(0)
 
+    // The currently selected option's label.
     const currentLabel = options.find((item) => item.value === value || item.value === defaultValue)?.label
 
     /**
@@ -106,6 +151,10 @@ const SelectButton: React.FC<SelectButtonProps> = ({
         }
     }
 
+    /**
+     * Determine the background color for the select content based on variant and theme.
+     * @returns The background color for the select dropdown.
+     */
     const getSelectContentBackgroundColor = () => {
         if (variant === "default") {
             return isDark ? colors.primary : colors.secondary
@@ -155,12 +204,19 @@ const SelectButton: React.FC<SelectButtonProps> = ({
         setTriggerWidth(measuredWidth)
     }
 
+    /**
+     * Callback fired when the main button is pressed.
+     */
     const onPressButton = () => {
         if (onPress) {
             onPress()
         }
     }
 
+    /**
+     * Callback fired when an option is selected from the dropdown.
+     * @param option The selected option.
+     */
     const handleValueChange = (option: Option) => {
         if (onValueChange) {
             onValueChange(option?.value || "")
@@ -170,6 +226,10 @@ const SelectButton: React.FC<SelectButtonProps> = ({
         }
     }
 
+    /**
+     * Determine which icon to display based on props.
+     * @returns The icon element to render.
+     */
     const getIcon = (): React.ReactElement | undefined => {
         if (icon) {
             return icon
