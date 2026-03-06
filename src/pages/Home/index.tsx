@@ -234,7 +234,16 @@ where width and height of the screen is in pixels, and diagonal is the diagonal 
         }
 
         if (deviceMetrics) {
-            return <Ionicons name="checkmark-circle-outline" size={24} color={colors.success} />
+            return (
+                <Tooltip delayDuration={150}>
+                    <TooltipTrigger>
+                        <Ionicons name="checkmark-circle-outline" size={24} color={colors.success} />
+                    </TooltipTrigger>
+                    <TooltipContent sideOffset={12} side="bottom">
+                        <Text>Everything looks good and ready to go!</Text>
+                    </TooltipContent>
+                </Tooltip>
+            )
         }
 
         return null
