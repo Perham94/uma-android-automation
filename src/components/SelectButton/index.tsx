@@ -261,10 +261,10 @@ const SelectButton: React.FC<SelectButtonProps> = ({
             >
                 <NativeSelectScrollView>
                     <SelectGroup>
-                        {groupLabel && <SelectLabel>{groupLabel}</SelectLabel>}
+                        {groupLabel && <SelectLabel style={{ color: getTextColor() }}>{groupLabel}</SelectLabel>}
                         {options &&
                             options.map((option) => (
-                                <SelectItem key={option.value} label={option.label} value={option.value} disabled={option.disabled}>
+                                <SelectItem key={option.value} label={option.label} value={option.value} disabled={option.disabled} textStyle={{ color: getTextColor() }}>
                                     {option.label}
                                 </SelectItem>
                             ))}
