@@ -239,7 +239,7 @@ const SelectButton: React.FC<SelectButtonProps> = ({
                 </CustomButton>
                 <Separator orientation="vertical" />
                 <SelectPrimitive.Trigger asChild>
-                    <CustomButton style={styles.buttonDropdown} variant={variant as any} size={size} isLoading={false}>
+                    <CustomButton style={styles.buttonDropdown} variant={variant as any} size={"icon"} isLoading={false}>
                         <Ionicons name="caret-down" size={20} color={getTextColor()} />
                     </CustomButton>
                 </SelectPrimitive.Trigger>
