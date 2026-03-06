@@ -584,7 +584,7 @@ class Racing (private val game: Game) {
 
         // Confirm the selection and the resultant popup and then wait for the game to load.
         ButtonRace.click(imageUtils = game.imageUtils)
-        game.wait(0.5, skipWaitingForLoading = true)
+        game.wait(game.dialogWaitDelay)
         val (bWasDialogHandled, dialog) = game.campaign.handleDialogs()
         if (!bWasDialogHandled || (dialog != null && dialog.name != "race_details")) {
             Log.w(TAG, "[RACE] Failed to handle dialogs. Aborting racing...")
@@ -744,7 +744,7 @@ class Racing (private val game: Game) {
         } else if (isScheduledRace) {
             MessageLog.i(TAG, "[RACE] Confirming the scheduled race dialog...")
             ButtonRace.click(game.imageUtils, tries = 30)
-            game.waitForLoading()
+            game.wait(game.dialogWaitDelay)
         }
 
         // Confirm the selection and the resultant popup and then wait for the game to load.
@@ -1278,7 +1278,7 @@ class Racing (private val game: Game) {
             game.waitForLoading()
             return
         }
-        game.waitForLoading()
+        game.wait(game.dialogWaitDelay)
 
         // Now tap on the My Agenda button.
         if (!game.findAndTapImage("race_my_agenda", tries = 1, region = game.imageUtils.regionBottomHalf)) {
@@ -1289,7 +1289,7 @@ class Racing (private val game: Game) {
             game.waitForLoading()
             return
         }
-        game.waitForLoading()
+        game.wait(game.dialogWaitDelay)
         
         // Check if an agenda is already loaded. If so, then the user must have loaded this earlier in the career so no need to select it again.
         if (game.imageUtils.findImage("race_agenda_empty", tries = 1, region = game.imageUtils.regionTopHalf).first == null) {
@@ -1335,12 +1335,50 @@ class Racing (private val game: Game) {
             for ((buttonLocation, agendaText) in agendaMappings) {
                 if (agendaText == selectedUserAgenda) {
                     MessageLog.i(TAG, "[RACE] ✓ Found $selectedUserAgenda. Tapping the Load List button...")
+                    // Clicking this button triggers connection to server.
+                    // Or it could result in three other states:
+                    // 1)   The overwrite dialog appears.
+                    // 2)   The scheduled_race dialog appears.
+                    // 3)   The my_agendas dialog closes automatically and
+                    //      the scheduled_races dialog remains on screen.
                     game.gestureUtils.tap(buttonLocation.x, buttonLocation.y, "race_agenda_load_list")
-                    game.wait(0.5)
-                    
-                    // Tap the overwrite button.
-                    game.findAndTapImage("race_agenda_overwrite", tries = 1, region = game.imageUtils.regionMiddle)
-                    game.waitForLoading()
+
+                    // Timeout after 5 seconds. Shouldn't ever take near that long.
+                    val timeoutMs: Int = 5000
+                    val startTime: Long = System.currentTimeMillis()
+                    while (System.currentTimeMillis() - startTime < timeoutMs) {
+                        val dialog = game.campaign.handleDialogs(
+                            args = mapOf<String, Boolean>(
+                                "bShouldDefer" to true,
+                                "bShouldWait" to true,
+                                "bShouldWaitForLoading" to true,
+                            ),
+                        ).second
+
+                        when (dialog?.name) {
+                            "overwrite" -> dialog.ok(game.imageUtils)
+                            // Pops up when we try to load agenda with races that
+                            // are in the past.
+                            "scheduled_race" -> dialog.close(game.imageUtils)
+                            // We've closed all the extra dialogs after loading agenda.
+                            // Break from loop.
+                            "scheduled_races" -> break
+                            // We might detect the dialog too quick and find this
+                            // one as it is in the process of closing.
+                            // Ignore this and continue loop
+                            "my_agendas" -> {}
+                            // No dialog detected. This can happen if a dialog is closing.
+                            // Not a problem, just continue with loop and timeout when
+                            // the time comes.
+                            null -> {}
+                            // Fall back to the base dialog handler if we get a dialog
+                            // that we weren't expecting.
+                            else -> {
+                                MessageLog.e(TAG, "[RACE] Unknown dialog detected: ${dialog.name}. Falling back to base dialog handler.")
+                                game.campaign.handleDialogs()
+                            }
+                        }
+                    }
                     
                     foundAgenda = true
                     break
@@ -1849,7 +1887,7 @@ class Racing (private val game: Game) {
         while (System.currentTimeMillis() - startTime < timeoutMs) {
             MessageLog.d(TAG, "[RACE] Changing race strategy. Attempt #${numTries + 1}")
             if (ButtonChangeRunningStyle.click(game.imageUtils)) {
-                game.wait(0.5, skipWaitingForLoading = true)
+                game.wait(game.dialogWaitDelay, skipWaitingForLoading = true)
             }
 
             game.campaign.handleDialogs()
@@ -1902,6 +1940,8 @@ class Racing (private val game: Game) {
                         true -> {
                             if (ButtonRaceManual.click(game.imageUtils, sourceBitmap = bitmap)) {
                                 MessageLog.i(TAG, "[RACE] Skip is locked. Running race manually.")
+                                // Clicking this button triggers connection to server.
+                                game.waitForLoading()
                             } else {
                                 MessageLog.w(TAG, "[RACE] Skip is locked. Failed to click manual race button.")
                             }
@@ -1909,6 +1949,8 @@ class Racing (private val game: Game) {
                         false -> {
                             if (ButtonViewResults.click(game.imageUtils, sourceBitmap = bitmap)) {
                                 MessageLog.i(TAG, "[RACE] Clicked ViewResults button to skip race.")
+                                // Clicking this button triggers connection to server.
+                                game.waitForLoading()
                             } else {
                                 MessageLog.w(TAG, "[RACE] Failed to click ViewResults button to skip race.")
                             }
@@ -1979,6 +2021,8 @@ class Racing (private val game: Game) {
                 // This is also the exit point for this function.
                 ButtonNextRaceEnd.click(game.imageUtils, sourceBitmap = bitmap, taps = 5) -> {
                     MessageLog.i(TAG, "[RACE] Clicked on Next (race end) button.")
+                    // Clicking this button triggers connection to server.
+                    game.waitForLoading()
                     return true
                 }
                 // Tap on the screen to progress through screens.
