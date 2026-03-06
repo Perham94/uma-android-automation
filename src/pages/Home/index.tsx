@@ -167,9 +167,9 @@ const Home = () => {
     }
 
     /** Gets the appropriate icon name for the SelectButton based on device state. */
-    const getSelectButtonIconName = (): string => {
+    const getSelectButtonIconName = (): React.ComponentProps<typeof Ionicons>["name"] | undefined => {
         if (bsc.settings.general.scenario === "") {
-            return ""
+            return undefined
         } else if (isRunning) {
             return "stop-outline"
         } else {

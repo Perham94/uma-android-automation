@@ -22,7 +22,7 @@ interface SelectButtonProps extends PressableProps {
     isLoading?: boolean
     fontSize?: number
     icon?: React.ReactElement
-    iconName?: string
+    iconName?: React.ComponentProps<typeof Ionicons>["name"]
     iconPosition?: "left" | "right"
     options?: SelectOption[]
     groupLabel?: string
