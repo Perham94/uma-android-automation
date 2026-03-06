@@ -194,14 +194,14 @@ const SelectButton: React.FC<SelectButtonProps> = ({
     return (
         <Select onValueChange={handleValueChange} value={value as any} defaultValue={defaultValue as any}>
             <View style={styles.container} ref={triggerRef} onLayout={onTriggerLayout}>
-                <CustomButton style={styles.button} variant={variant} icon={getIcon()} iconPosition={iconPosition} size={size} isLoading={false} onPress={onPressButton}>
+                <CustomButton style={styles.button} variant={variant as any} icon={getIcon()} iconPosition={iconPosition} size={size} isLoading={false} onPress={onPressButton}>
                     {currentLabel ?? placeholder}
                 </CustomButton>
                 <View style={styles.verticalRuleContainer}>
                     <View style={styles.verticalRule} />
                 </View>
                 <SelectPrimitive.Trigger asChild>
-                    <CustomButton style={styles.buttonDropdown} variant={variant} size={size} isLoading={false}>
+                    <CustomButton style={styles.buttonDropdown} variant={variant as any} size={size} isLoading={false}>
                         <Ionicons name="caret-down" size={20} color={getTextColor()} />
                     </CustomButton>
                 </SelectPrimitive.Trigger>
