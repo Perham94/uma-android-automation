@@ -1,5 +1,5 @@
 import React, { useRef, useState, useMemo } from "react"
-import { View, LayoutChangeEvent, StyleSheet } from "react-native"
+import { View, LayoutChangeEvent, StyleSheet, StyleProp, ViewStyle } from "react-native"
 import { useTheme } from "../../context/ThemeContext"
 import { Option, Select, SelectContent, SelectGroup, SelectItem, SelectLabel, NativeSelectScrollView } from "../ui/select"
 import { Separator } from "../ui/separator"
@@ -27,6 +27,7 @@ interface SelectButtonProps {
     variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link" | "success" | "info" | "warning" | "error"
     /** The size preset for the button. */
     size?: "default" | "sm" | "lg" | "icon"
+    /** Optional custom icon element. */
     icon?: React.ReactElement
     /** The name of the Ionicons icon to display. */
     iconName?: React.ComponentProps<typeof Ionicons>["name"]
@@ -50,6 +51,8 @@ interface SelectButtonProps {
     onValueChange?: (value: string | undefined) => void
     /** Callback fired when the button is pressed. */
     onPress?: () => void
+    /** Optional custom style for the container. */
+    style?: StyleProp<ViewStyle>
 }
 
 /**
@@ -69,6 +72,7 @@ interface SelectButtonProps {
  * @param setValue The function to set the selected value.
  * @param onValueChange Callback fired when the value changes.
  * @param onPress Callback fired when the button is pressed.
+ * @param style Optional custom style for the container.
  */
 const SelectButton: React.FC<SelectButtonProps> = ({
     variant = "default",
@@ -85,13 +89,14 @@ const SelectButton: React.FC<SelectButtonProps> = ({
     setValue,
     onValueChange,
     onPress,
+    style,
 }) => {
     // The current theme colors and dark mode status.
     const { colors, isDark } = useTheme()
 
     // Reference to the trigger element to measure its width.
     const triggerRef = useRef<View>(null)
-    
+
     // The width of the trigger element to match the dropdown width.
     const [triggerWidth, setTriggerWidth] = useState<number>(0)
 
@@ -232,7 +237,7 @@ const SelectButton: React.FC<SelectButtonProps> = ({
 
     return (
         <Select onValueChange={handleValueChange} value={value as any} defaultValue={defaultValue as any}>
-            <View style={styles.container} ref={triggerRef} onLayout={onTriggerLayout}>
+            <View style={[styles.container, style]} ref={triggerRef} onLayout={onTriggerLayout}>
                 <CustomButton style={styles.button} variant={variant as any} icon={getIcon()} iconPosition={iconPosition} size={size} isLoading={false} onPress={onPressButton}>
                     {currentLabel ?? placeholder}
                 </CustomButton>
