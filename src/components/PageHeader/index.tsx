@@ -315,7 +315,6 @@ const PageHeader = ({ title, showHomeButton = true, titleComponent, centerCompon
     return (
         <View style={[{ zIndex: isSearching ? 100 : 1 }, style]}>
             <View style={styles.header}>
-                {!isSearching && centerComponent && <View style={styles.headerCenter}>{centerComponent}</View>}
                 <View style={[styles.headerLeft, { flex: isSearching ? 1 : undefined }]}>
                     {/* Hamburger menu button */}
                     <TouchableOpacity onPress={openDrawer} style={styles.menuButton} activeOpacity={0.7}>
@@ -358,7 +357,9 @@ const PageHeader = ({ title, showHomeButton = true, titleComponent, centerCompon
                         </View>
                     )}
                 </View>
-                {!isSearching && rightComponent && <View>{rightComponent}</View>}
+
+                {/* Center Section */}
+                {!isSearching && centerComponent && <View style={styles.headerCenter}>{centerComponent}</View>}
 
                 {/* Right Section */}
                 {!isSearching && rightComponent && <View style={styles.headerRight}>{rightComponent}</View>}
