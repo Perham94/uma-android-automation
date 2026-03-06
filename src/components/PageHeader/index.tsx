@@ -220,8 +220,7 @@ const PageHeader = ({ title, showHomeButton = true, titleComponent, leftComponen
                     flexDirection: "row",
                     justifyContent: "space-between",
                     alignItems: "center",
-                    paddingTop: 8,
-                    paddingBottom: 12,
+                    marginBottom: 12,
                 },
                 headerLeft: {
                     flexDirection: "row",
