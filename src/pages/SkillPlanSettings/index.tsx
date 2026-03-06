@@ -337,7 +337,7 @@ const SkillPlanSettings: FC<SkillPlanSettingsProps> = ({ planKey, name, title, d
                     <View style={{ flex: 1 }}>
                         <Text style={styles.sectionTitle}>Planned Skills</Text>
                         <Text style={[styles.inputDescription, { marginTop: 0 }]}>
-                            Selected {planIds.length} / {skillData.length} skills
+                            Selected {planIds.length} / {filteredSkills.length} skills
                         </Text>
                     </View>
                     <View style={{ flexDirection: "row", gap: 8 }}>
