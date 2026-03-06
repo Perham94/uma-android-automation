@@ -14,9 +14,8 @@ import { Ionicons } from "@expo/vector-icons"
 import { Tooltip, TooltipContent, TooltipTrigger } from "../../components/ui/tooltip"
 import PageHeader from "../../components/PageHeader"
 import { usePerformanceLogging } from "../../hooks/usePerformanceLogging"
-
-import scenarios from "../../data/scenarios.json"
 import SelectButton from "../../components/SelectButton"
+import scenarios from "../../data/scenarios.json"
 
 const styles = StyleSheet.create({
     root: {
@@ -222,7 +221,9 @@ const Home = () => {
                     </TooltipContent>
                 </Tooltip>
             )
-        } else if (deviceMetrics && !bsc.readyStatus && !isRunning) {
+        }
+
+        if (!bsc.readyStatus && !isRunning) {
             return (
                 <Tooltip delayDuration={150}>
                     <TooltipTrigger>
@@ -233,6 +234,10 @@ const Home = () => {
                     </TooltipContent>
                 </Tooltip>
             )
+        }
+
+        if (deviceMetrics) {
+            return <Ionicons name="checkmark-circle-outline" size={24} color={colors.success} />
         }
 
         return null
