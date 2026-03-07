@@ -467,11 +467,229 @@
                 flex-shrink: 0;
             }
 
+            .dashboard {
+                background: var(--bg-secondary);
+                border-bottom: 1px solid var(--border-color);
+                padding: 10px 16px;
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                gap: 16px;
+                flex-shrink: 0;
+            }
+
+            .dashboard-info {
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+                flex: 1;
+            }
+
+            .dashboard-row {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                flex-wrap: wrap;
+            }
+
+            .dashboard-item {
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+            }
+
+            .dashboard-label {
+                font-size: 11px;
+                font-weight: 700;
+                color: var(--text-muted);
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+
+            .dashboard-value {
+                font-size: 15px;
+                font-weight: 600;
+                color: var(--text-primary);
+                font-family: var(--font-mono);
+            }
+
+            .stats-container {
+                display: flex;
+                gap: 8px;
+                background: var(--bg-tertiary);
+                padding: 6px 12px;
+                border-radius: var(--radius);
+                border: 1px solid var(--border-color);
+            }
+
+            .stat-box {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                min-width: 42px;
+            }
+
+            .stat-label {
+                font-size: 10px;
+                font-weight: 700;
+                color: var(--text-muted);
+                margin-bottom: 2px;
+            }
+
+            .stat-value {
+                font-size: 14px;
+                font-weight: 700;
+                color: var(--accent-blue);
+            }
+
+            .aptitude-table {
+                width: auto;
+                min-width: 300px;
+                border-collapse: collapse;
+                background: var(--bg-tertiary);
+                border-radius: var(--radius);
+                overflow: hidden;
+                border: 1px solid var(--border-color);
+                font-size: 11px;
+            }
+
+            .aptitude-table th,
+            .aptitude-table td {
+                padding: 4px 8px;
+                text-align: center;
+                border: 1px solid var(--border-color);
+            }
+
+            .aptitude-table th {
+                background: rgba(255, 255, 255, 0.03);
+                color: var(--text-secondary);
+                font-weight: 600;
+                font-size: 10px;
+                text-transform: uppercase;
+                width: 100px;
+            }
+
+            .aptitude-cell {
+                display: inline-flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 2px;
+                margin: 0 8px;
+            }
+
+            .aptitude-name {
+                font-size: 11px;
+                color: var(--text-muted);
+                font-weight: 500;
+            }
+
+            .grade-badge {
+                display: inline-block;
+                width: 20px;
+                height: 20px;
+                line-height: 20px;
+                text-align: center;
+                border-radius: 4px;
+                font-weight: 800;
+                font-size: 13px;
+                background: #333;
+                color: #fff;
+            }
+
+            .grade-S {
+                background: #ff4d4d;
+                box-shadow: 0 0 5px rgba(255, 77, 77, 0.5);
+            }
+            .grade-A {
+                background: #ff8533;
+            }
+            .grade-B {
+                background: #ffcc00;
+                color: #000;
+            }
+            .grade-C {
+                background: #33cc33;
+            }
+            .grade-D {
+                background: #3399ff;
+            }
+            .grade-E {
+                background: #9933ff;
+            }
+            .grade-F {
+                background: #666;
+            }
+            .grade-G {
+                background: #444;
+            }
+
             @media (max-width: 768px) {
                 .header {
                     padding: 10px 12px;
                 }
-                .toolbar {
+                .dashboard {
+                    padding: 6px 10px;
+                    flex-direction: row;
+                    gap: 8px;
+                    align-items: center;
+                    justify-content: space-between;
+                }
+                .dashboard-info {
+                    width: auto;
+                    align-items: flex-end;
+                    gap: 4px;
+                }
+                .dashboard-row {
+                    gap: 8px;
+                    justify-content: flex-end;
+                    width: auto;
+                }
+                .stats-container {
+                    padding: 3px 6px;
+                    gap: 4px;
+                    width: auto;
+                }
+                .stat-box {
+                    min-width: 30px;
+                }
+                .stat-label {
+                    font-size: 8px;
+                }
+                .stat-value {
+                    font-size: 11px;
+                }
+                .dashboard-label {
+                    font-size: 8px;
+                }
+                .dashboard-value {
+                    font-size: 11px;
+                }
+                .aptitude-table {
+                    font-size: 8px;
+                    width: auto;
+                    min-width: 0;
+                }
+                .aptitude-table th,
+                .aptitude-table td {
+                    padding: 1px 3px;
+                }
+                .aptitude-table th {
+                    width: 45px;
+                }
+                .aptitude-cell {
+                    margin: 0 1px;
+                }
+                .aptitude-name {
+                    font-size: 8px;
+                }
+                .grade-badge {
+                    width: 14px;
+                    height: 14px;
+                    line-height: 14px;
+                    font-size: 9px;
+                }
+                .toolbar-content {
                     padding: 8px 12px;
                 }
                 .log-container {
@@ -504,6 +722,80 @@
                 <span id="statusText">Connecting</span>
             </div>
         </header>
+
+        <!-- Dashboard -->
+        <div class="dashboard">
+            <table class="aptitude-table">
+                <tr>
+                    <th>Terrain</th>
+                    <td id="rowTerrain">
+                        <div class="aptitude-cell"><span class="aptitude-name">Turf</span><span id="aptTurf" class="grade-badge grade-G">-</span></div>
+                        <div class="aptitude-cell"><span class="aptitude-name">Dirt</span><span id="aptDirt" class="grade-badge grade-G">-</span></div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Distance</th>
+                    <td id="rowDistance">
+                        <div class="aptitude-cell"><span class="aptitude-name">Sprint</span><span id="aptSprint" class="grade-badge grade-G">-</span></div>
+                        <div class="aptitude-cell"><span class="aptitude-name">Mile</span><span id="aptMile" class="grade-badge grade-G">-</span></div>
+                        <div class="aptitude-cell"><span class="aptitude-name">Medium</span><span id="aptMedium" class="grade-badge grade-G">-</span></div>
+                        <div class="aptitude-cell"><span class="aptitude-name">Long</span><span id="aptLong" class="grade-badge grade-G">-</span></div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Style</th>
+                    <td id="rowStyle">
+                        <div class="aptitude-cell"><span class="aptitude-name">Front</span><span id="aptFront" class="grade-badge grade-G">-</span></div>
+                        <div class="aptitude-cell"><span class="aptitude-name">Pace</span><span id="aptPace" class="grade-badge grade-G">-</span></div>
+                        <div class="aptitude-cell"><span class="aptitude-name">Late</span><span id="aptLate" class="grade-badge grade-G">-</span></div>
+                        <div class="aptitude-cell"><span class="aptitude-name">End</span><span id="aptEnd" class="grade-badge grade-G">-</span></div>
+                    </td>
+                </tr>
+            </table>
+
+            <div class="dashboard-info">
+                <div class="dashboard-row">
+                    <div class="dashboard-item">
+                        <div class="dashboard-label">Trainee</div>
+                        <div id="dashboardName" class="dashboard-value" style="font-weight: 600; letter-spacing: 0.3px">-</div>
+                    </div>
+                </div>
+                <div class="dashboard-row">
+                    <div class="dashboard-item">
+                        <div class="dashboard-label">Current Date</div>
+                        <div id="dashboardDate" class="dashboard-value">Searching...</div>
+                    </div>
+                    <div class="dashboard-item">
+                        <div class="dashboard-label">Turn</div>
+                        <div id="dashboardTurn" class="dashboard-value">-</div>
+                    </div>
+                </div>
+                <div class="dashboard-row">
+                    <div class="stats-container">
+                        <div class="stat-box">
+                            <div class="stat-label">SPD</div>
+                            <div id="statSpeed" class="stat-value">-</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">STA</div>
+                            <div id="statStamina" class="stat-value">-</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">POW</div>
+                            <div id="statPower" class="stat-value">-</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">GUT</div>
+                            <div id="statGuts" class="stat-value">-</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">WIT</div>
+                            <div id="statWit" class="stat-value">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Toolbar -->
         <div class="toolbar">
@@ -962,7 +1254,35 @@
                 }
             })
 
-            // Initiate the connection when the page loads.
+
+            /**
+             * Updates the dashboard with new trainee data.
+             * @param {string} category - The data category (Stats, Track, Distance, Style).
+             * @param {string} data - The raw data string.
+             */
+            function updateDashboard(category, data) {
+                if (category === "Name") {
+                    document.getElementById("dashboardName").textContent = data.trim()
+                } else if (category === "Stats") {
+                    const stats = data.split(", ")
+                    stats.forEach((s) => {
+                        const [key, val] = s.split("=")
+                        const elId = { Spd: "statSpeed", Sta: "statStamina", Pow: "statPower", Gut: "statGuts", Wit: "statWit" }[key]
+                        if (elId) document.getElementById(elId).textContent = val
+                    })
+                } else {
+                    const apts = data.split(", ")
+                    apts.forEach((a) => {
+                        const [name, grade] = a.split("=")
+                        const elId = "apt" + name
+                        const el = document.getElementById(elId)
+                        if (el) {
+                            el.textContent = grade
+                            el.className = "grade-badge grade-" + (grade || "G")
+                        }
+                    })
+                }
+            }
             connect()
         </script>
     </body>
