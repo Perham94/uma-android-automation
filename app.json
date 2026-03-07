@@ -1,7 +1,12 @@
 {
-    "expo": {
-        "name": "Uma Android Automation",
-        "slug": "uma-android-automation",
-        "platforms": ["android"]
+  "expo": {
+    "name": "Uma Android Automation",
+    "slug": "uma-android-automation",
+    "platforms": [
+      "android"
+    ],
+    "android": {
+      "package": "com.anonymous.umaandroidautomation"
     }
+  }
 }
