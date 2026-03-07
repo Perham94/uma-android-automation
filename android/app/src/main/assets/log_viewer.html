@@ -926,6 +926,8 @@
 
             <button class="toolbar-btn" onclick="copyAllLogs()">📋 Copy</button>
 
+            <button class="toolbar-btn" onclick="downloadLogs()">📥 Download</button>
+
             <button class="toolbar-btn" onclick="clearDisplay()">🗑 Clear</button>
 
             <!-- Message counter. -->
@@ -1522,6 +1524,36 @@
                     })
                 }
             }
+
+            /**
+             * Handles log downloading in .txt format.
+             */
+            function downloadLogs() {
+                let content = ""
+                const datePart = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-")
+                let filename = ""
+                let type = "text/plain"
+
+                const traineeName = document.getElementById("dashboardName").textContent.trim()
+                if (traineeName && traineeName !== "-") {
+                    filename = `${traineeName}_${datePart}.txt`
+                } else {
+                    filename = `log @ ${datePart}.txt`
+                }
+
+                content = allMessages.map((m) => m.raw).join("\n")
+
+                const blob = new Blob([content], { type: type })
+                const url = URL.createObjectURL(blob)
+                const a = document.createElement("a")
+                a.href = url
+                a.download = filename
+                document.body.appendChild(a)
+                a.click()
+                document.body.removeChild(a)
+                URL.revokeObjectURL(url)
+            }
+
             // Initiate the connection and settings when the page loads.
             initFontSize()
             connect()
