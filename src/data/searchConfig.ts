@@ -594,6 +594,24 @@ const searchConfig: SearchOption[] = [
         description: "Disables normal bot operations and starts the Aptitudes detection test. Only on the Main screen and tests detecting the current aptitudes.",
         page: "DebugSettings",
     },
+    {
+        id: "debug-trainee-name-ocr-test",
+        title: "Start Trainee Name OCR Test",
+        description: "Disables normal bot operations and starts the Trainee Name OCR test. Only on the Aptitude dialog and tests detecting the trainee's name using color filtering.",
+        page: "DebugSettings",
+    },
+    {
+        id: "debug-main-screen-ocr-test",
+        title: "Start Main Screen OCR Test",
+        description: "Disables normal bot operations and starts the Main screen OCR test. Only on the Main screen and tests detecting various components on the screen.",
+        page: "DebugSettings",
+    },
+    {
+        id: "debug-training-screen-ocr-test",
+        title: "Start Training Screen OCR Test",
+        description: "Disables normal bot operations and starts the Training screen OCR test. Only on the Training screen and tests detecting various components on the screen.",
+        page: "DebugSettings",
+    },
 ]
 
 export default searchConfig
