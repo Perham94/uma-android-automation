@@ -900,6 +900,8 @@ class Game(val myContext: Context) {
 			racing.startRaceListDetectionTest()
 		} else if (SettingsHelper.getBooleanSetting("debug", "debugMode_startAptitudesDetectionTest")) {
 			campaign.startAptitudesDetectionTest()
+		} else if (SettingsHelper.getBooleanSetting("debug", "debugMode_startTraineeNameOCRTest")) {
+			campaign.startTraineeNameOCRTest()
 		} else if (SettingsHelper.getBooleanSetting("debug", "debugMode_startMainScreenOCRTest")) {
 			campaign.startMainScreenOCRTest()
 		} else if (SettingsHelper.getBooleanSetting("debug", "debugMode_startTrainingScreenOCRTest")) {
