@@ -926,6 +926,11 @@ class Game(val myContext: Context) {
 
 		MessageLog.i(TAG, "Total runtime of ${MessageLog.formatElapsedTime(startTime, System.currentTimeMillis())} and stopped at ${MessageLog.getSystemTimeString()}.")
 
+        // Wait to make sure Discord webhook message queue gets fully processed before terminating Bot Thread.
+        if (DiscordUtils.enableDiscordNotifications) {
+            wait(1.0, skipWaitingForLoading = true)
+        }
+
 		return true
 	}
 }
