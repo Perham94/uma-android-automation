@@ -216,6 +216,25 @@
                 border-color: var(--accent-blue);
             }
 
+            .search-clear {
+                position: absolute;
+                right: 10px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: var(--text-muted);
+                cursor: pointer;
+                font-size: 14px;
+                display: none;
+                transition: color var(--transition);
+                user-select: none;
+            }
+            .search-clear:hover {
+                color: var(--text-primary);
+            }
+            .search-clear.visible {
+                display: block;
+            }
+
             .filter-group {
                 display: flex;
                 gap: 4px;
@@ -812,6 +831,7 @@
             <div class="search-container">
                 <span class="search-icon">🔍</span>
                 <input type="text" id="searchInput" class="search-input" placeholder="Filter logs..." />
+                <span id="searchClear" class="search-clear">✕</span>
             </div>
 
             <div class="toolbar-separator"></div>
@@ -878,6 +898,7 @@
             const statusBadge = document.getElementById("statusBadge")
             const statusText = document.getElementById("statusText")
             const searchInput = document.getElementById("searchInput")
+            const searchClear = document.getElementById("searchClear")
             const scrollBottomBtn = document.getElementById("scrollBottomBtn")
             const autoScrollBtn = document.getElementById("autoScrollBtn")
             const footerInfo = document.getElementById("footerInfo")
@@ -1230,6 +1251,51 @@
             }
 
             // ==============================================
+            // Font Size Adjustment
+            // ==============================================
+
+            /**
+             * Increments or decrements the font size.
+             * @param {number} delta - The amount to change the size by.
+             */
+            function adjustFontSize(delta) {
+                updateFontSize(currentFontSize + delta)
+            }
+
+            /**
+             * Updates the font size based on numeric input.
+             * @param {number} value - The new font size in pixels.
+             */
+            function updateFontSize(value) {
+                currentFontSize = parseFloat(value)
+                if (isNaN(currentFontSize)) return
+
+                // Constrain value.
+                if (currentFontSize < 8) currentFontSize = 8
+                if (currentFontSize > 24) currentFontSize = 24
+
+                logContainer.style.setProperty("--log-font-size", currentFontSize + "px")
+                fontSizeInput.value = currentFontSize
+
+                // Persist preference.
+                localStorage.setItem("uaa_log_font_size", currentFontSize)
+            }
+
+            /**
+             * Initializes the font size from stored preference or default.
+             */
+            function initFontSize() {
+                const storedSize = localStorage.getItem("uaa_log_font_size")
+                if (storedSize !== null) {
+                    const parsedSize = parseFloat(storedSize)
+                    if (!isNaN(parsedSize)) {
+                        currentFontSize = parsedSize
+                    }
+                }
+                updateFontSize(currentFontSize)
+            }
+
+            // ==============================================
             // Search Input Handler
             // ==============================================
 
@@ -1242,6 +1308,11 @@
             // ==============================================
             // Scroll Detection — Show/hide scroll-to-bottom
             // ==============================================
+
+            // Listen for font size change.
+            fontSizeInput.addEventListener("input", function () {
+                updateFontSize(this.value)
+            })
 
             // Monitor log container scrolling to toggle auto-scroll and show/hide the scroll-to-bottom button.
             logContainer.addEventListener("scroll", function () {
@@ -1293,6 +1364,8 @@
                     })
                 }
             }
+            // Initiate the connection and settings when the page loads.
+            initFontSize()
             connect()
         </script>
     </body>
