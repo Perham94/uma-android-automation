@@ -1625,32 +1625,45 @@
             }
 
             /**
-             * Handles log downloading in .txt format.
+             * Handles log downloading by fetching from the server endpoint.
              */
             function downloadLogs() {
-                let content = ""
-                const datePart = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-")
-                let filename = ""
-                let type = "text/plain"
-
                 const traineeName = document.getElementById("dashboardName").textContent.trim()
-                if (traineeName && traineeName !== "-") {
-                    filename = `${traineeName}_${datePart}.txt`
-                } else {
-                    filename = `log @ ${datePart}.txt`
-                }
+                const datePart = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-")
 
-                content = allMessages.map((m) => m.raw).join("\n")
-
-                const blob = new Blob([content], { type: type })
-                const url = URL.createObjectURL(blob)
-                const a = document.createElement("a")
-                a.href = url
-                a.download = filename
-                document.body.appendChild(a)
-                a.click()
-                document.body.removeChild(a)
-                URL.revokeObjectURL(url)
+                // Prefer the server-side download for full, non-truncated logs.
+                fetch("/logs/download")
+                    .then((response) => {
+                        if (!response.ok) throw new Error("Server download failed")
+                        return response.blob()
+                    })
+                    .then((blob) => {
+                        const url = URL.createObjectURL(blob)
+                        const a = document.createElement("a")
+                        a.href = url
+                        // Use a descriptive filename.
+                        if (traineeName && traineeName !== "-") {
+                            a.download = `${traineeName}_${datePart}.txt`
+                        } else {
+                            a.download = `log @ ${datePart}.txt`
+                        }
+                        document.body.appendChild(a)
+                        a.click()
+                        document.body.removeChild(a)
+                        URL.revokeObjectURL(url)
+                    })
+                    .catch((err) => {
+                        console.error("Download error:", err)
+                        // Fallback to local buffer if the server endpoint fails.
+                        const content = allMessages.map((m) => m.raw).join("\n")
+                        const blob = new Blob([content], { type: "text/plain" })
+                        const url = URL.createObjectURL(blob)
+                        const a = document.createElement("a")
+                        a.href = url
+                        a.download = `log @ ${datePart}.txt`
+                        a.click()
+                        URL.revokeObjectURL(url)
+                    })
             }
 
             // Initiate the connection and settings when the page loads.

@@ -261,6 +261,23 @@ object LogStreamServer {
 				return newFixedLengthResponse(Response.Status.OK, "application/json", """{"status":"ok"}""")
 			}
 
+			// Serve the full message log for download.
+			if (uri == "/logs/download") {
+				return try {
+					val fullLogs = MessageLog.getMessageLogCopy().joinToString("\n")
+					val response = newFixedLengthResponse(Response.Status.OK, "text/plain", fullLogs)
+
+					// Set headers to trigger a file download in the browser.
+					val datePart = java.text.SimpleDateFormat("yyyy-MM-dd-HH-mm-ss", java.util.Locale.getDefault()).format(java.util.Date())
+					response.addHeader("Content-Disposition", "attachment; filename=\"uaa_logs_$datePart.txt\"")
+
+					response
+				} catch (e: Exception) {
+					Log.e(TAG, "Failed to generate log download: ${e.message}")
+					newFixedLengthResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, "Failed to generate log download.")
+				}
+			}
+
 			// Return a 404 response for any unrecognized endpoints.
 			return newFixedLengthResponse(Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "Not Found")
 		}
