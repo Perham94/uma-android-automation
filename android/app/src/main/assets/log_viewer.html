@@ -1628,40 +1628,132 @@
             // ==============================================
 
             /**
+             * Converts a turn number to a descriptive date string.
+             */
+            function dateFromDay(day) {
+                const d = day - 1
+                const y = Math.floor(d / 24)
+                const m = Math.floor((d % 24) / 2)
+                const p = d % 2
+
+                const years = ["Junior Year", "Classic Year", "Senior Year"]
+                const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+                const phases = ["Early", "Late"]
+
+                return `${years[y]} ${phases[p]} ${months[m]}`
+            }
+
+            /**
              * Processes logs for special dashboard updates.
              * @param {object} parsed - The parsed log object.
+             * @param {object} stateTarget - Optional state object to update instead of the DOM.
              */
-            function processSpecialLogs(parsed) {
+            function processSpecialLogs(parsed, stateTarget = null) {
                 const text = parsed.text
 
-                // Detect and extract Turn number from any string like "(Turn 33)" or "Turn 33"
+                // Detect and extract Turn information.
                 const turnMatch = text.match(/(?:\(|Turn\s*)(\d+)\)?/i)
+                const turnsRemainingMatch = text.match(/Detected day for extra racing: (\d+)/i)
+
+                const dashboardDateEl = document.getElementById("dashboardDate")
+                const dashboardTurnEl = document.getElementById("dashboardTurn")
+
+                // Handle absolute turn numbers: "(Turn 48)" or "Turn 48".
                 if (turnMatch && (text.includes("[DATE]") || text.includes("fromDateString"))) {
-                    document.getElementById("dashboardTurn").textContent = turnMatch[1]
+                    if (stateTarget) {
+                        stateTarget.turn = turnMatch[1]
+                    } else {
+                        dashboardTurnEl.textContent = turnMatch[1]
+                    }
+                }
+                // Handle "turns remaining" logs: ONLY during Pre-Debut.
+                // These logs represent turns left until the next goal.
+                else if (turnsRemainingMatch) {
+                    // Check if we are in Pre-Debut.
+                    let isPreDebut = false
+                    if (stateTarget && stateTarget.date) {
+                        isPreDebut = stateTarget.date.toLowerCase().includes("pre-debut")
+                    } else if (dashboardDateEl) {
+                        isPreDebut = dashboardDateEl.textContent.toLowerCase().includes("pre-debut")
+                    }
+
+                    if (isPreDebut) {
+                        const turnsRemaining = parseInt(turnsRemainingMatch[1])
+                        // Pre-Debut has 12 turns. Turn = 12 - turnsRemaining.
+                        const absoluteTurn = Math.max(1, 12 - turnsRemaining)
+                        
+                        if (stateTarget) {
+                            stateTarget.turn = absoluteTurn
+                            stateTarget.date = idToTitleCase(dateFromDay(absoluteTurn))
+                        } else {
+                            dashboardTurnEl.textContent = absoluteTurn
+                            dashboardDateEl.textContent = idToTitleCase(dateFromDay(absoluteTurn))
+                        }
+                    }
                 }
 
-                // Parse clean date: "[DEBUG] fromDateString:: Detected CLASSIC YEAR EARLY MAY (Turn 33)"
+                // Parse clean date.
                 if (text.includes("fromDateString:: Detected")) {
                     const dateMatch = text.match(/fromDateString:: Detected (.*?) (?:\(Turn|\d)/)
                     if (dateMatch) {
-                        const dateStr = dateMatch[1].trim().replace(/^FINALS\s+/i, "")
-                        document.getElementById("dashboardDate").textContent = idToTitleCase(dateStr)
+                        const dateStr = dateMatch[1].trim().replace(/^FINALS\s+/i, "Finale ")
+                        if (stateTarget) {
+                            stateTarget.date = idToTitleCase(dateStr)
+                        } else {
+                            dashboardDateEl.textContent = idToTitleCase(dateStr)
+                        }
                     }
                 }
-                // Fallback for generic [DATE] logs
-                else if (text.includes("[DATE]") && !text.includes("getFinalsDay")) {
-                    // Match generic date skipping "New date:" and "(Turn X)"
-                    const dateMatch = text.match(/\[DATE\]\s*(?:New date:\s*)?(.*?)(\s*\(Turn|$)/)
+                // Handle "Detected date: ..." logs.
+                else if (text.includes("Detected date:")) {
+                    const dateMatch = text.match(/Detected date:\s*(.*?)(\s*\(Turn|$)/i)
                     if (dateMatch) {
-                        const dateStr = dateMatch[1].trim().replace(/^FINALS\s+/i, "")
-                        document.getElementById("dashboardDate").textContent = idToTitleCase(dateStr)
+                        let dateStr = dateMatch[1].trim().replace(/^FINALS\s+/i, "Finale ")
+
+                        // If in Pre-Debut, calculate a more descriptive date from the current turn.
+                        let currentTurn = "-"
+                        if (stateTarget && stateTarget.turn) {
+                            currentTurn = stateTarget.turn.toString()
+                        } else {
+                            currentTurn = dashboardTurnEl.textContent
+                        }
+
+                        if (dateStr.toLowerCase().includes("pre-debut") && currentTurn !== "-") {
+                            const day = parseInt(currentTurn)
+                            if (!isNaN(day) && day > 0) {
+                                dateStr = dateFromDay(day)
+                            }
+                        }
+
+                        if (stateTarget) {
+                            stateTarget.date = idToTitleCase(dateStr)
+                        } else {
+                            dashboardDateEl.textContent = idToTitleCase(dateStr)
+                        }
+                    }
+                }
+                // Fallback for generic [DATE] logs.
+                else if (text.includes("[DATE]") && !text.includes("getFinalsDay")) {
+                    // Match generic date skipping "New date:" and requiring "(Turn X)".
+                    const dateMatch = text.match(/\[DATE\]\s*(?:New date:\s*)?(.*?)(\s*\(Turn\s*\d+\))/i)
+                    if (dateMatch) {
+                        const dateStr = dateMatch[1].trim().replace(/^FINALS\s+/i, "Finale ")
+                        if (stateTarget) {
+                            stateTarget.date = idToTitleCase(dateStr)
+                        } else {
+                            dashboardDateEl.textContent = idToTitleCase(dateStr)
+                        }
                     }
                 }
 
-                // Parse detailed trainee info: "[TRAINEE_DETAILED] Stats: Spd=764, Sta=910, Pow=679, Gut=355, Wit=280"
+                // Parse detailed trainee info: "[TRAINEE_DETAILED] Stats: Spd=764, Sta=910, Pow=679, Gut=355, Wit=280".
                 if (text.includes("[TRAINEE_DETAILED]")) {
                     const typeMatch = text.match(/\[TRAINEE_DETAILED\]\s*([^:]+):\s*(.*)/)
                     if (typeMatch) {
+                        updateDashboard(typeMatch[1], typeMatch[2], stateTarget)
+                    }
+                }
+            }
 
             /**
              * Helper to apply a collected batch state to the dashboard DOM.
