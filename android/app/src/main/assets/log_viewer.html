@@ -1094,7 +1094,16 @@
                 }
 
                 ws.onmessage = function (event) {
-                    if (event.data.startsWith("BATCH:")) {
+                    if (event.data === "HISTORY_DONE") {
+                        setTimeout(function () {
+                            processAllHistoryForDashboard()
+                        }, 10)
+                    } else if (event.data.startsWith("HISTORY_BATCH:")) {
+                        var msgs = event.data.substring(14).split("---LOG_SEPARATOR---")
+                        setTimeout(function () {
+                            appendHistoryBatch(msgs)
+                        }, 10)
+                    } else if (event.data.startsWith("BATCH:")) {
                         var msgs = event.data.substring(6).split("---LOG_SEPARATOR---")
                         // Yield to the browser renderer using setTimeout so "Connected" paints instantly
                         // before processing the heavy DOM insertions of the log messages.
@@ -1212,7 +1221,7 @@
                 var parsed = parseMessage(rawMessage)
                 allMessages.push({ raw: rawMessage, parsed: parsed })
 
-                // Handle special messages for dashboard updates
+                // Handle special messages for dashboard updates immediately for individual messages.
                 processSpecialLogs(parsed)
 
                 var entry = createLogEntry(rawMessage, parsed)
@@ -1225,7 +1234,7 @@
             }
 
             /**
-             * Efficiently append a batch of log messages using a DocumentFragment to avoid DOM thrashing.
+             * Efficiently append a batch of log messages using a DocumentFragment and atomic dashboard updates.
              * @param {Array<string>} rawMessages Array of raw log message strings.
              */
             function appendBatchMessages(rawMessages) {
@@ -1244,17 +1253,120 @@
                 }
 
                 var fragment = document.createDocumentFragment()
+                
+                // Track dashboard state changes across the batch to apply them once at the end.
+                var batchState = {
+                    name: null,
+                    date: null,
+                    turn: null,
+                    stats: {},
+                    apts: {}
+                }
 
                 validMessages.forEach(function (rawMessage) {
-                    var parsed = parseMessage(rawMessage)
-                    allMessages.push({ raw: rawMessage, parsed: parsed })
-                    processSpecialLogs(parsed)
-                    var entry = createLogEntry(rawMessage, parsed)
-                    fragment.appendChild(entry)
+                    try {
+                        var parsed = parseMessage(rawMessage)
+                        allMessages.push({ raw: rawMessage, parsed: parsed })
+                        
+                        // Collect updates into the batch state object.
+                        processSpecialLogs(parsed, batchState)
+                        
+                        var entry = createLogEntry(rawMessage, parsed)
+                        fragment.appendChild(entry)
+                    } catch (e) {
+                        console.error("Error processing log in batch:", e, rawMessage)
+                    }
                 })
 
                 logContainer.appendChild(fragment)
+                
+                // Apply the final accumulated state from this batch to the DOM.
+                applyBatchStateToDashboard(batchState)
 
+                if (autoScroll) {
+                    scrollToBottom()
+                }
+            }
+
+            /**
+             * Efficiently prepends a batch of history log messages using a DocumentFragment.
+             * @param {Array<string>} rawMessages Array of raw log message strings in reverse chronological order.
+             */
+            function appendHistoryBatch(rawMessages) {
+                if (!rawMessages || rawMessages.length === 0) return
+
+                var validMessages = rawMessages.filter(function (m) {
+                    return m
+                })
+                if (validMessages.length === 0) return
+
+                messageCount += validMessages.length
+                messageCountEl.textContent = messageCount
+
+                if (emptyState) {
+                    emptyState.style.display = "none"
+                }
+
+                // Reverse back to chronological order for this batch.
+                validMessages.reverse()
+
+                var fragment = document.createDocumentFragment()
+                var batchArray = []
+
+                validMessages.forEach(function (rawMessage) {
+                    try {
+                        var parsed = parseMessage(rawMessage)
+                        batchArray.push({ raw: rawMessage, parsed: parsed })
+                        
+                        var entry = createLogEntry(rawMessage, parsed)
+                        fragment.appendChild(entry)
+                    } catch (e) {
+                        console.error("Error processing log in history batch:", e, rawMessage)
+                    }
+                })
+
+                // Prepend this batch to allMessages to maintain overall chronological order.
+                allMessages = batchArray.concat(allMessages)
+
+                // Save current scroll state before prepending.
+                var previousScrollHeight = logContainer.scrollHeight;
+                var previousScrollTop = logContainer.scrollTop;
+
+                // Insert at the beginning of the container.
+                if (logContainer.firstChild) {
+                    logContainer.insertBefore(fragment, logContainer.firstChild)
+                } else {
+                    logContainer.appendChild(fragment)
+                }
+                
+                // Adjust scroll position to counteract the prepended elements
+                // so the current view doesn't jump around.
+                var newScrollHeight = logContainer.scrollHeight;
+                if (previousScrollHeight > 0) {
+                    logContainer.scrollTop = previousScrollTop + (newScrollHeight - previousScrollHeight);
+                }
+            }
+
+            /**
+             * Processes all historical messages chronologically to build the latest dashboard state,
+             * then applies it to the dashboard.
+             */
+            function processAllHistoryForDashboard() {
+                var batchState = {
+                    name: null,
+                    date: null,
+                    turn: null,
+                    stats: {},
+                    apts: {}
+                }
+                
+                // allMessages is guaranteed to be in chronological order at this point.
+                allMessages.forEach(function (msg) {
+                    processSpecialLogs(msg.parsed, batchState)
+                })
+                
+                applyBatchStateToDashboard(batchState)
+                
                 if (autoScroll) {
                     scrollToBottom()
                 }
@@ -1550,7 +1662,38 @@
                 if (text.includes("[TRAINEE_DETAILED]")) {
                     const typeMatch = text.match(/\[TRAINEE_DETAILED\]\s*([^:]+):\s*(.*)/)
                     if (typeMatch) {
-                        updateDashboard(typeMatch[1], typeMatch[2])
+
+            /**
+             * Helper to apply a collected batch state to the dashboard DOM.
+             * @param {object} state - The collected state from the batch.
+             */
+            function applyBatchStateToDashboard(state) {
+                if (state.name) {
+                    document.getElementById("dashboardName").textContent = state.name
+                }
+                if (state.date) {
+                    document.getElementById("dashboardDate").textContent = state.date
+                }
+                if (state.turn) {
+                    document.getElementById("dashboardTurn").textContent = state.turn
+                }
+                
+                // Batch update stats.
+                for (const [key, val] of Object.entries(state.stats)) {
+                    const elId = { Spd: "statSpeed", Sta: "statStamina", Pow: "statPower", Gut: "statGuts", Wit: "statWit" }[key]
+                    if (elId) {
+                        const el = document.getElementById(elId)
+                        if (el && el.textContent !== val) el.textContent = val
+                    }
+                }
+                
+                // Batch update aptitudes.
+                for (const [name, grade] of Object.entries(state.apts)) {
+                    const elId = "apt" + name
+                    const el = document.getElementById(elId)
+                    if (el && el.textContent !== grade) {
+                        el.textContent = grade
+                        el.className = "grade-badge grade-" + (grade || "G")
                     }
                 }
             }
@@ -1565,8 +1708,8 @@
                     .toLowerCase()
                     .split(" ")
                     .map((word) => {
-                        let titleCase = word.charAt(0).toUpperCase() + word.slice(1)
-                        // Shorten month if it's a full month name
+                        let titleCase = word.split("-").map(part => part.charAt(0).toUpperCase() + part.slice(1)).join("-")
+                        // Shorten month if it's a full month name.
                         const monthIndex = months.findIndex((m) => m === titleCase)
                         if (monthIndex !== -1) {
                             return months[monthIndex].slice(0, 3)
@@ -1580,26 +1723,39 @@
              * Updates the dashboard with new trainee data.
              * @param {string} category - The data category (Stats, Track, Distance, Style).
              * @param {string} data - The raw data string.
+             * @param {object} stateTarget - Optional state object to update instead of the DOM.
              */
-            function updateDashboard(category, data) {
+            function updateDashboard(category, data, stateTarget = null) {
                 if (category === "Name") {
-                    document.getElementById("dashboardName").textContent = data.trim()
+                    if (stateTarget) {
+                        stateTarget.name = data.trim()
+                    } else {
+                        document.getElementById("dashboardName").textContent = data.trim()
+                    }
                 } else if (category === "Stats") {
                     const stats = data.split(", ")
                     stats.forEach((s) => {
                         const [key, val] = s.split("=")
-                        const elId = { Spd: "statSpeed", Sta: "statStamina", Pow: "statPower", Gut: "statGuts", Wit: "statWit" }[key]
-                        if (elId) document.getElementById(elId).textContent = val
+                        if (stateTarget) {
+                            stateTarget.stats[key] = val
+                        } else {
+                            const elId = { Spd: "statSpeed", Sta: "statStamina", Pow: "statPower", Gut: "statGuts", Wit: "statWit" }[key]
+                            if (elId) document.getElementById(elId).textContent = val
+                        }
                     })
                 } else {
                     const apts = data.split(", ")
                     apts.forEach((a) => {
                         const [name, grade] = a.split("=")
-                        const elId = "apt" + name
-                        const el = document.getElementById(elId)
-                        if (el) {
-                            el.textContent = grade
-                            el.className = "grade-badge grade-" + (grade || "G")
+                        if (stateTarget) {
+                            stateTarget.apts[name] = grade
+                        } else {
+                            const elId = "apt" + name
+                            const el = document.getElementById(elId)
+                            if (el) {
+                                el.textContent = grade
+                                el.className = "grade-badge grade-" + (grade || "G")
+                            }
                         }
                     })
                 }
