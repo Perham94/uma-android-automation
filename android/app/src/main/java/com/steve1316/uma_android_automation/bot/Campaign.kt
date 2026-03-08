@@ -205,6 +205,18 @@ open class Campaign(game: Game) : DialogHandler(game) {
         handleDialogs()
 	}
 
+	/**
+	 * Test function to verify trainee name OCR on the Aptitude dialog.
+	 *
+	 * Opens the aptitudes dialog and processes it to test name OCR accuracy.
+	 */
+	fun startTraineeNameOCRTest() {
+		MessageLog.i(TAG, "\n[TEST] Now beginning the Trainee Name OCR test on the Main screen.")
+		MessageLog.i(TAG, "[TEST] Note that this test is dependent on having the correct scale.")
+		openAptitudesDialog()
+		handleDialogs()
+	}
+
     /**
      * Test function to verify OCR detection on the Training screen.
      */
@@ -448,7 +460,10 @@ open class Campaign(game: Game) : DialogHandler(game) {
                 }
                 MessageLog.i(TAG, "[TRAINEE] Skills Updated: ${game.trainee.getStatsString()}")
                 MessageLog.i(TAG, "[TRAINEE] Mood Updated: ${game.trainee.mood}")
-                if (game.trainee.bHasUpdatedAptitudes) game.trainee.logInfo()
+                if (game.trainee.bHasUpdatedAptitudes) {
+                    game.trainee.logInfo()
+                    game.trainee.logDetailedPlayerInfo()
+                }
 
                 // Now check if we need to handle skills before finals.
                 if (game.currentDate.day == 72 && game.skillPlan.skillPlans["preFinals"]?.bIsEnabled ?: false) {
