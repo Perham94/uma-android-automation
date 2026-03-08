@@ -1673,13 +1673,12 @@ class Racing (private val game: Game) {
             } else {
                 MessageLog.i(TAG, "[RACE] No planned race matches current turn $currentTurnNumber and mandatory mode for extra races is enabled. Continuing with normal eligibility checks.")
             }
-        } else if (enableFarmingFans && enableRacingPlan && game.currentDate.year != DateYear.JUNIOR) {
-            // For Classic and Senior Year, check if planned races are coming up in the look-ahead window and are eligible for racing.
-            // Handle the user-selected planned races here.
-            if (userPlannedRaces.isNotEmpty()) {
+        } else if (enableRacingPlan && !enableMandatoryRacingPlan && enableFarmingFans) {
+            // Log eligible planned races if any exist (informational).
+            if (game.currentDate.year != DateYear.JUNIOR && userPlannedRaces.isNotEmpty()) {
                 val currentTurnNumber = game.currentDate.day
 
-                // Check each planned race for eligibility.
+                // Check each planned race for eligibility within the look-ahead window.
                 val eligiblePlannedRaces = userPlannedRaces.filter { plannedRace ->
                     val raceDetails = raceData[plannedRace.raceName]
                     if (raceDetails == null) {
@@ -1699,16 +1698,7 @@ class Racing (private val game: Game) {
                             }
                             false
                         } else {
-                            // For Classic Year, check if it's an eligible racing day.
-                            if (game.currentDate.year == DateYear.CLASSIC && !enableRacingPlan) {
-                                val isEligible = turnsRemaining % daysToRunExtraRaces == 0
-                                if (!isEligible) {
-                                    MessageLog.i(TAG, "[RACE] Planned race \"${plannedRace.raceName}\" is not on an eligible racing day (day $turnsRemaining, interval $daysToRunExtraRaces).")
-                                }
-                                isEligible
-                            } else {
-                                true
-                            }
+                            true
                         }
                     }
                 }
@@ -1718,10 +1708,7 @@ class Racing (private val game: Game) {
                 } else {
                     MessageLog.i(TAG, "[RACE] Found ${eligiblePlannedRaces.size} eligible user-selected races: ${eligiblePlannedRaces.map { it.raceName }}.")
                 }
-            } else {
-                MessageLog.i(TAG, "[RACE] No user-selected races configured. Continuing with other checks.")
             }
-        } else if (enableRacingPlan && !enableMandatoryRacingPlan && enableFarmingFans) {
             // Smart racing: Check turn-based eligibility before screen checks.
             // Only run opportunity cost analysis with smartRacingCheckInterval.
             val isCheckInterval = game.currentDate.day % smartRacingCheckInterval == 0

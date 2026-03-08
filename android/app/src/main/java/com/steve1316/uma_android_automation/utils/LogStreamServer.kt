@@ -163,7 +163,7 @@ object LogStreamServer {
 		}
 
 		// Shutdown the Ktor server instance with a brief grace period.
-		server?.stop(1000, 2000)
+		server?.stop(500, 1000)
 		server = null
 
 		// Cancel the coroutine scope to clean up background tasks.
@@ -192,6 +192,21 @@ object LogStreamServer {
 		// Only process events that are identified as MessageLog entries.
 		if (event.eventName == "MessageLog") {
 			broadcast(event.message)
+		}
+	}
+
+	/**
+	 * Subscriber for MediaProjectionService events via EventBus.
+	 *
+	 * Stops the log server if the projection service is stopped via notification or UI.
+	 *
+	 * @param event The JSEvent object containing the event details.
+	 */
+	@Subscribe(threadMode = ThreadMode.BACKGROUND)
+	fun onMediaProjectionEvent(event: JSEvent) {
+		if (event.eventName == "MediaProjectionService" && event.message == "Not Running") {
+			Log.i(TAG, "MediaProjectionService stopped. Initiating LogStreamServer shutdown.")
+			stop()
 		}
 	}
 
