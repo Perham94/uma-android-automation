@@ -383,6 +383,7 @@ open class DialogHandler(val game: Game) {
 
 				// Print the trainee info with the updated fan count.
 				game.trainee.logInfo()
+				game.trainee.logDetailedPlayerInfo()
 			}
 			"umamusume_details" -> {
 				val prevTrackSurface = game.trainee.trackSurface
@@ -390,6 +391,11 @@ open class DialogHandler(val game: Game) {
 				val prevRunningStyle = game.trainee.runningStyle
 				game.trainee.updateAptitudes(imageUtils = game.imageUtils)
 				game.trainee.bTemporaryRunningStyleAptitudesUpdated = false
+
+				// Read the trainee's name once per run while the dialog is still open.
+				if (game.trainee.name.isEmpty()) {
+					game.trainee.readName(imageUtils = game.imageUtils)
+				}
 
 				if (game.trainee.runningStyle != prevRunningStyle) {
 					// Reset this flag since our preferred running style has changed.
