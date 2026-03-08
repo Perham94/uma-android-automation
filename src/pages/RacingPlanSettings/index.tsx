@@ -393,7 +393,7 @@ const RacingPlanSettings = () => {
                     condition={enableRacingPlan}
                     parentId="enable-racing-plan"
                     title="Minimum Quality Threshold"
-                    description="The minimum score a race must have to be considered acceptable. Races scoring below this will be skipped even if no better options are available soon."
+                    description={`The core "Quality Floor" for a race today. If the best race available right now scores below this value, the bot will choose to wait for a future opportunity instead (even if the future looks worse).`}
                     style={styles.section}
                 >
                     <Text style={styles.inputLabel}>Minimum Quality Threshold</Text>
@@ -417,9 +417,9 @@ const RacingPlanSettings = () => {
                         placeholder="50.0"
                     />
                     <Text style={styles.inputDescription}>
-                        The minimum score a race must have to be considered acceptable. Races scoring below this will be skipped even if no better options are available soon.
+                        Sets the minimum acceptable score (0-100) for racing today. If no race today reaches this threshold, the bot will automatically wait for a future turn.
                         {"\n\n"}
-                        Example: If set to 50, a race scoring 45 will be skipped, but a race scoring 55 will be considered.
+                        Example: If set to 50, a race scoring 45 will always be skipped in favor of waiting, even if no better races are scheduled soon.
                     </Text>
                 </SearchableItem>
 
@@ -428,7 +428,7 @@ const RacingPlanSettings = () => {
                     condition={enableRacingPlan}
                     parentId="enable-racing-plan"
                     title="Time Decay Factor"
-                    description="Future races are worth this percentage of their raw score. Lower values mean future races are discounted more heavily, making the bot less willing to wait."
+                    description={`A multiplier applied to future race scores to account for the risk of waiting. Lower values make the bot more "impatient" by discounting future rewards more heavily.`}
                     style={styles.section}
                 >
                     <Text style={styles.inputLabel}>Time Decay Factor</Text>
@@ -452,9 +452,9 @@ const RacingPlanSettings = () => {
                         placeholder="0.70"
                     />
                     <Text style={styles.inputDescription}>
-                        Future races are worth this percentage of their raw score. Lower values mean future races are discounted more heavily, making the bot less willing to wait.
+                        Future race scores are multiplied by this factor (0.0 to 1.0) before comparison. This simulates the "opportunity cost" of not training today.
                         {"\n\n"}
-                        Example: If set to 0.70, a future race scoring 100 becomes 70 after discounting. If set to 0.90, the same race becomes 90.
+                        Example: At 0.70, a future race scoring 100 is treated as only 70. A lower factor (like 0.50) makes reaching the Improvement Threshold much harder.
                     </Text>
                 </SearchableItem>
 
@@ -463,7 +463,7 @@ const RacingPlanSettings = () => {
                     condition={enableRacingPlan}
                     parentId="enable-racing-plan"
                     title="Improvement Threshold"
-                    description="The minimum improvement (in points) needed from waiting for a future race to make waiting worthwhile. Only wait if the improvement exceeds this value."
+                    description={`The "Surplus Value" required to justify waiting. The bot will only wait if a discounted future race scores at least this many points higher than the best race today.`}
                     style={styles.section}
                 >
                     <Text style={styles.inputLabel}>Improvement Threshold</Text>
@@ -487,9 +487,9 @@ const RacingPlanSettings = () => {
                         placeholder="50.0"
                     />
                     <Text style={styles.inputDescription}>
-                        The minimum improvement (in points) needed from waiting for a future race to make waiting worthwhile. Only wait if the improvement exceeds this value.
+                        The required gap (in points) between today's best race and the discounted future race. High values mean the bot will only wait if the future reward is significantly better.
                         {"\n\n"}
-                        Example: If set to 50, the bot will only wait if the discounted future race score is at least 50 points better than the current best race.
+                        Example: If set to 50, even if a future race is 40 points better than today's (after decay), the bot will still race today.
                     </Text>
                 </SearchableItem>
 
