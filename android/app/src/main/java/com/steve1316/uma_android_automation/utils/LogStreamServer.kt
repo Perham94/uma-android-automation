@@ -163,7 +163,7 @@ object LogStreamServer {
 		}
 
 		// Shutdown the Ktor server instance with a brief grace period.
-		server?.stop(1000, 2000)
+		server?.stop(500, 1000)
 		server = null
 
 		// Cancel the coroutine scope to clean up background tasks.
