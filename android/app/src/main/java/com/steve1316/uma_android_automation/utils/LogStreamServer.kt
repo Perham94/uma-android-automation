@@ -196,6 +196,21 @@ object LogStreamServer {
 	}
 
 	/**
+	 * Subscriber for MediaProjectionService events via EventBus.
+	 *
+	 * Stops the log server if the projection service is stopped via notification or UI.
+	 *
+	 * @param event The JSEvent object containing the event details.
+	 */
+	@Subscribe(threadMode = ThreadMode.BACKGROUND)
+	fun onMediaProjectionEvent(event: JSEvent) {
+		if (event.eventName == "MediaProjectionService" && event.message == "Not Running") {
+			Log.i(TAG, "MediaProjectionService stopped. Initiating LogStreamServer shutdown.")
+			stop()
+		}
+	}
+
+	/**
 	 * Retrieves the device's local IP address as a human-readable string.
 	 *
 	 * Prioritizes actual network interfaces over the WifiManager, which can be unreliable
