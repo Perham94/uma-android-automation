@@ -87,6 +87,16 @@ class StartModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
     @ReactMethod
     fun start() {
         if (readyCheck()) {
+            SettingsHelper.refresh(context)
+
+            // Start the remote log stream server if enabled in settings.
+            val enableRemoteLogViewer = SettingsHelper.getBooleanSetting("debug", "enableRemoteLogViewer", false)
+            Log.d(TAG, "Able to start Remote Log Viewer in start(): $enableRemoteLogViewer")
+            if (enableRemoteLogViewer) {
+                val port = SettingsHelper.getIntSetting("debug", "remoteLogViewerPort", 9000)
+                LogStreamServer.start(context, port)
+            }
+
             startProjection()
         }
     }
@@ -110,9 +120,6 @@ class StartModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
      * Unregister this module with EventBus and then stops the MediaProjection service.
      */
     private fun stopProjection() {
-        // Stop the remote log stream server if it is running.
-        LogStreamServer.stop()
-
         EventBus.getDefault().unregister(this)
         Log.d(TAG, "Event Bus unregistered for StartModule")
         reactContext?.startService(MediaProjectionService.getStopIntent(reactContext!!))
@@ -292,13 +299,6 @@ class StartModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
                 }
             }
 
-            // Start the remote log stream server if enabled in settings.
-            val enableRemoteLogViewer = SettingsHelper.getBooleanSetting("debug", "enableRemoteLogViewer", false)
-            if (enableRemoteLogViewer) {
-                val port = SettingsHelper.getIntSetting("debug", "remoteLogViewerPort", 9000)
-                LogStreamServer.start(context, port)
-            }
-
             val entryPoint = Game(context)
 
             val botThread = Thread {
@@ -319,9 +319,6 @@ class StartModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
                 try {
                     botThread.join()
                 } catch (_: InterruptedException) {}
-            } finally {
-                // Stop the remote log stream server when the bot finishes.
-                LogStreamServer.stop()
             }
         }
     }
