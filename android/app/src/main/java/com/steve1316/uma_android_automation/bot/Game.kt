@@ -96,10 +96,10 @@ class Game(val myContext: Context) {
 	val racing: Racing = Racing(this)
     val skillPlan: SkillPlan = SkillPlan(this)
 	val trainingEvent: TrainingEvent = TrainingEvent(this)
-    val campaign: Campaign = if (scenario == "Unity Cup") {
-        UnityCup(this)
-    } else {
-        Campaign(this)
+    val campaign: Campaign = when (scenario) {
+        "URA Finale" -> Campaign(this)
+        "Unity Cup" -> UnityCup(this)
+        else -> throw InterruptedException("Invalid scenario: $scenario")
     }
 
 	////////////////////////////////////////////////////////////////////
