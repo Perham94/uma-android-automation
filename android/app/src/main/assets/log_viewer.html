@@ -1049,6 +1049,10 @@
             let reconnectInterval = null
             const maxReconnectDelay = 30000
 
+            // Synchronization state with LogStreamServer.
+            let isSyncing = true
+            let syncingBuffer = []
+
             // DOM references.
             const logContainer = document.getElementById("logContainer")
             const emptyState = document.getElementById("emptyState")
@@ -1100,6 +1104,10 @@
                     setStatus("connecting", "Connecting...")
                 }
 
+                // Reset sync state on fresh connection.
+                isSyncing = true
+                syncingBuffer = []
+
                 const protocol = location.protocol === "https:" ? "wss:" : "ws:"
                 const wsUrl = protocol + "//" + location.host
 
@@ -1119,24 +1127,35 @@
 
                 ws.onmessage = function (event) {
                     if (event.data === "HISTORY_DONE") {
-                        setTimeout(function () {
-                            processAllHistoryForDashboard()
-                        }, 10)
+                        // History sync is finished. Process all buffered messages.
+                        isSyncing = false
+                        appendBatchMessages(syncingBuffer)
+                        syncingBuffer = []
+                        processAllHistoryForDashboard()
+                    } else if (event.data === "CMD:CLEAR") {
+                        // Received a signal from the server to clear the display for a new run.
+                        clearDisplay()
                     } else if (event.data.startsWith("HISTORY_BATCH:")) {
                         var msgs = event.data.substring(14).split("---LOG_SEPARATOR---")
-                        setTimeout(function () {
-                            appendHistoryBatch(msgs)
-                        }, 10)
+                        if (isSyncing) {
+                            syncingBuffer.push.apply(syncingBuffer, msgs)
+                        } else {
+                            appendBatchMessages(msgs)
+                        }
                     } else if (event.data.startsWith("BATCH:")) {
                         var msgs = event.data.substring(6).split("---LOG_SEPARATOR---")
-                        // Yield to the browser renderer using setTimeout so "Connected" paints instantly
-                        // before processing the heavy DOM insertions of the log messages.
-                        setTimeout(function () {
+                        if (isSyncing) {
+                            syncingBuffer.push.apply(syncingBuffer, msgs)
+                        } else {
                             appendBatchMessages(msgs)
-                        }, 10)
+                        }
                     } else {
                         // Process individual log messages.
-                        appendLogMessage(event.data)
+                        if (isSyncing) {
+                            syncingBuffer.push(event.data)
+                        } else {
+                            appendLogMessage(event.data)
+                        }
                     }
                 }
 
@@ -1331,68 +1350,6 @@
 
                 if (autoScroll) {
                     scrollToBottom()
-                }
-            }
-
-            /**
-             * Efficiently prepends a batch of history log messages using a DocumentFragment.
-             * @param {Array<string>} rawMessages Array of raw log message strings in reverse chronological order.
-             */
-            function appendHistoryBatch(rawMessages) {
-                if (!rawMessages || rawMessages.length === 0) return
-
-                var validMessages = rawMessages.filter(function (m) {
-                    return m
-                })
-                if (validMessages.length === 0) return
-
-                messageCount += validMessages.length
-
-                if (emptyState) {
-                    emptyState.style.display = "none"
-                }
-
-                // Reverse back to chronological order for this batch.
-                validMessages.reverse()
-
-                var fragment = document.createDocumentFragment()
-                var batchArray = []
-
-                validMessages.forEach(function (rawMessage) {
-                    try {
-                        var parsed = parseMessage(rawMessage)
-                        batchArray.push({ raw: rawMessage, parsed: parsed })
-                        
-                        var entry = createLogEntry(rawMessage, parsed)
-                        if (!entry.classList.contains("hidden")) {
-                            visibleMessageCount++
-                        }
-                        fragment.appendChild(entry)
-                    } catch (e) {
-                        console.error("Error processing log in history batch:", e, rawMessage)
-                    }
-                })
-
-                // Prepend this batch to allMessages to maintain overall chronological order.
-                allMessages = batchArray.concat(allMessages)
-
-                // Save current scroll state before prepending.
-                var previousScrollHeight = logContainer.scrollHeight;
-                var previousScrollTop = logContainer.scrollTop;
-
-                // Insert at the beginning of the container.
-                if (logContainer.firstChild) {
-                    logContainer.insertBefore(fragment, logContainer.firstChild)
-                } else {
-                    logContainer.appendChild(fragment)
-                }
-                updateMessageCountDisplay()
-                
-                // Adjust scroll position to counteract the prepended elements
-                // so the current view doesn't jump around.
-                var newScrollHeight = logContainer.scrollHeight;
-                if (previousScrollHeight > 0) {
-                    logContainer.scrollTop = previousScrollTop + (newScrollHeight - previousScrollHeight);
                 }
             }
 
