@@ -19,7 +19,7 @@ import com.steve1316.uma_android_automation.components.Region
 
 object ButtonAgenda : ButtonInterface {
     override val TAG: String = "[${MainActivity.loggerTag}]ButtonAgenda"
-    override val template = Template("components/button/agenda")
+    override val template = Template("components/button/agenda", region = Region.bottomHalf)
 }
 
 object ButtonAutoSelect : ButtonInterface {
@@ -600,4 +600,14 @@ object ButtonSkillDown : ButtonInterface {
 object ButtonOverwrite : ButtonInterface {
     override val TAG: String = "ButtonOverwrite"
     override val template = Template("components/button/overwrite", region = Region.bottomHalf)
+}
+
+object ButtonMyAgendas : ButtonInterface {
+    override val TAG: String = "ButtonMyAgendas"
+    override val template = Template("components/button/my_agendas", region = Region.bottomHalf)
+}
+
+object ButtonRaceAgendaLoadList : ButtonInterface {
+    override val TAG: String = "ButtonRaceAgendaLoadList"
+    override val template = Template("components/button/race_agenda_load_list", region = Region.rightHalf)
 }
