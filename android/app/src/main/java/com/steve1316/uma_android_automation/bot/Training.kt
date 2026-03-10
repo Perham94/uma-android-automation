@@ -988,6 +988,9 @@ class Training(private val game: Game) {
                         MessageLog.i(TAG, "All 5 stat regions processed for $statName training. Results: ${result.statGains.toSortedMap(compareBy { it.ordinal }).toString()}")
                     }
 
+                    applyContextualStatGainBoost(result)
+                    MessageLog.i(TAG, "Contextually boosted results: ${result.statGains.toSortedMap(compareBy { it.ordinal }).toString()}")
+
                     // Determine which failure chance threshold to use.
                     val effectiveFailureChance = if (enableRiskyTraining) {
                         riskyTrainingMaxFailureChance
@@ -1067,6 +1070,11 @@ class Training(private val game: Game) {
                     waitThreads.forEach { it.join() }
                 } else {
                     return
+                }
+
+                // Apply secondary stat gain boosts based on context for all results.
+                for (result in analysisResults) {
+                    applyContextualStatGainBoost(result)
                 }
 
                 // Process results and output logs in training order.
@@ -1537,5 +1545,159 @@ class Training(private val game: Game) {
 		
 		sb.appendLine("================================================")
 		MessageLog.i(TAG, sb.toString())
+	}
+
+	/**
+	 * Applies artificial boost to main stat gains when they appear lower than side-effect stats 
+	 * due to OCR failure, utilizing contextual data like relationship bars and the year.
+	 *
+	 * @param result The training analysis result object to process and potentially modify.
+	 */
+	private fun applyContextualStatGainBoost(result: TrainingAnalysisResult) {
+		val currentStat = game.trainee.stats.asMap()[result.name] ?: 0
+		val effectiveStatCap = currentStatCap - 20
+		
+		val newStatGains = result.statGains.toMutableMap()
+		val sideEffectStats = newStatGains.keys.filter { it != result.name }
+		val maxSideEffectGain = sideEffectStats.maxOfOrNull { newStatGains[it] ?: 0 } ?: 0
+		val mainStatGain = newStatGains[result.name] ?: 0
+
+		var boosted = false
+
+		// Edge case: Specific manual correction for GUTS training where POWER gain should be greater than SPEED gain.
+		if (result.name == StatName.GUTS) {
+			val speedGain = newStatGains[StatName.SPEED] ?: 0
+			var powerGain = newStatGains[StatName.POWER] ?: 0
+			
+			if (powerGain < speedGain) {
+				val originalPowerGain = powerGain
+				while (powerGain <= speedGain) {
+					powerGain += 10
+				}
+				newStatGains[StatName.POWER] = powerGain
+				
+				val newCorrectedStats = result.correctedStats.toMutableList()
+				if (!newCorrectedStats.contains(StatName.POWER)) {
+					newCorrectedStats.add(StatName.POWER)
+					result.correctedStats = newCorrectedStats
+				}
+				
+				if (game.imageUtils.debugMode) {
+					MessageLog.i(TAG, "[DEBUG] Contextual boost: Artificially increased POWER stat gain for GUTS training from $originalPowerGain to $powerGain to be greater than SPEED gain ($speedGain).")
+				} else {
+					Log.d(TAG, "[DEBUG] Contextual boost: Artificially increased POWER stat gain for GUTS training from $originalPowerGain to $powerGain to be greater than SPEED gain ($speedGain).")
+				}
+				boosted = true
+			}
+		}
+
+		// Expected side effects mapping.
+		val affectedStatsMap = mapOf(
+			StatName.SPEED to listOf(StatName.POWER),
+			StatName.STAMINA to listOf(StatName.GUTS),
+			StatName.POWER to listOf(StatName.STAMINA),
+			StatName.GUTS to listOf(StatName.SPEED, StatName.POWER),
+			StatName.WIT to listOf(StatName.SPEED)
+		)
+		val expectedSideEffects = affectedStatsMap[result.name] ?: emptyList()
+
+		// Check if any expected side-effect stat has a higher or equal gain than the main stat (but only if main stat > 0 to not overlap with the edge case below).
+		if (mainStatGain > 0 && mainStatGain in 1..maxSideEffectGain) {
+			val originalGain = mainStatGain
+			newStatGains[result.name] = maxSideEffectGain + 10
+			
+			val newCorrectedStats = result.correctedStats.toMutableList()
+			if (!newCorrectedStats.contains(result.name)) {
+				newCorrectedStats.add(result.name)
+				result.correctedStats = newCorrectedStats
+			}
+			
+			MessageLog.d(TAG, "[DEBUG] Artificially increased ${result.name} stat gain from $originalGain to ${newStatGains[result.name]} due to possible OCR failure. Side-effect stats had higher or equal gains: $sideEffectStats")
+			boosted = true
+		}
+
+		// If the expected side-effect stat gains were zeroes, boost them to half of the main stat gain.
+		val boostedMainStatGain = newStatGains[result.name] ?: 0
+		for (statName in expectedSideEffects) {
+			if ((newStatGains[statName] ?: 0) == 0 && boostedMainStatGain > 0) {
+				newStatGains[statName] = boostedMainStatGain / 2
+				
+				val newCorrectedStats = result.correctedStats.toMutableList()
+				if (!newCorrectedStats.contains(statName)) {
+					newCorrectedStats.add(statName)
+					result.correctedStats = newCorrectedStats
+				}
+				
+				MessageLog.d(TAG, "[DEBUG] Artificially increased $statName side-effect stat gain to ${newStatGains[statName]} because it was 0 due to possible OCR failure. Based on half of boosted ${result.name} = $boostedMainStatGain.")
+				boosted = true
+			}
+		}
+
+		// Edge case: Main stat is 0 but side effect is > 0, and not near stat cap.
+		if (mainStatGain == 0 && maxSideEffectGain > 0 && currentStat < effectiveStatCap) {
+			var newMainGain = mainStatGain
+			while (newMainGain <= maxSideEffectGain) {
+				newMainGain += 10
+			}
+			newStatGains[result.name] = newMainGain
+			
+			val newCorrectedStats = result.correctedStats.toMutableList()
+			if (!newCorrectedStats.contains(result.name)) {
+				newCorrectedStats.add(result.name)
+				result.correctedStats = newCorrectedStats
+			}
+			
+			if (game.imageUtils.debugMode) {
+				MessageLog.i(TAG, "[DEBUG] Contextual boost: Artificially increased ${result.name} stat gain from $mainStatGain to $newMainGain because it was 0, max side effect was $maxSideEffectGain, and current stat $currentStat is not near cap.")
+			} else {
+				Log.d(TAG, "[DEBUG] Contextual boost: Artificially increased ${result.name} stat gain from $mainStatGain to $newMainGain because it was 0, max side effect was $maxSideEffectGain, and current stat $currentStat is not near cap.")
+			}
+			boosted = true
+		}
+
+		// Edge case: Low stat gains with relationship bars in Senior Year.
+		val currentMainStatGain = newStatGains[result.name] ?: 0
+		if (game.currentDate.year == DateYear.SENIOR && currentMainStatGain <= 9 && result.relationshipBars.isNotEmpty()) {
+			val boostAmount = result.relationshipBars.size * 5
+			newStatGains[result.name] = currentMainStatGain + boostAmount
+			
+			val newCorrectedStats = result.correctedStats.toMutableList()
+			if (!newCorrectedStats.contains(result.name)) {
+				newCorrectedStats.add(result.name)
+				result.correctedStats = newCorrectedStats
+			}
+			
+			if (game.imageUtils.debugMode) {
+				MessageLog.i(TAG, "[DEBUG] Contextual boost: Artificially increased ${result.name} stat gain from $currentMainStatGain to ${newStatGains[result.name]} due to having ${result.relationshipBars.size} relationship bars in Senior Year.")
+			} else {
+				Log.d(TAG, "[DEBUG] Contextual boost: Artificially increased ${result.name} stat gain from $currentMainStatGain to ${newStatGains[result.name]} due to having ${result.relationshipBars.size} relationship bars in Senior Year.")
+			}
+			boosted = true
+		}
+
+		// Edge case: Side effect is < 9 and difference with main effect is > 20.
+		for (sideEffect in expectedSideEffects) {
+			val sideGain = newStatGains[sideEffect] ?: 0
+			if (sideGain < 9 && (mainStatGain - sideGain) > 20) {
+				newStatGains[sideEffect] = sideGain + 10
+				
+				val newCorrectedStats = result.correctedStats.toMutableList()
+				if (!newCorrectedStats.contains(sideEffect)) {
+					newCorrectedStats.add(sideEffect)
+					result.correctedStats = newCorrectedStats
+				}
+				
+				if (game.imageUtils.debugMode) {
+					MessageLog.i(TAG, "[DEBUG] Contextual boost: Artificially increased $sideEffect side-effect stat gain from $sideGain to ${newStatGains[sideEffect]} due to being less than 9 and having >20 difference with main stat gain of $mainStatGain.")
+				} else {
+					Log.d(TAG, "[DEBUG] Contextual boost: Artificially increased $sideEffect side-effect stat gain from $sideGain to ${newStatGains[sideEffect]} due to being less than 9 and having >20 difference with main stat gain of $mainStatGain.")
+				}
+				boosted = true
+			}
+		}
+
+		if (boosted) {
+			result.statGains = newStatGains
+		}
 	}
 }

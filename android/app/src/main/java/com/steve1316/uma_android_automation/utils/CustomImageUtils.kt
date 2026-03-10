@@ -1407,85 +1407,19 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
 				MessageLog.e(TAG, "Stat processing timed out for $trainingName training.")
 			}
 
-			// Check if bot is still running before applying boost.
+			// Check if bot is still running.
 			if (!BotService.isRunning) {
 				return StatGainResult(threadSafeResults.toMap(), rowValuesMap.toMap())
 			}
 
-			// Apply artificial boost to main stat gains if they appear lower than side-effect stats.
-			val (boostedResults, correctedStats) = applyStatGainBoost(trainingName, threadSafeResults, trainingStatMap)
 			// Return results with row values map for logging in Training.kt after threads complete.
-			return StatGainResult(boostedResults, rowValuesMap.toMap(), correctedStats)
+			return StatGainResult(threadSafeResults.toMap(), rowValuesMap.toMap())
 		} else {
 			MessageLog.e(TAG, "Could not find the skill points location to start determining stat gains for $trainingName training.")
 		}
 
 		return StatGainResult(threadSafeResults.toMap(), emptyMap())
-	}
-
-	/**
-	 * Applies artificial boost to main stat gains when they appear lower than side-effect stats due to OCR failure.
-	 * 
-	 * @param trainingName Name of the training type (Speed, Stamina, Power, Guts, Wit).
-	 * @param statGains Mapping of stat name to their stat gain.
-	 * @param trainingToStatIndices Mapping of training types to their affected stats.
-	 * @return Mapping of stat names to their gains with potential artificial boost applied to main stat.
-	 */
-	private fun applyStatGainBoost(trainingName: StatName, statGains: Map<StatName, Int>, trainingToAffectedStatNames: Map<StatName, List<StatName>>): Pair<Map<StatName, Int>, List<StatName>> {
-		val boostedResults: MutableMap<StatName, Int> = statGains.toMutableMap()
-		val correctedStats: MutableList<StatName> = mutableListOf()
-		
-		// Specific manual correction for GUTS training where POWER gain should be greater than SPEED gain.
-		if (trainingName == StatName.GUTS) {
-			val speedGain = boostedResults[StatName.SPEED] ?: 0
-			var powerGain = boostedResults[StatName.POWER] ?: 0
-			
-			if (powerGain < speedGain) {
-				val originalPowerGain = powerGain
-				while (powerGain <= speedGain) {
-					powerGain += 10
-				}
-				boostedResults[StatName.POWER] = powerGain
-				correctedStats.add(StatName.POWER)
-				Log.d(TAG, "[DEBUG] Artificially increased POWER stat gain for GUTS training from $originalPowerGain to $powerGain to be greater than SPEED gain ($speedGain).")
-			}
-		}
-
-		// Get the stat indices affected by this training type and filter out the main stat to get side-effects.
-		val affectedStats: List<StatName> = trainingToAffectedStatNames[trainingName] ?: return Pair(boostedResults, correctedStats)
-		val sideEffectStats: List<StatName> = affectedStats.filter { it != trainingName }
-        val sideEffectStatGains: Map<StatName, Int> = boostedResults.filterKeys { it in sideEffectStats }
-		
-		val mainStatGain = boostedResults[trainingName] ?: 0
-		
-		// Check if any side-effect stat has a higher or equal gain than the main stat.
-		val maxSideEffectGain: Int = sideEffectStatGains.maxOfOrNull { it.value } ?: 0
-		
-		if (mainStatGain in 1..maxSideEffectGain) {
-			// Set main stat to be 10 points higher than the highest side-effect stat.
-			val originalGain = boostedResults[trainingName]
-			boostedResults[trainingName] = maxSideEffectGain + 10
-			correctedStats.add(trainingName)
-			Log.d(TAG,
-				"[DEBUG] Artificially increased $trainingName stat gain from $originalGain to ${boostedResults[trainingName]} due to possible OCR failure. " +
-				"Side-effect stats had higher or equal gains: $sideEffectStats"
-			)
-		}
-
-		// If the side-effect stat gains were zeroes, boost them to half of the main stat gain.
-		val boostedMainStatGain = boostedResults[trainingName] ?: 0
-        for (statName in sideEffectStats) {
-			if ((boostedResults[statName] ?: 0) == 0 && boostedMainStatGain > 0) {
-				boostedResults[statName] = boostedMainStatGain / 2
-				correctedStats.add(statName)
-				Log.d(TAG, "[DEBUG] Artificially increased $statName side-effect stat gain to ${boostedResults[statName]} because it was 0 due to possible OCR failure. " +
-						"Based on half of boosted $trainingName = $boostedMainStatGain."
-				)
-			}
-		}
-		
-		return Pair(boostedResults.toMap(), correctedStats.toList())
-	}
+    }
 
 	/**
 	 * Processes a single template with transparency to find all valid matches in the working matrix through a multi-stage algorithm.
