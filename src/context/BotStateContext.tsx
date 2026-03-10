@@ -1,7 +1,7 @@
 import { createContext, useState, useMemo, useCallback } from "react"
 import { startTiming } from "../lib/performanceLogger"
 import racesData from "../data/races.json"
-import { skillPlanSettingsPages } from "../pages/SkillPlanSettings"
+import { skillPlanSettingsPages } from "../pages/SkillPlanSettings/config"
 
 /**
  * Configuration for an individual skill plan (e.g. preFinals, careerComplete).

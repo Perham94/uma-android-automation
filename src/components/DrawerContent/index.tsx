@@ -7,7 +7,7 @@ import { Avatar, AvatarImage } from "../ui/avatar"
 import { markNavigationStart } from "../../lib/performanceLogger"
 import { useTheme } from "../../context/ThemeContext"
 import { BotStateContext } from "../../context/BotStateContext"
-import { skillPlanSettingsPages } from "../../pages/SkillPlanSettings"
+import { skillPlanSettingsPages } from "../../pages/SkillPlanSettings/config"
 
 interface MenuItem {
     /** The route name used for navigation. */
