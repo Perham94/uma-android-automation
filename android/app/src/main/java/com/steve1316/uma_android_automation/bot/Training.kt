@@ -1408,6 +1408,22 @@ class Training(private val game: Game) {
 			keyFactors.forEach { factor ->
 				sb.appendLine("Key factor: $factor")
 			}
+		} else if (scores.isNotEmpty() || skippedScores.isNotEmpty()) {
+			sb.appendLine("")
+			sb.appendLine("--- Selection Explanation ---")
+			val numSkipped = skippedScores.size
+			val numBlacklisted = config.blacklist.filterNotNull().size
+			val reasons = mutableListOf<String>()
+			if (numSkipped > 0) reasons.add("$numSkipped skipped due to high failure chance")
+			if (numBlacklisted > 0) reasons.add("$numBlacklisted blacklisted")
+			if (restrictedTrainingNames.isNotEmpty()) reasons.add("${restrictedTrainingNames.size} restricted")
+			
+			if (reasons.isNotEmpty()) {
+				sb.appendLine("No training was selected (${reasons.joinToString(", ")}).")
+			} else {
+				sb.appendLine("No training was selected.")
+			}
+		}
 
 		// Only show the manual stat correction notice if there were actually any corrections.
 		val anyCorrections = scores.keys.any { it.correctedStats.isNotEmpty() } || skippedScores.keys.any { it.correctedStats.isNotEmpty() }
@@ -1427,6 +1443,15 @@ class Training(private val game: Game) {
 	 * @param selected The selected training option to mark with an indicator, or null if none selected.
 	 */
 	private fun appendTrainingDetails(sb: StringBuilder, blacklistedStats: List<StatName?> = emptyList(), selected: TrainingOption? = null) {
+		if (trainingMap.isEmpty() && skippedTrainingMap.isEmpty()) {
+			if (trainWitDuringFinale && game.currentDate.day > 72) {
+				sb.appendLine("Energy recovery needed. No analysis performed. Bot will force Wit training during Finale.")
+			} else {
+				sb.appendLine("Energy recovery needed. No analysis performed.")
+			}
+			return
+		}
+
 		val blacklistedStatNames = blacklistedStats.filterNotNull()
 
 		// Iterate over all stats in order (Speed, Stamina, Power, Guts, Wit).
