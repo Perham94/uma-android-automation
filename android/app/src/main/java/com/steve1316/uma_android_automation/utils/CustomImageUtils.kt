@@ -1188,7 +1188,7 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
 						// Power gives Stamina and Power
 						// Guts gives Speed, Power and Guts
 						// Wits gives Speed and Wits
-                        val validStatNames: List<StatName> = trainingStatMap[statName] ?: return@Thread
+                        val validStatNames: List<StatName> = trainingStatMap[trainingName] ?: return@Thread
                         if (statName !in validStatNames) {
                             return@Thread
                         }
