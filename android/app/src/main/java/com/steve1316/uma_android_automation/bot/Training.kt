@@ -635,8 +635,13 @@ class Training(private val game: Game) {
 
 			if (trainingMap.isEmpty()) {
 				// Check if we should force Wit training during the Finale instead of recovering energy.
-				if (trainWitDuringFinale && game.currentDate.day > 72) {
-					MessageLog.i(TAG, "[TRAINING] There is not enough energy for training to be done but the setting to train Wit during the Finale is enabled. Forcing Wit training...")
+				// Always force Wit on turn 75 since recovering energy on the very last turn is completely useless.
+				if ((trainWitDuringFinale && game.currentDate.day > 72) || game.currentDate.day == 75) {
+					if (game.currentDate.day == 75) {
+						MessageLog.i(TAG, "[TRAINING] It is the final turn. Forcing Wit training instead of recovering energy since resting provides zero benefit now.")
+					} else {
+						MessageLog.i(TAG, "[TRAINING] There is not enough energy for training to be done but the setting to train Wit during the Finale is enabled. Forcing Wit training...")
+					}
 					// Directly attempt to tap Wit training.
 					if (ButtonTrainingWit.click(imageUtils = game.imageUtils, taps = 3)) {
                         game.waitForLoading()
