@@ -476,7 +476,12 @@ object LogStreamServer {
 			// Extract high-level details for dashboard updates.
 			val action = detectAction(text)
 			val trainee = parseTraineeInfo(text)
-			val dateInfo = parseDateInfo(text)
+			val dateInfo = if (text.contains("[DATE]") ||
+				text.contains("New date:", ignoreCase = true) ||
+				text.contains("Turn", ignoreCase = true)
+			) {
+				parseDateInfo(text)
+			} else null
 
 			LogEntry(newline, timestamp, level, text, action, trainee, dateInfo).toJSON()
 		} else {
@@ -534,61 +539,25 @@ object LogStreamServer {
 	 * @return A JSONObject containing the date and turn if detected, otherwise NULL.
 	 */
 	private fun parseDateInfo(text: String): JSONObject? {
-		val turnMatcher = turnPattern.matcher(text)
-		val turn = if (turnMatcher.find()) turnMatcher.group(1) else null
+		val matcher = dateNewPattern.matcher(text)
+		return if (matcher.find()) {
+			val date = matcher.group(1)?.trim() ?: ""
+			val turn = matcher.group(2) ?: ""
 
-		// Handle absolute turn numbers and clean dates.
-		var date: String? = null
-		
-		when {
-			dateFromDayPattern.matcher(text).find() -> {
-				val matcher = dateFromDayPattern.matcher(text)
-				if (matcher.find()) {
-					date = matcher.group(1)?.trim()?.replace(Regex("^FINALS\\s+", RegexOption.IGNORE_CASE), "Finale ")
-				}
-			}
-			dateDetectedPattern.matcher(text).find() -> {
-				val matcher = dateDetectedPattern.matcher(text)
-				if (matcher.find()) {
-					date = matcher.group(1)?.trim()?.replace(Regex("^FINALS\\s+", RegexOption.IGNORE_CASE), "Finale ")
-				}
-			}
-			dateLogPattern.matcher(text).find() -> {
-				val matcher = dateLogPattern.matcher(text)
-				if (matcher.find()) {
-					date = matcher.group(1)?.trim()?.replace(Regex("^FINALS\\s+", RegexOption.IGNORE_CASE), "Finale ")
-				}
-			}
-		}
-
-		// Handle Pre-Debut date calculation if turn is available but date is still Pre-Debut.
-		if (date != null && date.contains("Pre-Debut", ignoreCase = true) && turn != null) {
-			val day = turn.toIntOrNull() ?: -1
-			if (day > 0) {
-				date = dateFromDay(day)
-			}
-		}
-
-		// Handle turns remaining for Pre-Debut logic.
-		val turnsRemainingMatcher = turnsRemainingPattern.matcher(text)
-		if (turnsRemainingMatcher.find()) {
-			val remaining = turnsRemainingMatcher.group(1)?.toIntOrNull() ?: -1
-			if (remaining > 0) {
-				val absoluteTurn = (12 - remaining).coerceAtLeast(1)
-				val calculatedDate = dateFromDay(absoluteTurn)
-				return JSONObject().apply {
-					put("turn", absoluteTurn.toString())
-					put("date", calculatedDate)
-				}
-			}
-		}
-
-		return if (turn != null || date != null) {
 			JSONObject().apply {
-				turn?.let { put("turn", it) }
-				date?.let { put("date", it) }
+				put("date", date)
+				put("turn", turn)
 			}
-		} else null
+		} else {
+			// Fallback: If no "[DATE] New date:" prefix but contains "(Turn X)", try extracting just the turn.
+			val turnOnlyPattern = Pattern.compile("\\(Turn (\\d+)\\)", Pattern.CASE_INSENSITIVE)
+			val turnMatcher = turnOnlyPattern.matcher(text)
+			if (turnMatcher.find()) {
+				JSONObject().apply {
+					put("turn", turnMatcher.group(1))
+				}
+			} else null
+		}
 	}
 
 	/**
