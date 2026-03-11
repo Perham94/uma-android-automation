@@ -322,6 +322,7 @@ object LogStreamServer {
 	 * or restricted on newer Android versions.
 	 *
 	 * @param context The application context.
+	 *
 	 * @return The device's local IP address or "0.0.0.0" if unavailable.
 	 */
 	fun getDeviceIpAddress(context: Context): String {
@@ -431,6 +432,8 @@ object LogStreamServer {
 	/**
 	 * Performs history synchronization for a new client session.
 	 * Called by the background worker to ensure no live logs are sent before history is done.
+	 *
+	 * @param session The active WebSocket server session.
 	 */
 	private suspend fun handleNewClientAction(session: DefaultWebSocketServerSession) {
 		try {
@@ -459,6 +462,7 @@ object LogStreamServer {
 	 * Parses a raw log string into a JSON object.
 	 *
 	 * @param message The raw log message to parse.
+	 *
 	 * @return A JSONObject containing the parsed log data.
 	 */
 	private fun parseLogToJSON(message: String): JSONObject {
@@ -490,6 +494,10 @@ object LogStreamServer {
 
 	/**
 	 * Detects common bot actions for session counters.
+	 *
+	 * @param text The log message text to check.
+	 *
+	 * @return The action name if detected, otherwise NULL.
 	 */
 	private fun detectAction(text: String): String? {
 		return when {
@@ -503,6 +511,10 @@ object LogStreamServer {
 
 	/**
 	 * Parses trainee detailed info for the dashboard.
+	 *
+	 * @param text The log message text to check.
+	 *
+	 * @return A JSONObject containing the trainee details if detected, otherwise NULL.
 	 */
 	private fun parseTraineeInfo(text: String): JSONObject? {
 		val matcher = traineeDetailedPattern.matcher(text)
@@ -516,6 +528,10 @@ object LogStreamServer {
 
 	/**
 	 * Parses date and turn information for the dashboard.
+	 *
+	 * @param text The log message text to check.
+	 *
+	 * @return A JSONObject containing the date and turn if detected, otherwise NULL.
 	 */
 	private fun parseDateInfo(text: String): JSONObject? {
 		val turnMatcher = turnPattern.matcher(text)
@@ -577,6 +593,10 @@ object LogStreamServer {
 
 	/**
 	 * Converts a turn number to a descriptive date string.
+	 *
+	 * @param day The turn number (day) to convert.
+	 *
+	 * @return The descriptive date string.
 	 */
 	private fun dateFromDay(day: Int): String {
 		val d = day - 1
@@ -606,6 +626,7 @@ object LogStreamServer {
 
 	/**
 	 * Handles a clear action by clearing the history buffer and notifying all clients.
+	 *
 	 * Called by the background worker.
 	 */
 	private suspend fun handleClearAction() {
@@ -642,6 +663,8 @@ object LogStreamServer {
 
 	/**
 	 * Enqueues a log message for sequential processing.
+	 *
+	 * @param message The log message to broadcast.
 	 */
 	private fun broadcast(message: String) {
 		if (!isRunning) return
@@ -654,7 +677,10 @@ object LogStreamServer {
 
 	/**
 	 * Processes a broadcast action by updating the buffer and sending to all active clients.
+	 *
 	 * Called by the background worker.
+	 *
+	 * @param message The log message to broadcast.
 	 */
 	private suspend fun handleBroadcastAction(message: String) {
 		if (isMuted) return
