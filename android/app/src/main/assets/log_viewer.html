@@ -1553,6 +1553,31 @@
                 // Reset the trainee name display.
                 document.getElementById("dashboardName").textContent = "-"
 
+                // Reset dashboard info.
+                document.getElementById("dashboardDate").textContent = "-"
+                document.getElementById("dashboardTurn").textContent = "-"
+
+                // Reset stats.
+                const stats = ["statSpeed", "statStamina", "statPower", "statGuts", "statWit"]
+                stats.forEach(id => {
+                    const el = document.getElementById(id)
+                    if (el) el.textContent = "-"
+                })
+
+                // Reset aptitudes.
+                const apts = [
+                    "aptTurf", "aptDirt",
+                    "aptSprint", "aptMile", "aptMedium", "aptLong",
+                    "aptFront", "aptPace", "aptLate", "aptEnd"
+                ]
+                apts.forEach(id => {
+                    const el = document.getElementById(id)
+                    if (el) {
+                        el.textContent = "-"
+                        el.className = "grade-badge grade-G"
+                    }
+                })
+
                 // Show empty state again.
                 if (emptyState) {
                     emptyState.style.display = "flex"
