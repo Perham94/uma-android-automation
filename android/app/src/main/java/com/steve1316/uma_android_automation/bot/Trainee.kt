@@ -166,6 +166,10 @@ class Trainee {
 
     var fanCountClass: FanCountClass = FanCountClass.DEBUT
 
+    // Track consecutive mismatches for each stat to recover from OCR misreads.
+    private val mismatchCounts: MutableMap<StatName, Int> = mutableMapOf()
+    private val lastMismatchedValues: MutableMap<StatName, Int> = mutableMapOf()
+
     val bIsInitialized: Boolean
         get() = bHasUpdatedAptitudes && bHasUpdatedStats && bHasUpdatedSkillPoints
 
@@ -585,12 +589,43 @@ class Trainee {
             for ((statName, newValue) in statMapping) {
                 val oldValue = getStat(statName)
                 val diff = abs(newValue - oldValue)
+
                 // If our previous stat value is <= 0, that means we haven't set it yet.
+                // Otherwise, it is possible that we misread a stat value. We want to make sure we
+                // don't update our stats if they change too wildly from the previous values.
                 if (oldValue <= 0 || diff < 150) {
                     stats.setStat(statName, newValue)
                     bHasUpdatedStats = true
+
+                    // Reset mismatch tracking for this stat.
+                    mismatchCounts[statName] = 0
+                    lastMismatchedValues[statName] = -1
                 } else {
-                    MessageLog.w(TAG, "New $statName stat value has changed too much since last update: old=$oldValue, new=$newValue")
+                    // Check if this large change is consistent with the previous read to recover from potential past misreads.
+                    val lastMismatchedValue = lastMismatchedValues[statName] ?: -1
+                    val mismatchDiff = abs(newValue - lastMismatchedValue)
+                    val currentCount = mismatchCounts[statName] ?: 0
+
+                    if (mismatchDiff < 50) {
+                        val newCount = currentCount + 1
+                        mismatchCounts[statName] = newCount
+
+                        // If we've seen the same gradual increase, trust it.
+                        if (newCount >= 2) {
+                            MessageLog.i(TAG, "New $statName stat value has been consistent for $newCount updates. Trusting the new value: $newValue (was $oldValue)")
+                            stats.setStat(statName, newValue)
+                            bHasUpdatedStats = true
+                            mismatchCounts[statName] = 0
+                            lastMismatchedValues[statName] = -1
+                        } else {
+                            MessageLog.w(TAG, "New $statName stat value has changed too much since last update (old=$oldValue, new=$newValue). Consecutive mismatch count: $newCount")
+                        }
+                    } else {
+                        // Reset mismatch tracking and update with current mismatched value.
+                        mismatchCounts[statName] = 1
+                        lastMismatchedValues[statName] = newValue
+                        MessageLog.w(TAG, "New $statName stat value has changed too much since last update (old=$oldValue, new=$newValue). Resetting mismatch count.")
+                    }
                 }
             }
         } else {
@@ -602,12 +637,41 @@ class Trainee {
             for ((statName, newValue) in statMapping) {
                 val oldValue = getStat(statName)
                 val diff = abs(newValue - oldValue)
+
                 // If our previous stat value is <= 0, that means we haven't set it yet.
                 if (oldValue <= 0 || diff < 150) {
                     stats.setStat(statName, newValue)
                     bHasUpdatedStats = true
+
+                    // Reset mismatch tracking for this stat.
+                    mismatchCounts[statName] = 0
+                    lastMismatchedValues[statName] = -1
                 } else {
-                    MessageLog.w(TAG, "New $statName stat value has changed too much since last update: old=$oldValue, new=$newValue")
+                    // Check if this large change is consistent with the previous read to recover from potential past misreads.
+                    val lastMismatchedValue = lastMismatchedValues[statName] ?: -1
+                    val mismatchDiff = abs(newValue - lastMismatchedValue)
+                    val currentCount = mismatchCounts[statName] ?: 0
+
+                    if (mismatchDiff < 50) {
+                        val newCount = currentCount + 1
+                        mismatchCounts[statName] = newCount
+
+                        // If we've seen the same gradual increase twice, trust it.
+                        if (newCount >= 2) {
+                            MessageLog.i(TAG, "New $statName stat value has been consistent for $newCount updates. Trusting the new value: $newValue (was $oldValue)")
+                            stats.setStat(statName, newValue)
+                            bHasUpdatedStats = true
+                            mismatchCounts[statName] = 0
+                            lastMismatchedValues[statName] = -1
+                        } else {
+                            MessageLog.w(TAG, "New $statName stat value has changed too much since last update (old=$oldValue, new=$newValue). Consecutive mismatch count: $newCount")
+                        }
+                    } else {
+                        // Reset mismatch tracking and update with current mismatched value.
+                        mismatchCounts[statName] = 1
+                        lastMismatchedValues[statName] = newValue
+                        MessageLog.w(TAG, "New $statName stat value has changed too much since last update (old=$oldValue, new=$newValue). Resetting mismatch count.")
+                    }
                 }
             }
         }
