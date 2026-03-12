@@ -1465,6 +1465,7 @@ abstract class Campaign(game: Game) : Task(game) {
                 val prevTrackDistance = trainee.trackDistance
                 val prevRunningStyle = trainee.runningStyle
                 trainee.updateAptitudes(game.imageUtils)
+                trainee.updateStats(game.imageUtils, isAptitudeDialog = true)
                 trainee.bTemporaryRunningStyleAptitudesUpdated = false
 
                 // Read the trainee's name once per run while the dialog is still open.
