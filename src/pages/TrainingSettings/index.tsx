@@ -19,7 +19,7 @@ import PageHeader from "../../components/PageHeader"
 import { SearchPageProvider } from "../../context/SearchPageContext"
 import SearchableItem from "../../components/SearchableItem"
 import { usePerformanceLogging } from "../../hooks/usePerformanceLogging"
-import WarningContainer from "../WarningContainer"
+import WarningContainer from "../../components/WarningContainer"
 
 /**
  * The Training Settings page.
