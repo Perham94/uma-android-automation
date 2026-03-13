@@ -399,8 +399,10 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
 				debugName = "extractRaceName"
 			)
 			
-			MessageLog.i(TAG, "Extracted race name: \"$detectedText\"")
-			return detectedText
+            // Ensure forward slashes are surrounded by spaces.
+			val refinedResult = detectedText.replace(Regex("""\s*/\s*"""), " / ").trim()
+			MessageLog.i(TAG, "Extracted race name: \"$refinedResult\"")
+			return refinedResult
 		} catch (e: Exception) {
 			MessageLog.e(TAG, "Exception during race name extraction: ${e.message}")
 			return ""
