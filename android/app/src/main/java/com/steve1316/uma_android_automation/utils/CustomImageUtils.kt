@@ -325,9 +325,9 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
         }
 
         if (debugMode) {
-            MessageLog.d(TAG, "Failure chance detected to be at $result%.")
+            MessageLog.i(TAG, "Failure chance detected to be at $result%.")
         } else {
-            Log.d(TAG, "Failure chance detected to be at $result%.")
+            Log.i(TAG, "Failure chance detected to be at $result%.")
         }
 		return result
 	}
