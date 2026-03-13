@@ -219,7 +219,7 @@ object IconStatSupportYayoiAkikawa : ComponentInterface {
 
 object IconStatSkillHint : ComponentInterface {
     override val TAG: String = "[${MainActivity.loggerTag}]IconStatSkillHint"
-    override val template = Template("components/icon/stat_skill_hint")
+    override val template = Template("components/icon/stat_skill_hint", confidence = 0.9)
 }
 
 object IconRecreationDate : ComponentInterface {
