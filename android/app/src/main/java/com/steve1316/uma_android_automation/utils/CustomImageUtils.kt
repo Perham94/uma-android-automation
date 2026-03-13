@@ -1293,8 +1293,8 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
 							val row2Offset = if (game.scenario == "Trackblazer") -60 else -55
 							val secondRowStartY = relY(firstRowStartY.toDouble(), row2Offset)
 							listOf(
-								StatGainRowConfig(firstRowStartX, firstRowStartY, relWidth(150), relHeight(55), "row1", "_mini"),
-                                StatGainRowConfig(firstRowStartX, secondRowStartY, relWidth(150), relHeight(55), "row2", "_mini_bold")
+								StatGainRowConfig(firstRowStartX, firstRowStartY, relWidth(150), relHeight(55), "row 1", "_mini"),
+                                StatGainRowConfig(firstRowStartX, secondRowStartY, relWidth(150), relHeight(55), "row 2", "_mini_bold")
 							)
 						} else {
 							// Default: single row.
@@ -1366,6 +1366,9 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
 									return@Thread
 								}
 
+								val effectType = if (statName == trainingName) "main-effect" else "side-effect"
+								val trainingContext = "${trainingName.name} training for ${statName.name} $effectType"
+
 								// Process templates for this row using the row's specific suffix.
 								for (templateName in rowTemplates) {
 									// Check before each template processing operation.
@@ -1377,7 +1380,7 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
 									if (templateBitmap != null) {
 										val processedMatches = processStatGainTemplateWithTransparency(templateName, templateBitmap, rowWorking, mutableMapOf<String, MutableList<Point>>().apply {
 											rowTemplates.forEach { t -> this[t] = mutableListOf() }
-										})
+										}, row.rowName, trainingContext)
 										// Store original matches for this row (for debug visualization).
 										processedMatches[templateName]?.forEach { point ->
 											rowMatches[templateName]?.add(point)
@@ -1403,14 +1406,14 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
 						val finalValue = if (rows.size > 1) {
 							// For scenarios with multiple rows, sum the values from each row.
 							val rowValues = rowDebugInfo.mapIndexed { index, rowInfo ->
-								constructIntegerFromMatches(rowInfo.matches)
+								constructIntegerFromMatches(rowInfo.matches, "for ${rowInfo.config.rowName}")
 							}
                             // Store row values for sequential logging after threads complete.
                             rowValuesMap[statName] = rowValues
 							rowValues.sum()
 						} else {
 							// For single row scenarios, use the existing behavior.
-							constructIntegerFromMatches(rowDebugInfo[0].matches)
+							constructIntegerFromMatches(rowDebugInfo[0].matches, "for stat $statName")
 						}
 						threadSafeResults[statName] = finalValue
 
@@ -1506,10 +1509,12 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
 	 * @param templateBitmap Bitmap of the template image (must have 4-channel RGBA format with transparency).
 	 * @param workingMat Working matrix to search in (grayscale source image).
 	 * @param matchResults Map to store match results, organized by template name.
+	 * @param rowName The name of the row being processed (e.g., "row 1", "row 2").
+	 * @param trainingContext The training context (e.g., "SPEED training for POWER side-effect").
 	 *
 	 * @return The modified matchResults mapping containing all valid matches found for this template
 	 */
-	private fun processStatGainTemplateWithTransparency(templateName: String, templateBitmap: Bitmap, workingMat: Mat, matchResults: MutableMap<String, MutableList<Point>>): MutableMap<String, MutableList<Point>> {
+	private fun processStatGainTemplateWithTransparency(templateName: String, templateBitmap: Bitmap, workingMat: Mat, matchResults: MutableMap<String, MutableList<Point>>, rowName: String = "", trainingContext: String = ""): MutableMap<String, MutableList<Point>> {
 		// These values have been tested for the best results against the dynamic background.
 		val matchConfidence = 0.9
 		val minPixelMatchRatio = 0.1
@@ -1632,7 +1637,11 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
 							}
 
 							if (!hasOverlap) {
-								Log.d(TAG, "[DEBUG] Found valid match for template \"$templateName\" at ($centerX, $centerY).")
+								val rowSuffix = if (trainingContext.isNotEmpty() && rowName.isNotEmpty()) " for $trainingContext $rowName"
+								else if (trainingContext.isNotEmpty()) " for $trainingContext"
+								else if (rowName.isNotEmpty()) " for $rowName"
+								else ""
+								Log.i(TAG, "Found valid match for template \"$templateName\" at ($centerX, $centerY)$rowSuffix.")
 								matchResults[templateName]?.add(Point(centerX.toDouble(), centerY.toDouble()))
 
                                 // If it found the + symbol, then there is no need to look for additional pluses.
@@ -1713,7 +1722,7 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
 	 *
 	 * @return The constructed integer value or -1 if it failed.
 	 */
-	private fun constructIntegerFromMatches(matchResults: Map<String, MutableList<Point>>): Int {
+	private fun constructIntegerFromMatches(matchResults: Map<String, MutableList<Point>>, logLabel: String = ""): Int {
 		// Collect all matches with their template names.
 		val allMatches = mutableListOf<Pair<String, Point>>()
 		matchResults.forEach { (templateName, points) ->
@@ -1722,24 +1731,26 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
 			}
 		}
 
+		val logSuffix = if (logLabel.isNotEmpty()) " $logLabel" else ""
+
 		if (allMatches.isEmpty()) {
-			Log.d(TAG, "[WARNING] No matches found to construct integer value.")
+			Log.d(TAG, "[WARNING] No matches found to construct integer value$logSuffix.")
 			return 0
 		}
 
 		// Sort matches by x-coordinate (left to right).
 		allMatches.sortBy { it.second.x }
-		Log.d(TAG, "[DEBUG] Sorted matches: ${allMatches.map { "${it.first}@(${it.second.x}, ${it.second.y})" }}")
+		Log.i(TAG, "Sorted matches$logSuffix: ${allMatches.map { "${it.first}@(${it.second.x}, ${it.second.y})" }}")
 
 		// Construct the string representation by extracting the character part from template names (removing suffixes like "_mini").
 		// Template names can be "+", "0"-"9" or "+_mini", "0_mini"-"9_mini", so we extract the first character.
 		val constructedString = allMatches.joinToString("") { it.first[0].toString() }
-		Log.d(TAG, "[DEBUG] Constructed string: \"$constructedString\".")
+		Log.i(TAG, "Constructed string$logSuffix: \"$constructedString\".")
 
 		// Extract the numeric part and convert to integer.
 		return try {
             if (constructedString == "+") {
-                Log.w(TAG, "[WARNING] Constructed string was just the plus sign. Setting the result to 0.")
+                Log.w(TAG, "[WARNING] Constructed string$logSuffix was just the plus sign. Setting the result to 0.")
                 return 0
             }
 
@@ -1755,16 +1766,16 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
 			// The max stat gain per training is +100, so higher values indicate a false 3rd digit detection.
 			val correctedResult = if (result > 100) {
 				val corrected = result / 10
-				Log.d(TAG, "[DEBUG] Corrected stat gain from $result to $corrected (dropped false 3rd digit).")
+				Log.d(TAG, "[DEBUG] Corrected stat gain$logSuffix from $result to $corrected (dropped false 3rd digit).")
 				corrected
 			} else {
 				result
 			}
 
-			Log.d(TAG, "[DEBUG] Successfully constructed integer value: $correctedResult from \"$constructedString\".")
+			Log.d(TAG, "[DEBUG] Successfully constructed integer value: $correctedResult from \"$constructedString\"$logSuffix.")
 			correctedResult
 		} catch (e: NumberFormatException) {
-			Log.e(TAG, "[ERROR] Could not convert \"$constructedString\" to integer for stat gain: ${e.stackTraceToString()}")
+			Log.e(TAG, "[ERROR] Could not convert \"$constructedString\" to integer for stat gain$logSuffix: ${e.stackTraceToString()}")
 			0
 		}
 	}
