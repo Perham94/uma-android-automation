@@ -244,7 +244,7 @@ class Racing (private val game: Game, private val campaign: Campaign) {
         }
 
         // Detect the current date first.
-        campaign.updateDate()
+        campaign.updateDate(isOnMainScreen = false)
 
         // Check for all double star predictions.
         val doublePredictionLocations = IconRaceListPredictionDoubleStar.findAll(game.imageUtils)
@@ -1107,7 +1107,7 @@ class Racing (private val game: Game, private val campaign: Campaign) {
         // If Pre-OP or G3 criteria is active, any race is acceptable.
         if (maxCount == 1) {
             if (hasTrophyRequirement && !hasPreOpOrAboveRequirement && !hasG3OrAboveRequirement) {
-                campaign.updateDate()
+                campaign.updateDate(isOnMainScreen = false)
                 val raceName = game.imageUtils.extractRaceName(doublePredictionLocations[0])
                 val raceDataList = lookupRaceInDatabase(campaign.date.day, raceName)
                 // Check if any matched race is G1.
@@ -1165,7 +1165,7 @@ class Racing (private val game: Game, private val campaign: Campaign) {
 
         // If trophy requirement is active, filter to only G1 races.
         val (filteredRaces, filteredLocations, _) = if (hasTrophyRequirement && !hasPreOpOrAboveRequirement && !hasG3OrAboveRequirement) {
-            campaign.updateDate()
+            campaign.updateDate(isOnMainScreen = false)
             val g1Indices = raceNamesList.mapIndexedNotNull { index, raceName ->
                 val raceDataList = lookupRaceInDatabase(campaign.date.day, raceName)
                 // Check if any matched race is G1.
