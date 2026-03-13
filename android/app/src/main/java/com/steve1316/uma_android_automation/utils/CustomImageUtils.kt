@@ -494,7 +494,13 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
 			else if (debugMode) MessageLog.d(TAG, "Check for double predictions was skipped due to the force racing flag being enabled. Now checking how many fans this race gives.")
 
 			// Crop the source screenshot to show only the fans.
-			val croppedBitmap2 = createSafeBitmap(sourceBitmap, relX(extraRaceLocation.x, -625), relY(extraRaceLocation.y, -75), relWidth(250), relHeight(35), "determineExtraRaceFans fans")
+            var xOffset = -625
+            var yOffset = -75
+            if (game.scenario == "Trackblazer") {
+                xOffset = -580
+                yOffset = -50
+            }
+			val croppedBitmap2 = createSafeBitmap(sourceBitmap, relX(extraRaceLocation.x, xOffset), relY(extraRaceLocation.y, yOffset), relWidth(250), relHeight(35), "determineExtraRaceFans fans")
 			if (croppedBitmap2 == null) {
 				MessageLog.e(TAG, "Failed to create cropped bitmap for extra race fans detection.")
 				return RaceDetails(-1, predictionCheck)
