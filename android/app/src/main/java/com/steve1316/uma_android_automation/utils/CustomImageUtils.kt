@@ -690,6 +690,10 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
 					// Riko Kashimoto can also show up as a support card support with stat_trainer_block.
 					Triple("stat_support_riko_kashimoto", "Riko Kashimoto", true)
 				)
+				"Trackblazer" -> listOf(
+					Triple("stat_support_etsuko_otonashi", "Etsuko Otonashi", false),
+					Triple("stat_support_yayoi_akikawa", "Yayoi Akikawa", false)
+				)
 				else -> emptyList()
 			}
 
