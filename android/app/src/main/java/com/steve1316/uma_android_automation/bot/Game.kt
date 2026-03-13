@@ -8,6 +8,7 @@ import com.steve1316.uma_android_automation.bot.Task
 import com.steve1316.uma_android_automation.bot.Campaign
 import com.steve1316.uma_android_automation.bot.campaigns.UnityCup
 import com.steve1316.uma_android_automation.bot.campaigns.UraFinale
+import com.steve1316.uma_android_automation.bot.campaigns.Trackblazer
 import com.steve1316.uma_android_automation.utils.CustomImageUtils
 import com.steve1316.automation_library.utils.BotService
 import com.steve1316.automation_library.utils.DiscordUtils
@@ -68,6 +69,7 @@ class Game(val myContext: Context) {
     val task: Task = when (scenario) {
         "URA Finale" -> UraFinale(this)
         "Unity Cup" -> UnityCup(this)
+        "Trackblazer" -> Trackblazer(this)
         else -> throw InterruptedException("Invalid scenario: $scenario")
     }
 
