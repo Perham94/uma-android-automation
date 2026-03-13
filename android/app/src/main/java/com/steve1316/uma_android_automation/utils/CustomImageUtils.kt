@@ -1290,7 +1290,8 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
 						val rows = if (useTwoRows) {
 							// For Unity Cup, stats are in two rows on top of each other.
 							// First row uses "_mini" suffix, second row uses "_mini_bold" suffix.
-							val secondRowStartY = relY(firstRowStartY.toDouble(), -55)
+							val row2Offset = if (game.scenario == "Trackblazer") -60 else -55
+							val secondRowStartY = relY(firstRowStartY.toDouble(), row2Offset)
 							listOf(
 								StatGainRowConfig(firstRowStartX, firstRowStartY, relWidth(150), relHeight(55), "row1", "_mini"),
                                 StatGainRowConfig(firstRowStartX, secondRowStartY, relWidth(150), relHeight(55), "row2", "_mini_bold")
