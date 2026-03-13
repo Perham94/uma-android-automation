@@ -178,16 +178,7 @@ class Training(private val game: Game, private val campaign: Campaign) {
 		private val TAG: String = "[${MainActivity.loggerTag}]Training"
 
 		fun getScenarioStatCap(scenario: String, statName: StatName): Int {
-			return when (scenario) {
-				"Trackblazer" -> when (statName) {
-					StatName.SPEED -> 1200
-					StatName.STAMINA -> 1900
-					StatName.POWER -> 1200
-					StatName.GUTS -> 1200
-					StatName.WIT -> 1500
-				}
-				else -> 1200
-			}
+			return 1200
 		}
 
 		fun getCurrentStatCap(statName: StatName, config: TrainingConfig): Int {
