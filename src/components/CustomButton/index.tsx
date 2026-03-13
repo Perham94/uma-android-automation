@@ -6,7 +6,7 @@ import { useTheme } from "../../context/ThemeContext"
 
 interface CustomButtonProps extends PressableProps {
     /** The visual style variant of the button. */
-    variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link" | "success" | "info" | "warning" | "error"
+    variant?: "default" | "destructive" | "outline" | "primary" | "secondary" | "ghost" | "link" | "success" | "info" | "warning" | "error"
     /** The size preset for the button. */
     size?: "default" | "sm" | "lg" | "icon"
     /** Optional custom style for the button. */
@@ -66,6 +66,8 @@ const CustomButton: React.FC<CustomButtonProps> = ({
                 return { backgroundColor: colors.destructive }
             case "outline":
                 return { backgroundColor: isDark ? "black" : "white" }
+            case "primary":
+                return { backgroundColor: colors.primary }
             case "secondary":
                 return { backgroundColor: colors.secondary }
             case "ghost":
@@ -81,7 +83,7 @@ const CustomButton: React.FC<CustomButtonProps> = ({
             case "error":
                 return { backgroundColor: colors.error }
             default:
-                return {}
+                return { backgroundColor: colors.secondary }
         }
     }
 
@@ -94,11 +96,17 @@ const CustomButton: React.FC<CustomButtonProps> = ({
 
         switch (variant) {
             case "destructive":
-                return { color: "white" }
+                return { color: colors.destructiveForeground }
             case "outline":
                 return { color: isDark ? "white" : "black" }
+            case "primary":
+                return { color: colors.primaryForeground }
             case "secondary":
-                return { color: isDark ? "black" : "white" }
+                return { color: colors.secondaryForeground }
+            case "ghost":
+                return { color: isDark ? "white" : "black" }
+            case "link":
+                return { color: isDark ? "white" : "black" }
             case "success":
                 return { color: colors.successContent }
             case "info":
@@ -108,7 +116,7 @@ const CustomButton: React.FC<CustomButtonProps> = ({
             case "error":
                 return { color: colors.errorContent }
             default:
-                return { color: "black" }
+                return { color: colors.secondaryForeground }
         }
     }
 
@@ -117,14 +125,8 @@ const CustomButton: React.FC<CustomButtonProps> = ({
         if (disabled) return {}
 
         switch (variant) {
-            case "destructive":
-                return { backgroundColor: colors.destructive }
             case "outline":
                 return { borderColor: isDark ? "white" : "black" }
-            case "secondary":
-                return { backgroundColor: isDark ? colors.secondary : colors.primary }
-            case "default":
-                return { backgroundColor: isDark ? colors.primary : colors.secondary }
             default:
                 return {}
         }
