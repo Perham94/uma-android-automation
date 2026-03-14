@@ -21,6 +21,8 @@ import com.steve1316.uma_android_automation.components.ButtonTrainingItems
 import com.steve1316.uma_android_automation.components.DialogInterface
 import com.steve1316.uma_android_automation.components.DialogExchangeComplete
 import com.steve1316.uma_android_automation.components.DialogConfirmUse
+import com.steve1316.uma_android_automation.components.ButtonClose
+import com.steve1316.uma_android_automation.components.ButtonBack
 
 import org.opencv.core.Point
 
@@ -158,10 +160,52 @@ class Trackblazer(game: Game) : Campaign(game) {
 	}
 
 	/**
-	 * Scrolls through the Shop list.
+	 * Starts the process to buy items from the shop.
+	 *
+	 * @param priorityList An ordered list of item names to buy.
 	 */
-	fun scrollShop() {
-		shopList.scrollShop()
+	fun buyItems(priorityList: List<String>) {
+		if (priorityList.isEmpty()) {
+			MessageLog.i(TAG, "Priority list is empty. No items to buy.")
+			return
+		}
+
+		// Update current coins via OCR before buying.
+		updateShopCoins()
+
+		// Buy items from the shop.
+		val itemsBought = shopList.buyItems(priorityList, shopCoins)
+		if (itemsBought.isNotEmpty()) {
+			// Update internal inventory.
+			val nextInventory = currentInventory.toMutableMap()
+			itemsBought.forEach { itemName ->
+				nextInventory[itemName] = (nextInventory[itemName] ?: 0) + 1
+			}
+			currentInventory = nextInventory.toMap()
+
+			// Handle "Exchange Complete" dialog.
+			if (game.dialogHandler(DialogExchangeComplete)) {
+				MessageLog.i(TAG, "Successfully handled \"Exchange Complete\" dialog.")
+			}
+
+			// Update internal coins count via OCR after purchase.
+			updateShopCoins()
+
+			// Open "Training Items" dialog and use items.
+			if (ButtonTrainingItems.click(game.imageUtils)) {
+				game.wait(game.dialogWaitDelay, skipWaitingForLoading = true)
+
+				// Use items according to quick use categories.
+				shopList.quickUseItems()
+
+				// Handle the "Confirm Use" dialog.
+				game.dialogHandler(DialogConfirmUse)
+
+				// Exit the dialogs.
+				if (ButtonClose.click(game.imageUtils)) game.wait(game.dialogWaitDelay, skipWaitingForLoading = true)
+				if (ButtonBack.click(game.imageUtils)) game.wait(game.dialogWaitDelay)
+			}
+		}
 	}
 }
 
