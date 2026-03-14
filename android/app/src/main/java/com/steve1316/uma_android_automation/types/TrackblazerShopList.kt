@@ -7,6 +7,7 @@ import com.steve1316.automation_library.utils.TextUtils
 import com.steve1316.uma_android_automation.MainActivity
 import com.steve1316.uma_android_automation.bot.Game
 import com.steve1316.uma_android_automation.components.CheckboxShopItem
+import com.steve1316.uma_android_automation.components.LabelOnSale
 import com.steve1316.uma_android_automation.utils.ScrollList
 import com.steve1316.uma_android_automation.utils.ScrollListEntry
 
@@ -90,6 +91,8 @@ class TrackblazerShopList(private val game: Game) {
 		"Glow Sticks" to Pair(15, "Race fan gain +50% (One turn)")
 	)
 
+	private var isShopOnSale: Boolean = false
+
 	/**
 	 * Scrolls through the Shop list.
 	 *
@@ -97,6 +100,10 @@ class TrackblazerShopList(private val game: Game) {
 	 */
 	fun scrollShop(): Boolean {
 		val list: ScrollList = ScrollList.create(game) ?: return false
+
+		// Check if the shop is on sale only once per scroll process.
+		isShopOnSale = LabelOnSale.check(game.imageUtils)
+        MessageLog.i(TAG, "Shop is on sale: $isShopOnSale")
 
 		var lastSeenName: String? = null
 		return list.process { _, entry: ScrollListEntry ->
@@ -107,7 +114,8 @@ class TrackblazerShopList(private val game: Game) {
 					false
 				} else {
 					lastSeenName = itemName
-					MessageLog.v(TAG, "Detected Shop Item: \"$itemName\" at index ${entry.index}.")
+					val itemPrice = getShopItemPrice(itemName, entry.bitmap)
+					MessageLog.v(TAG, "Detected Shop Item: \"$itemName\" with price $itemPrice at index ${entry.index}.")
 					false
 				}
 			} else {
@@ -161,5 +169,58 @@ class TrackblazerShopList(private val game: Game) {
 
 		// Perform fuzzy matching against known shop item names.
 		return TextUtils.matchStringInList(detectedText, shopItems.keys.toList(), threshold = 0.8) ?: detectedText
+	}
+
+	/**
+	 * Extracts the item price from a cropped Shop entry bitmap, either from the original price from the
+	 * mapping or the discounted price via OCR if there is a sale.
+	 *
+	 * @param itemName The name of the item.
+	 * @param bitmap A bitmap of a single cropped Shop entry.
+	 * @return The item price if detected, or original price otherwise.
+	 */
+	fun getShopItemPrice(itemName: String, bitmap: Bitmap): Int {
+		val originalPrice = shopItems[itemName]?.first ?: 0
+
+		// Use the flag to handle discounted prices instead of repeated checks.
+		if (!isShopOnSale) {
+			return originalPrice
+		}
+
+		// Find the item's checkbox to use as a reference point.
+		val checkboxPoint = CheckboxShopItem.findImageWithBitmap(game.imageUtils, bitmap) ?: return originalPrice
+
+		// The user provided offsets: (915, 1075) for checkbox center -> (510, 1060) for price region.
+		// dx = 510 - 915 = -405, dy = 1060 - 1075 = -15. Size 100x60.
+		val priceBBox = BoundingBox(
+			x = game.imageUtils.relX(checkboxPoint.x, -405),
+			y = game.imageUtils.relY(checkboxPoint.y, -15),
+			w = game.imageUtils.relWidth(100),
+			h = game.imageUtils.relHeight(60)
+		)
+
+		val croppedPrice = game.imageUtils.createSafeBitmap(bitmap, priceBBox, "ShopItemPrice") ?: return originalPrice
+
+		val detectedText = game.imageUtils.performOCROnRegion(
+			croppedPrice,
+			0,
+			0,
+			croppedPrice.width,
+			croppedPrice.height,
+			useThreshold = true,
+			useGrayscale = true,
+			scale = 2.0,
+			ocrEngine = "mlkit",
+			debugName = "ShopItemPriceOCR"
+		)
+
+		if (detectedText.isEmpty()) {
+			MessageLog.w(TAG, "Parsed empty string for Shop Item Price.")
+			return originalPrice
+		}
+
+		// Remove non-numeric characters and parse.
+		val cleanedText = detectedText.replace(Regex("[^0-9]"), "")
+		return cleanedText.toIntOrNull() ?: originalPrice
 	}
 }
