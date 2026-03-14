@@ -60,6 +60,12 @@ class Trackblazer(game: Game) : Campaign(game) {
         when (result.dialog.name) {
             "exchange_complete" -> result.dialog.click(game.imageUtils)
             "confirm_use" -> result.dialog.click(game.imageUtils)
+            "shop" -> {
+                MessageLog.i(TAG, "Shop unlocked! Initiating the first time buying process...")
+                result.dialog.click(game.imageUtils)
+                game.wait(game.dialogWaitDelay)
+                buyItems()
+            }
             else -> {
                 Log.w(TAG, "[DIALOG] Unknown dialog \"${result.dialog.name}\" detected so it will not be handled.")
                 return DialogHandlerResult.Unhandled(result.dialog)
