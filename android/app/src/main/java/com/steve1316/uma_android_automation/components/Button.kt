@@ -631,3 +631,13 @@ object ButtonExchange : ButtonInterface {
     override val TAG: String = "ButtonExchange"
     override val template = Template("components/button/exchange", region = Region.bottomHalf)
 }
+
+object ButtonConfirmUse : ButtonInterface {
+    override val TAG: String = "ButtonConfirmUse"
+    override val template = Template("components/button/confirm_use", region = Region.bottomHalf)
+}
+
+object ButtonUseTrainingItems : ButtonInterface {
+    override val TAG: String = "ButtonUseTrainingItems"
+    override val template = Template("components/button/use_training_items", region = Region.bottomHalf)
+}
