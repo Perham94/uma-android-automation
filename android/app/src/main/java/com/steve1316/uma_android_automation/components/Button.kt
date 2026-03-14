@@ -616,3 +616,13 @@ object ButtonDetails : ButtonInterface {
     override val TAG: String = "ButtonDetails"
     override val template = Template("components/button/details", region = Region.middle)
 }
+
+object ButtonShopTrackblazer : ButtonInterface {
+    override val TAG: String = "ButtonShopTrackblazer"
+    override val template = Template("components/button/shop_trackblazer", region = Region.bottomHalf)
+}
+
+object ButtonTrainingItems : ButtonInterface {
+    override val TAG: String = "ButtonTrainingItems"
+    override val template = Template("components/button/training_items", region = Region.topHalf)
+}
