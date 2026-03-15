@@ -42,8 +42,8 @@ class TrackblazerShopList(private val game: Game) {
 		"Vita 40" to Triple(55, "Energy +40", false),
 		"Vita 65" to Triple(75, "Energy +65", false),
 		"Royal Kale Juice" to Triple(70, "Energy +100, Motivation -1", false),
-		"Energy Drink MAX" to Triple(30, "Maximum energy +4, Energy +5", false),
-		"Energy Drink MAX EX" to Triple(50, "Maximum energy +8", false),
+		"Energy Drink MAX" to Triple(30, "Maximum energy +4, Energy +5", true),
+		"Energy Drink MAX EX" to Triple(50, "Maximum energy +8", true),
 		"Plain Cupcake" to Triple(30, "Motivation +1", true),
 		"Berry Sweet Cupcake" to Triple(55, "Motivation +2", true),
 
