@@ -69,6 +69,7 @@ import com.steve1316.uma_android_automation.components.LabelStatTrackSurface
  * @property trackDistance The trainee's preferred `TrackDistance`.
  * @property runningStyle The trainee's preferred `RunningStyle`.
  * @property energy The trainee's approximate energy level.
+ * @property megaphoneTurnCounter The remaining duration of the active megaphone effect in turns.
  */
 class Trainee {
     companion object {
@@ -168,6 +169,7 @@ class Trainee {
     var bTemporaryRunningStyleAptitudesUpdated: Boolean = false
     var bHasSetRunningStyle: Boolean = false
     var energy: Int = 100
+    var megaphoneTurnCounter: Int = 0
 
     var fanCountClass: FanCountClass = FanCountClass.DEBUT
 
@@ -804,6 +806,7 @@ class Trainee {
             "\nMood: $mood" +
             "\nEnergy: $energy" +
             "\nFans: $fans" +
-            "\nFanCountClass: $fanCountClass"
+            "\nFanCountClass: $fanCountClass" +
+            "\nMegaphone turns remaining: $megaphoneTurnCounter"
     }
 }
