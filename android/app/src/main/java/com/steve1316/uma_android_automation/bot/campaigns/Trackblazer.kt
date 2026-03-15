@@ -262,6 +262,10 @@ class Trackblazer(game: Game) : Campaign(game) {
      * @return True if an action was performed, false otherwise.
      */
     override fun handleMainScreen(): Boolean {
+        if (!checkMainScreen()) {
+            return false
+        }
+
         // Update date first.
         if (!date.update(game.imageUtils, isOnMainScreen = true)) {
             MessageLog.e(TAG, "Failed to update date on main screen.")
