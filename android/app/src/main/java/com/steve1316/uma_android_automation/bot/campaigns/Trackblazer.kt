@@ -677,7 +677,67 @@ class Trackblazer(game: Game) : Campaign(game) {
 			ButtonConfirmUse.click(game.imageUtils)
 		} else {
 			ButtonClose.click(game.imageUtils)
-		}
+
+    /**
+     * Uses race-related items (Hammers, Glow Sticks) based on the race grade and fan count.
+     *
+     * @param grade The grade of the detected race.
+     * @param fans The number of fans awarded by the race.
+     */
+    private fun useRaceItems(grade: RaceGrade, fans: Int) {
+        if (date.day < 13 || bUsedHammerToday) {
+            if (bUsedHammerToday) {
+                MessageLog.i(TAG, "[TRACKBLAZER] Already used a race item today.")
+            }
+            return
+        }
+
+        val hasHammers = (currentInventory["Master Cleat Hammer"] ?: 0) > 0 || (currentInventory["Artisan Cleat Hammer"] ?: 0) > 0
+        val hasGlowSticks = (currentInventory["Glow Sticks"] ?: 0) > 0
+        
+        if (hasHammers || (grade == RaceGrade.G1 && fans >= 20000 && hasGlowSticks)) {
+            if (shopList.openTrainingItemsDialog()) {
+                var anyUsed = false
+                
+                if (grade == RaceGrade.G1) {
+                    // Use Master Cleat Hammer if available, else Artisan.
+                    if (shopList.useSpecificItem("Master Cleat Hammer")) {
+                        useInventoryItem("Master Cleat Hammer")
+                        anyUsed = true
+                    } else if (shopList.useSpecificItem("Artisan Cleat Hammer")) {
+                        useInventoryItem("Artisan Cleat Hammer")
+                        anyUsed = true
+                    }
+                    
+                    // Use Glow Sticks for G1 with 20k+ fans.
+                    if (fans >= 20000) {
+                        if (shopList.useSpecificItem("Glow Sticks")) {
+                            useInventoryItem("Glow Sticks")
+                            anyUsed = true
+                        }
+                    }
+                } else if (grade == RaceGrade.G2 || grade == RaceGrade.G3) {
+                    // G2/G3: Artisan Cleat Hammer only.
+                    if (shopList.useSpecificItem("Artisan Cleat Hammer")) {
+                        useInventoryItem("Artisan Cleat Hammer")
+                        anyUsed = true
+                    }
+                }
+                
+                if (anyUsed) {
+                    MessageLog.i(TAG, "[TRACKBLAZER] Queued race items for $grade ($fans fans). Confirming usage.")
+                    ButtonConfirmUse.click(game.imageUtils)
+                    bUsedHammerToday = true
+                    game.wait(game.dialogWaitDelay)
+                } else {
+                    MessageLog.i(TAG, "[TRACKBLAZER] No suitable race items found for grade $grade.")
+                    ButtonClose.click(game.imageUtils)
+                    game.wait(game.dialogWaitDelay, skipWaitingForLoading = true)
+                }
+            }
+        } else {
+            MessageLog.i(TAG, "[TRACKBLAZER] No relevant race items in cached inventory for $grade.")
+        }
     }
 
     /**
