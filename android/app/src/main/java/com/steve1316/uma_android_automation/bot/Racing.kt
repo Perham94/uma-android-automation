@@ -1653,17 +1653,23 @@ class Racing (private val game: Game, private val campaign: Campaign) {
             return true
         }
 
-        // Check for common restrictions that apply to both smart and standard racing via screen checks.
-        val sourceBitmap = game.imageUtils.getSourceBitmap()
-        if (campaign.checkFinals()) {
-            MessageLog.i(TAG, "[RACE] It is UMA Finals right now so there will be no extra races. Stopping extra race check.")
-            return false
-        } else if (ButtonRaces.checkDisabled(game.imageUtils, sourceBitmap) == true) {
-            MessageLog.i(TAG, "[RACE] Extra Races button is currently locked. Stopping extra race check.")
-            return false
-        } else if (campaign.date.isSummer()) {
-            MessageLog.i(TAG, "[RACE] It is currently Summer right now. Stopping extra race check.")
-            return false
+        // For Trackblazer, we want to race as often as possible so we bypass most checks.
+        if (game.scenario == "Trackblazer") {
+            MessageLog.i(TAG, "[RACE] Trackblazer scenario detected. Bypassing smart racing and interval checks.")
+            
+            // Still check for finals and summer as they are hard restrictions.
+            if (campaign.checkFinals()) {
+                MessageLog.i(TAG, "[RACE] It is UMA Finals right now so there will be no extra races. Stopping extra race check.")
+                return false
+            } else if (campaign.date.isSummer()) {
+                MessageLog.i(TAG, "[RACE] It is currently Summer right now. Stopping extra race check.")
+                return false
+            } else if (ButtonRaces.checkDisabled(game.imageUtils) == true) {
+                MessageLog.i(TAG, "[RACE] Extra Races button is currently locked. Stopping extra race check.")
+                return false
+            }
+            
+            return !raceRepeatWarningCheck
         }
 
         // If fan or trophy requirement is detected, bypass smart racing logic to force racing.
