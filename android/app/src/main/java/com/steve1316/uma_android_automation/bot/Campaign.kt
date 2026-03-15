@@ -1054,8 +1054,8 @@ abstract class Campaign(game: Game) : Task(game) {
                 }
                 
                 // Use CountDownLatch to run the operations in parallel.
-                // 1 racingRequirements (skipped during summer) + 5 stats + 1 skill points + 1 mood = 8 (or 7) threads.
-                val latch = if (date.isSummer()) CountDownLatch(7) else CountDownLatch(8)
+                // 1 racingRequirements (skipped during summer) + 5 stats + 1 skill points + 1 mood + 1 energy = 9 (or 8) threads.
+                val latch = if (date.isSummer()) CountDownLatch(8) else CountDownLatch(9)
 
                 MessageLog.disableOutput = true
                 
@@ -1097,6 +1097,17 @@ abstract class Campaign(game: Game) : Task(game) {
                         }
                     }.apply { isDaemon = true }.start()
                 }
+
+                // Thread 9: Update energy.
+                Thread {
+                    try {
+                        trainee.updateEnergy(game.imageUtils)
+                    } catch (e: Exception) {
+                        MessageLog.e(TAG, "Error in updateEnergy thread: ${e.stackTraceToString()}")
+                    } finally {
+                        latch.countDown()
+                    }
+                }.apply { isDaemon = true }.start()
                 
                 // Wait for all threads to complete.
                 try {
@@ -1108,6 +1119,7 @@ abstract class Campaign(game: Game) : Task(game) {
                 }
                 MessageLog.i(TAG, "[TRAINEE] Skills Updated: ${trainee.getStatsString()}")
                 MessageLog.i(TAG, "[TRAINEE] Mood Updated: ${trainee.mood}")
+                MessageLog.i(TAG, "[TRAINEE] Energy Updated: ${trainee.energy}%")
                 if (trainee.bHasUpdatedAptitudes) {
                     trainee.logInfo()
                     trainee.logDetailedPlayerInfo()
