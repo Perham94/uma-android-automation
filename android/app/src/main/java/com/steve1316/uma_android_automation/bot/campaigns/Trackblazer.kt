@@ -290,6 +290,8 @@ class Trackblazer(game: Game) : Campaign(game) {
                 return true
             } else {
                 MessageLog.i(TAG, "[TRACKBLAZER] Race events returned false. Falling back to training...")
+                ButtonBack.click(game.imageUtils)
+                game.wait(0.5)
             }
         }
 
