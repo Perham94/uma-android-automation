@@ -236,6 +236,48 @@ class Trackblazer(game: Game) : Campaign(game) {
 		return result
 	}
 
+    /**
+     * Handles the main screen logic for Trackblazer, prioritizing racing.
+     *
+     * @return True if an action was performed, false otherwise.
+     */
+    override fun handleMainScreen(): Boolean {
+        // Update date first.
+        if (!date.update(game.imageUtils, isOnMainScreen = true)) {
+            MessageLog.e(TAG, "Failed to update date on main screen.")
+            return false
+        }
+
+        // Flag on whether to race or train.
+        var needToRace = false
+        
+        // Summer Training: Train during July and August in Classic/Senior.
+        if (date.isSummer()) {
+            MessageLog.i(TAG, "[TRACKBLAZER] It is Summer. Prioritizing training.")
+        } else if (date.bIsFinaleSeason && date.day >= 73) {
+            // Finale: Train during the final 3 turns (Qualifier, Semifinal, Finals).
+            MessageLog.i(TAG, "[TRACKBLAZER] It is the Finale. Prioritizing training.")
+        } else {
+            // Otherwise, we want to race if possible.
+            if (racing.checkEligibilityToStartExtraRacingProcess()) {
+                needToRace = true
+            }
+        }
+
+        if (needToRace) {
+            MessageLog.i(TAG, "[TRACKBLAZER] Decision made to race. Entering race events...")
+            if (handleRaceEvents(isScheduledRace = false)) {
+                return true
+            } else {
+                MessageLog.i(TAG, "[TRACKBLAZER] Race events returned false. Falling back to training...")
+            }
+        }
+
+        // Fallback to training if not racing.
+        MessageLog.i(TAG, "[TRACKBLAZER] Decision made to train.")
+        training.handleTraining()
+        return true
+    }
 
 	/**
 	 * Checks for campaign-specific conditions.
