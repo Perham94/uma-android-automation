@@ -171,7 +171,27 @@ class Trackblazer(game: Game) : Campaign(game) {
 	 * Handles training events specific to the Trackblazer campaign.
 	 */
 	override fun handleTrainingEvent() {
-		super.handleTrainingEvent()
+		MessageLog.i(TAG, "[TRACKBLAZER] Running handleTrainingEvent().")
+		if (!tutorialDisabled) {
+			tutorialDisabled = if (IconUnityCupTutorialHeader.check(game.imageUtils)) {
+				// If the tutorial is detected, select the second option to close it.
+				MessageLog.i(TAG, "[TRACKBLAZER] Detected tutorial for Trackblazer. Closing it now...")
+				val trainingOptionLocations: ArrayList<Point> = IconTrainingEventHorseshoe.findAll(game.imageUtils)
+				if (trainingOptionLocations.size >= 2) {
+					game.tap(trainingOptionLocations[1].x, trainingOptionLocations[1].y, IconTrainingEventHorseshoe.template.path)
+					true
+				} else {
+					MessageLog.w(TAG, "[TRACKBLAZER] Could not find training options to dismiss tutorial.")
+					false
+				}
+			} else {
+				MessageLog.i(TAG, "[TRACKBLAZER] Tutorial must have already been dismissed.")
+				super.handleTrainingEvent()
+				true
+			}
+		} else {
+			super.handleTrainingEvent()
+		}
 	}
 
 	override fun recoverEnergy(sourceBitmap: Bitmap?): Boolean {
