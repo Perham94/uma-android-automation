@@ -371,7 +371,10 @@ class Trackblazer(game: Game) : Campaign(game) {
         }
 
         // Flag on whether to race or train.
-        var needToRace = false
+        val sourceBitmap = game.imageUtils.getSourceBitmap()
+        val bIsScheduledRaceDay = LabelScheduledRace.check(game.imageUtils, sourceBitmap = sourceBitmap)
+        val bIsMandatoryRaceDay = IconRaceDayRibbon.check(game.imageUtils, sourceBitmap = sourceBitmap)
+        var needToRace = bIsMandatoryRaceDay || bIsScheduledRaceDay
         
         // Summer Training: Train during July and August in Classic/Senior.
         if (date.isSummer()) {
@@ -381,14 +384,14 @@ class Trackblazer(game: Game) : Campaign(game) {
             MessageLog.i(TAG, "[TRACKBLAZER] It is the Finale. Prioritizing training.")
         } else {
             // Otherwise, we want to race if possible.
-            if (racing.checkEligibilityToStartExtraRacingProcess()) {
+            if (!needToRace && racing.checkEligibilityToStartExtraRacingProcess()) {
                 needToRace = true
             }
         }
 
         if (needToRace) {
             MessageLog.i(TAG, "[TRACKBLAZER] Decision made to race. Entering race events...")
-            if (handleRaceEvents(isScheduledRace = false)) {
+            if (handleRaceEvents(isScheduledRace = bIsScheduledRaceDay)) {
                 return true
             } else {
                 MessageLog.i(TAG, "[TRACKBLAZER] Race events returned false. Falling back to training...")
