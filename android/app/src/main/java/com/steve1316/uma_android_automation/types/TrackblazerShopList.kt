@@ -202,8 +202,6 @@ class TrackblazerShopList(private val game: Game) {
 		// Find the item's checkbox to use as a reference point.
 		val checkboxPoint = CheckboxShopItem.findImageWithBitmap(game.imageUtils, bitmap) ?: return originalPrice
 
-		// The user provided offsets: (915, 1075) for checkbox center -> (510, 1060) for price region.
-		// dx = 510 - 915 = -405, dy = 1060 - 1075 = -15. Size 100x60.
 		val priceBBox = BoundingBox(
 			x = game.imageUtils.relX(checkboxPoint.x, -405),
 			y = game.imageUtils.relY(checkboxPoint.y, -15),
@@ -320,7 +318,7 @@ class TrackblazerShopList(private val game: Game) {
 		if (anyUsed) {
 			ButtonConfirmUse.click(game.imageUtils)
 		} else {
-			ButtonCancel.click(game.imageUtils)
+			ButtonClose.click(game.imageUtils)
 		}
 	}
 }
