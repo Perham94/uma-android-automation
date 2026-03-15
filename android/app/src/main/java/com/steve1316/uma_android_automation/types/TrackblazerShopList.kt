@@ -321,4 +321,87 @@ class TrackblazerShopList(private val game: Game) {
 			ButtonClose.click(game.imageUtils)
 		}
 	}
+
+    /**
+     * Uses a specific item by its name and returns the item's name if successful.
+     *
+     * @param itemName The name of the item to use.
+     * @return The name of the item used, or NULL if it could not be used.
+     */
+    fun useSpecificItem(itemName: String): Boolean {
+        val list: ScrollList = ScrollList.create(game) ?: return false
+        var used = false
+
+        list.process { _, entry: ScrollListEntry ->
+            val name = getShopItemName(entry.bitmap)
+            if (name != null && name == itemName) {
+                // Check if the item's "+" button is disabled.
+                if (ButtonSkillUp.checkDisabled(game.imageUtils, entry.bitmap) == false) {
+                    val plusButtonPoint = ButtonSkillUp.findImageWithBitmap(game.imageUtils, entry.bitmap)
+                    if (plusButtonPoint != null) {
+                        MessageLog.i(TAG, "Queuing specific item for use: \"$itemName\".")
+                        game.tap(entry.bbox.x + plusButtonPoint.x, entry.bbox.y + plusButtonPoint.y)
+                        used = true
+                        return@process true
+                    }
+                }
+            }
+            false
+        }
+
+        return used
+    }
+
+    /**
+     * Finds and uses the highest value Megaphone available in the inventory.
+     *
+     * @return The item name of the megaphone used, or NULL if none were used.
+     */
+    fun useBestMegaphone(): String? {
+        val megaphonePriority = listOf("Empowering Megaphone", "Motivating Megaphone", "Coaching Megaphone")
+        for (megaphone in megaphonePriority) {
+            if (useSpecificItem(megaphone)) {
+                return megaphone
+            }
+        }
+        return null
+    }
+
+    /**
+     * Uses the Ankle Weights corresponding to the specified stat.
+     *
+     * @param stat The stat to use ankle weights for.
+     * @return True if ankle weights were queued.
+     */
+    fun useAnkleWeights(stat: StatName): Boolean {
+        val itemName = when (stat) {
+            StatName.SPEED -> "Speed Ankle Weights"
+            StatName.STAMINA -> "Stamina Ankle Weights"
+            StatName.POWER -> "Power Ankle Weights"
+            StatName.GUTS -> "Guts Ankle Weights"
+            else -> return false
+        }
+        return useSpecificItem(itemName)
+    }
+
+    /**
+     * Opens the Training Items dialog from the current screen.
+     */
+    fun openTrainingItemsDialog(): Boolean {
+        if (ButtonTrainingItems.click(game.imageUtils)) {
+            game.wait(game.dialogWaitDelay, skipWaitingForLoading = true)
+            return true
+        }
+        MessageLog.e(TAG, "Failed to open Training Items dialog.")
+        return false
+    }
+
+    /**
+     * Uses the Good-Luck Charm if available.
+     *
+     * @return True if the charm was queued.
+     */
+    fun useGoodLuckCharm(): Boolean {
+        return useSpecificItem("Good-Luck Charm")
+    }
 }
