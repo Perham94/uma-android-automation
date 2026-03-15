@@ -543,11 +543,9 @@ class Trackblazer(game: Game) : Campaign(game) {
 			updateShopCoins()
 
 			// Open "Training Items" dialog and use items.
-			if (ButtonTrainingItems.click(game.imageUtils)) {
-				game.wait(game.dialogWaitDelay, skipWaitingForLoading = true)
-
+			if (shopList.openTrainingItemsDialog()) {
 				// Use items according to quick use categories.
-				shopList.quickUseItems()
+				quickUseItems()
 
 				// Handle the "Confirm Use" dialog.
 				handleDialogs(DialogConfirmUse)
@@ -557,6 +555,8 @@ class Trackblazer(game: Game) : Campaign(game) {
 				if (ButtonBack.click(game.imageUtils)) game.wait(game.dialogWaitDelay)
 			}
 		}
+	}
+
     /**
      * Generates a priority list of items to buy based on current state and rules.
      *
