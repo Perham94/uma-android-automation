@@ -248,43 +248,79 @@ class TrackblazerShopList(private val game: Game) {
 		}
 
 		val list: ScrollList = ScrollList.create(game) ?: return emptyList()
-		var remainingCoins = currentCoins
-		val itemsBought = mutableSetOf<String>()
 
+		// Step 1: Pre-scan Phase.
+		// Scan the entire shop to log each item and its price, and to identify what is available.
+		MessageLog.d(TAG, "[SHOP] Beginning process of scanning shop items...")
+		val availableInShop = mutableMapOf<String, Int>()
 		list.process { _, entry: ScrollListEntry ->
 			val itemName = getShopItemName(entry.bitmap)
-			if (itemName != null && priorityList.contains(itemName) && !itemsBought.contains(itemName)) {
+			if (itemName != null) {
 				val price = getShopItemPrice(itemName, entry.bitmap)
-				if (remainingCoins > price) {
-					MessageLog.i(TAG, "Selecting \"$itemName\" for $price coins.")
-					game.tap(entry.bbox.cx.toDouble(), entry.bbox.cy.toDouble())
-					remainingCoins -= price
-					itemsBought.add(itemName)
-				}
+				MessageLog.d(TAG, "\t$itemName: $price coins")
+				availableInShop[itemName] = price
 			}
+			false
+		}
 
-			// Early exit if we've bought all items in the priority list.
-			itemsBought.size == priorityList.size
+		// Step 2: Calculation & Summary.
+		// Determine which items from the priority list are available and affordable.
+		val itemsToBuy = mutableListOf<String>()
+		var remainingCoinsAfterProposed = currentCoins
+		for (item in priorityList) {
+			val price = availableInShop[item]
+			if (price != null && remainingCoinsAfterProposed >= price && item !in itemsToBuy) {
+				itemsToBuy.add(item)
+				remainingCoinsAfterProposed -= price
+			}
+		}
+
+		if (itemsToBuy.isEmpty()) {
+			MessageLog.i(TAG, "[SHOP] No items from priority list are available or affordable. Aborting...")
+			return emptyList()
+		}
+
+		// Log the summary of proposed purchases.
+		MessageLog.d(TAG, "============== Items To Buy ==============")
+		for (name in itemsToBuy) {
+			MessageLog.d(TAG, "\t$name: ${availableInShop[name]} coins")
+		}
+		val totalCost = currentCoins - remainingCoinsAfterProposed
+		MessageLog.d(TAG, "\n\tTOTAL: $totalCost / $currentCoins coins with $remainingCoinsAfterProposed left over coins")
+		MessageLog.d(TAG, "==========================================")
+
+		// Step 3: Purchasing Phase.
+		// Re-process the list to click on the selected items.
+		val itemsBought = mutableSetOf<String>()
+		list.process { _, entry: ScrollListEntry ->
+			val itemName = getShopItemName(entry.bitmap)
+			if (itemName != null && itemName in itemsToBuy && itemName !in itemsBought) {
+				MessageLog.i(TAG, "Selecting \"$itemName\" for ${availableInShop[itemName]} coins.")
+				game.tap(entry.bbox.cx.toDouble(), entry.bbox.cy.toDouble())
+				itemsBought.add(itemName)
+			}
+			// Early exit if we've bought all items in the proposed list.
+			itemsBought.size == itemsToBuy.size
 		}
 
 		if (itemsBought.isNotEmpty()) {
 			MessageLog.i(TAG, "Confirming purchase of ${itemsBought.size} items.")
 			ButtonConfirm.click(game.imageUtils)
-            game.wait(game.dialogWaitDelay, skipWaitingForLoading = true)
+			game.wait(game.dialogWaitDelay, skipWaitingForLoading = true)
 
-            // Handle "Do not show again" checkbox if found.
-            if (!hasClickedDoNotShowAgain) {
-                if (CheckboxDoNotShowAgain.click(game.imageUtils)) {
-                    MessageLog.i(TAG, "Successfully clicked \"Do not show again\" checkbox.")
-                    hasClickedDoNotShowAgain = true
-                    game.wait(0.5, skipWaitingForLoading = true)
-                }
-            }
+			// Handle "Do not show again" checkbox if found.
+			if (!hasClickedDoNotShowAgain) {
+				if (CheckboxDoNotShowAgain.click(game.imageUtils)) {
+					MessageLog.i(TAG, "Successfully clicked \"Do not show again\" checkbox.")
+					hasClickedDoNotShowAgain = true
+					game.wait(0.5, skipWaitingForLoading = true)
+				}
+			}
 
-            // Final exchange confirmation.
-            ButtonExchange.click(game.imageUtils)
-            game.wait(game.dialogWaitDelay)
-            return itemsBought.toList()
+			// Final exchange confirmation.
+			ButtonExchange.click(game.imageUtils)
+			game.wait(game.dialogWaitDelay)
+			return itemsBought.toList()
 		}
 
 		return emptyList()
