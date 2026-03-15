@@ -2112,6 +2112,7 @@ class Racing (private val game: Game, private val campaign: Campaign) {
             // Handle post-race Rival popups.
             if (ButtonClose.click(game.imageUtils, sourceBitmap = bitmap)) {
                 MessageLog.i(TAG, "[RACE] Closed post-race Rival popup.")
+                campaign.onRaceWin()
                 game.wait(1.0)
 
                 // After closing the popup, check if we can retry a G1 race.

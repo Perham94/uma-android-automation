@@ -122,6 +122,13 @@ abstract class Campaign(game: Game) : Task(game) {
         return bDidRace
     }
 
+    /**
+     * Campaign-specific logic to handle a race win.
+     */
+    open fun onRaceWin() {
+        return
+    }
+
     // =============================================================================
     // TESTS
     // =============================================================================

@@ -59,6 +59,9 @@ class Trackblazer(game: Game) : Campaign(game) {
     /** Tracks whether the inventory has been synced at least once or needs a re-sync. */
     private var bInventorySynced: Boolean = false
 
+	/** Flag to track when a Rival Race was won to trigger item purchase. */
+	private var bWonRivalRace: Boolean = false
+
     /**
      * Detects and handles any dialog popups.
      *
@@ -310,6 +313,14 @@ class Trackblazer(game: Game) : Campaign(game) {
             return false
         }
 
+		// Buy items if we just won a Rival Race.
+		if (bWonRivalRace) {
+			MessageLog.i(TAG, "[TRACKBLAZER] Rival Race win detected! Buying extra items...")
+			openShop()
+			buyItems()
+			bWonRivalRace = false
+		}
+
         // Update date first.
         val dateChanged = date.update(game.imageUtils, isOnMainScreen = true)
         if (!dateChanged) {
@@ -455,6 +466,11 @@ class Trackblazer(game: Game) : Campaign(game) {
 	 */
 	override fun checkCampaignSpecificConditions(): Boolean {
 		return false
+	}
+
+	override fun onRaceWin() {
+		MessageLog.i(TAG, "[TRACKBLAZER] Rival Race win detected via post-race popup.")
+		bWonRivalRace = true
 	}
 
 	/**
