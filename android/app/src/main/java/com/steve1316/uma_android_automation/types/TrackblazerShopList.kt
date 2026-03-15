@@ -6,11 +6,7 @@ import com.steve1316.automation_library.utils.MessageLog
 import com.steve1316.automation_library.utils.TextUtils
 import com.steve1316.uma_android_automation.MainActivity
 import com.steve1316.uma_android_automation.bot.Game
-import com.steve1316.uma_android_automation.components.ButtonConfirm
-import com.steve1316.uma_android_automation.components.ButtonExchange
-import com.steve1316.uma_android_automation.components.CheckboxDoNotShowAgain
-import com.steve1316.uma_android_automation.components.CheckboxShopItem
-import com.steve1316.uma_android_automation.components.LabelOnSale
+import com.steve1316.uma_android_automation.components.*
 import com.steve1316.uma_android_automation.utils.ScrollList
 import com.steve1316.uma_android_automation.utils.ScrollListEntry
 
@@ -251,7 +247,7 @@ class TrackblazerShopList(private val game: Game) {
 				val price = getShopItemPrice(itemName, entry.bitmap)
 				if (remainingCoins > price) {
 					MessageLog.i(TAG, "Selecting \"$itemName\" for $price coins.")
-					game.tap(entry.bbox.centerX.toDouble(), entry.bbox.centerY.toDouble())
+					game.tap(entry.bbox.cx.toDouble(), entry.bbox.cy.toDouble())
 					remainingCoins -= price
 					itemsBought.add(itemName)
 				}
@@ -301,7 +297,7 @@ class TrackblazerShopList(private val game: Game) {
 					val plusButtonPoint = ButtonSkillUp.findImageWithBitmap(game.imageUtils, entry.bitmap)
 					if (plusButtonPoint != null) {
 						MessageLog.i(TAG, "Using item: \"$itemName\".")
-						game.tap(entry.bbox.left + plusButtonPoint.x, entry.bbox.top + plusButtonPoint.y)
+						game.tap(entry.bbox.x + plusButtonPoint.x, entry.bbox.y + plusButtonPoint.y)
 						anyUsed = true
 					}
 				}

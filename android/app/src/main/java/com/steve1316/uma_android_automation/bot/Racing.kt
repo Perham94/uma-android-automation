@@ -2077,7 +2077,7 @@ class Racing (private val game: Game, private val campaign: Campaign) {
                 game.wait(1.0)
 
                 // After closing the popup, check if we can retry a G1 race.
-                if (lastRaceGrade == RaceGrade.G1 && !ButtonTryAgain.checkDisabled(game.imageUtils)) {
+                if (lastRaceGrade == RaceGrade.G1 && ButtonTryAgain.checkDisabled(game.imageUtils) == false) {
                     MessageLog.i(TAG, "[RACE] G1 race detected and retry button is available. Retrying...")
                     if (ButtonTryAgain.click(game.imageUtils)) {
                         game.wait(1.0)
@@ -2085,7 +2085,7 @@ class Racing (private val game: Game, private val campaign: Campaign) {
                     }
                 }
                 continue
-            } else if (lastRaceGrade == RaceGrade.G1 && !ButtonTryAgain.checkDisabled(game.imageUtils, sourceBitmap = bitmap)) {
+            } else if (lastRaceGrade == RaceGrade.G1 && ButtonTryAgain.checkDisabled(game.imageUtils, sourceBitmap = bitmap) == false) {
                 // Check if we can retry a G1 race even if no popup appeared.
                 MessageLog.i(TAG, "[RACE] G1 race detected and retry button is available. Retrying...")
                 if (ButtonTryAgain.click(game.imageUtils, sourceBitmap = bitmap)) {
@@ -2589,7 +2589,7 @@ class Racing (private val game: Game, private val campaign: Campaign) {
             nextSmartRaceDay = bestUpcomingRaceData?.turnNumber
             MessageLog.i(TAG, "[RACE] Setting next smart race day to turn ${nextSmartRaceDay}.")
         }
-        
+
         return shouldRace
     }
 }

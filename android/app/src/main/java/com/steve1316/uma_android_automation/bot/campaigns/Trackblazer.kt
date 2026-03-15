@@ -16,16 +16,8 @@ import com.steve1316.uma_android_automation.types.TrackblazerShopList
 import com.steve1316.uma_android_automation.types.DateYear
 import com.steve1316.uma_android_automation.types.DateMonth
 import com.steve1316.uma_android_automation.types.DatePhase
-import com.steve1316.uma_android_automation.components.CheckboxShopItem
-
-import com.steve1316.uma_android_automation.components.ButtonHomeFansInfo
-import com.steve1316.uma_android_automation.components.ButtonShopTrackblazer
-import com.steve1316.uma_android_automation.components.ButtonTrainingItems
-import com.steve1316.uma_android_automation.components.DialogInterface
-import com.steve1316.uma_android_automation.components.DialogExchangeComplete
-import com.steve1316.uma_android_automation.components.DialogConfirmUse
-import com.steve1316.uma_android_automation.components.ButtonClose
-import com.steve1316.uma_android_automation.components.ButtonBack
+import com.steve1316.uma_android_automation.components.*
+import com.steve1316.uma_android_automation.bot.Racing.RaceData
 
 import org.opencv.core.Point
 
@@ -56,13 +48,30 @@ class Trackblazer(game: Game) : Campaign(game) {
      */
     override fun handleDialogs(dialog: DialogInterface?, args: Map<String, Any>): DialogHandlerResult {
         val result: DialogHandlerResult = super.handleDialogs(dialog, args)
+
+		// Extract dialog name if result has one.
+		val dialogName = when (result) {
+			is DialogHandlerResult.Handled -> result.dialog.name
+			is DialogHandlerResult.Unhandled -> result.dialog.name
+			is DialogHandlerResult.Deferred -> result.dialog.name
+			else -> ""
+		}
+
         if (result !is DialogHandlerResult.Unhandled) {
             return result
         }
 
-        when (result.dialog.name) {
-            "exchange_complete" -> result.dialog.click(game.imageUtils)
-            "confirm_use" -> result.dialog.click(game.imageUtils)
+        // Use the dialog from the result if super already detected it, otherwise detect it now.
+        val detectedDialog = when (result) {
+			is DialogHandlerResult.Handled -> result.dialog
+			is DialogHandlerResult.Unhandled -> result.dialog
+			is DialogHandlerResult.Deferred -> result.dialog
+			else -> DialogUtils.getDialog(game.imageUtils)
+		} ?: return DialogHandlerResult.NoDialogDetected
+
+        when (detectedDialog.name) {
+            "exchange_complete" -> detectedDialog.ok(game.imageUtils)
+            "confirm_use" -> detectedDialog.ok(game.imageUtils)
             "shop" -> {
                 // Once it gets to Junior Year Early July, the shop will be unlocked for use.
                 // But the date update has not happened yet, so we need to check for the previous date instead.
@@ -72,18 +81,18 @@ class Trackblazer(game: Game) : Campaign(game) {
 					MessageLog.i(TAG, "Shop discount detected! Initiating buying process...")
 				}
                 
-                result.dialog.click(game.imageUtils)
+                detectedDialog.ok(game.imageUtils)
                 game.wait(game.dialogWaitDelay)
                 buyItems()
             }
             else -> {
-                Log.w(TAG, "[DIALOG] Unknown dialog \"${result.dialog.name}\" detected so it will not be handled.")
-                return DialogHandlerResult.Unhandled(result.dialog)
+                Log.w(TAG, "[DIALOG] Unknown dialog \"${detectedDialog.name}\" detected so it will not be handled.")
+                return DialogHandlerResult.Unhandled(detectedDialog)
             }
         }
 
         game.wait(0.5)
-        return DialogHandlerResult.Handled(result.dialog)
+        return DialogHandlerResult.Handled(detectedDialog)
     }
 
 	/**
@@ -178,9 +187,9 @@ class Trackblazer(game: Game) : Campaign(game) {
 	/**
 	 * Starts the process to buy items from the shop.
 	 *
-	 * @param priorityList An ordered list of item names to buy.
+	 * @param priorityList An ordered list of item names to buy. Defaults to an empty list.
 	 */
-	fun buyItems(priorityList: List<String>) {
+	fun buyItems(priorityList: List<String> = listOf()) {
 		if (priorityList.isEmpty()) {
 			MessageLog.i(TAG, "Priority list is empty. No items to buy.")
 			return
@@ -200,7 +209,7 @@ class Trackblazer(game: Game) : Campaign(game) {
 			currentInventory = nextInventory.toMap()
 
 			// Handle "Exchange Complete" dialog.
-			if (game.dialogHandler(DialogExchangeComplete)) {
+			if (handleDialogs(DialogExchangeComplete) is DialogHandlerResult.Handled) {
 				MessageLog.i(TAG, "Successfully handled \"Exchange Complete\" dialog.")
 			}
 
@@ -215,7 +224,7 @@ class Trackblazer(game: Game) : Campaign(game) {
 				shopList.quickUseItems()
 
 				// Handle the "Confirm Use" dialog.
-				game.dialogHandler(DialogConfirmUse)
+				handleDialogs(DialogConfirmUse)
 
 				// Exit the dialogs.
 				if (ButtonClose.click(game.imageUtils)) game.wait(game.dialogWaitDelay, skipWaitingForLoading = true)
