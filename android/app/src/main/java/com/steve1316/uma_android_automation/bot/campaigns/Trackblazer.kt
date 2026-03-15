@@ -18,6 +18,11 @@ import com.steve1316.uma_android_automation.types.DateMonth
 import com.steve1316.uma_android_automation.types.DatePhase
 import com.steve1316.uma_android_automation.components.*
 import com.steve1316.uma_android_automation.bot.Racing.RaceData
+import com.steve1316.uma_android_automation.types.RaceGrade
+import com.steve1316.uma_android_automation.types.StatName
+import com.steve1316.uma_android_automation.types.Mood
+import com.steve1316.uma_android_automation.types.Trainee
+import com.steve1316.uma_android_automation.types.FanCountClass
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.CountDownLatch
 
@@ -538,6 +543,81 @@ class Trackblazer(game: Game) : Campaign(game) {
 				if (ButtonBack.click(game.imageUtils)) game.wait(game.dialogWaitDelay)
 			}
 		}
-	}
+    /**
+     * Generates a priority list of items to buy based on current state and rules.
+     *
+     * @return An ordered list of item names.
+     */
+    private fun getPriorityList(): List<String> {
+        val topStats = training.statPrioritization.take(3)
+        val priorityList = mutableListOf<String>()
+
+        // 1. Top Tier Priorities (Good-Luck Charms, Hammers, Glow Sticks, Priority heals, Priority Energy/Bond)
+        priorityList.add("Good-Luck Charm")
+        priorityList.add("Master Cleat Hammer")
+        priorityList.add("Artisan Cleat Hammer")
+        priorityList.add("Glow Sticks")
+        priorityList.add("Royal Kale Juice")
+        priorityList.add("Grilled Carrots")
+        priorityList.add("Rich Hand Cream")
+        priorityList.add("Miracle Cure")
+
+        // 2. Stats (Excluding Notepads)
+        val statsOrdered = listOf("Scroll", "Manual")
+        val statNamesOrdered = listOf("Speed", "Stamina", "Power", "Guts", "Wit")
+        statsOrdered.forEach { type ->
+            statNamesOrdered.forEach { name ->
+                priorityList.add("$name $type")
+            }
+        }
+
+        // 3. Energy + Mood
+        priorityList.add("Vita 65")
+        priorityList.add("Vita 40")
+        priorityList.add("Vita 20")
+        priorityList.add("Berry Sweet Cupcake")
+        priorityList.add("Plain Cupcake")
+
+        // 4. Training Effects (Megaphones and specific Ankle Weights)
+        priorityList.add("Empowering Megaphone")
+        priorityList.add("Motivating Megaphone")
+        topStats.forEach { stat ->
+            val ankleWeight = when (stat) {
+                StatName.SPEED -> "Speed Ankle Weights"
+                StatName.STAMINA -> "Stamina Ankle Weights"
+                StatName.POWER -> "Power Ankle Weights"
+                StatName.GUTS -> "Guts Ankle Weights"
+                else -> null
+            }
+            if (ankleWeight != null) priorityList.add(ankleWeight)
+        }
+        priorityList.add("Coaching Megaphone")
+
+        // 5. Heal Bad Conditions (Non-priority ones, limit 1 logic is handled in buyItems())
+        priorityList.add("Fluffy Pillow")
+        priorityList.add("Pocket Planner")
+        priorityList.add("Smart Scale")
+        priorityList.add("Aroma Diffuser")
+        priorityList.add("Practice Drills DVD")
+
+        // 6. Training Facilities (Top 3 stats only)
+        topStats.forEach { stat ->
+            val trainingApp = when (stat) {
+                StatName.SPEED -> "Speed Training Application"
+                StatName.STAMINA -> "Stamina Training Application"
+                StatName.POWER -> "Power Training Application"
+                StatName.GUTS -> "Guts Training Application"
+                StatName.WIT -> "Wit Training Application"
+            }
+            priorityList.add(trainingApp)
+        }
+
+        // 7. Lowest Priority Energy
+        priorityList.add("Energy Drink MAX")
+        priorityList.add("Energy Drink MAX EX")
+
+        return priorityList
+    }
+
 }
 
