@@ -18,6 +18,8 @@ import com.steve1316.uma_android_automation.types.DateMonth
 import com.steve1316.uma_android_automation.types.DatePhase
 import com.steve1316.uma_android_automation.components.*
 import com.steve1316.uma_android_automation.bot.Racing.RaceData
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.CountDownLatch
 
 import org.opencv.core.Point
 
@@ -36,6 +38,18 @@ class Trackblazer(game: Game) : Campaign(game) {
     
     /** Flag to prevent double incrementing the counter when OCR already updated it. */
     private var counterUpdatedByOCR: Boolean = false
+
+    /** Whether the Reset Whistle has been used this turn. */
+    private var bUsedWhistleToday: Boolean = false
+
+    /** Whether the Good-Luck Charm has been used this turn. */
+    private var bUsedCharmToday: Boolean = false
+
+    /** Whether a race hammer has been used this turn. */
+    private var bUsedHammerToday: Boolean = false
+
+    /** Tracks whether we have already updated trainee information this turn. */
+    private var bHasUpdatedThisTurn: Boolean = false
 
     /**
      * Detects and handles any dialog popups.
@@ -278,9 +292,82 @@ class Trackblazer(game: Game) : Campaign(game) {
         }
 
         // Update date first.
-        if (!date.update(game.imageUtils, isOnMainScreen = true)) {
+        val dateChanged = date.update(game.imageUtils, isOnMainScreen = true)
+        if (!dateChanged) {
             MessageLog.e(TAG, "Failed to update date on main screen.")
             return false
+        }
+
+        // Handle turn-start updates if the date changed or we haven't updated yet this turn.
+        if (dateChanged || !bHasUpdatedThisTurn) {
+            // Reset daily usage flags.
+            bUsedWhistleToday = false
+            bUsedCharmToday = false
+            bUsedHammerToday = false
+
+            // Update trainee information using parallel processing with shared screenshot.
+            val sourceBitmap = game.imageUtils.getSourceBitmap()
+            val skillPointsLocation = LabelStatTableHeaderSkillPoints.findImageWithBitmap(game.imageUtils, sourceBitmap = sourceBitmap)
+            
+            // No need to check for racing requirements if it is the Summer.
+            val latch = if (date.isSummer()) CountDownLatch(8) else CountDownLatch(9)
+            MessageLog.disableOutput = true
+            
+            // First update current stats and spin up 5 Threads for each stat here.
+            trainee.updateStats(game.imageUtils, sourceBitmap, skillPointsLocation, latch)
+            
+            // Thread 6: Update skill points.
+            Thread {
+                try { trainee.updateSkillPoints(game.imageUtils, sourceBitmap, skillPointsLocation) }
+                catch (e: Exception) { MessageLog.e(TAG, "Error in updateSkillPoints thread: ${e.stackTraceToString()}") }
+                finally { latch.countDown() }
+            }.apply { isDaemon = true }.start()
+            
+            // Thread 7: Update mood.
+            Thread {
+                try { trainee.updateMood(game.imageUtils, sourceBitmap) }
+                catch (e: Exception) { MessageLog.e(TAG, "Error in updateMood thread: ${e.stackTraceToString()}") }
+                finally { latch.countDown() }
+            }.apply { isDaemon = true }.start()
+
+            if (!date.isSummer()) {
+                // Thread 8: Check racing requirements.
+                Thread {
+                    try { racing.checkRacingRequirements(sourceBitmap) }
+                    catch (e: Exception) { MessageLog.e(TAG, "Error in checkRacingRequirements thread: ${e.stackTraceToString()}") }
+                    finally { latch.countDown() }
+                }.apply { isDaemon = true }.start()
+            }
+
+            // Thread 8/9: Update energy.
+            Thread {
+                try { trainee.updateEnergy(game.imageUtils) }
+                catch (e: Exception) { MessageLog.e(TAG, "Error in updateEnergy thread: ${e.stackTraceToString()}") }
+                finally { latch.countDown() }
+            }.apply { isDaemon = true }.start()
+            
+            try {
+                latch.await(10, TimeUnit.SECONDS)
+            } catch (_: InterruptedException) {
+                MessageLog.e(TAG, "Turn start updates timed out.")
+            } finally {
+                MessageLog.disableOutput = false
+            }
+
+            // Log the updates.
+            MessageLog.i(TAG, "[TRACKBLAZER] Turn start updates complete for $date.")
+            MessageLog.i(TAG, "[TRAINEE] Stats: ${trainee.getStatsString()}, Mood: ${trainee.mood}, Energy: ${trainee.energy}%")
+            if (trainee.bHasUpdatedAptitudes) {
+                trainee.logDetailedPlayerInfo()
+            }
+
+            // Update the fan count class.
+            val fanCountClass: FanCountClass? = getFanCountClass(sourceBitmap)
+            if (fanCountClass != null) {
+                trainee.fanCountClass = fanCountClass
+            }
+
+            bHasUpdatedThisTurn = true
         }
 
         // Flag on whether to race or train.
