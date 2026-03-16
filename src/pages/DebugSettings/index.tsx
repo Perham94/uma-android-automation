@@ -36,6 +36,9 @@ const DebugSettings = () => {
         "debugMode_startTraineeNameOCRTest",
         "debugMode_startMainScreenOCRTest",
         "debugMode_startTrainingScreenOCRTest",
+        "debugMode_startTrackblazerRaceSelectionTest",
+        "debugMode_startTrackblazerInventorySyncTest",
+        "debugMode_startTrackblazerBuyItemsTest",
     ] as const
 
     /**
@@ -558,6 +561,33 @@ const DebugSettings = () => {
                                 onCheckedChange={(checked) => handleDebugTestToggle("debugMode_startTrainingScreenOCRTest", checked)}
                                 label="Start Training Screen OCR Test"
                                 description="Disables normal bot operations and starts the Training screen OCR test. Only on the Training screen and tests detecting various components on the screen."
+                                style={{ marginTop: 10 }}
+                            />
+
+                            <CustomCheckbox
+                                searchId="debug-trackblazer-race-selection-test"
+                                checked={bsc.settings.debug.debugMode_startTrackblazerRaceSelectionTest}
+                                onCheckedChange={(checked) => handleDebugTestToggle("debugMode_startTrackblazerRaceSelectionTest", checked)}
+                                label="Start Trackblazer Race Selection Test"
+                                description="Disables normal bot operations and starts the Trackblazer race selection test. Navigates to the Race List if on the Main Screen and identifies the best race to run, including Rivals."
+                                style={{ marginTop: 10 }}
+                            />
+
+                            <CustomCheckbox
+                                searchId="debug-trackblazer-inventory-sync-test"
+                                checked={bsc.settings.debug.debugMode_startTrackblazerInventorySyncTest}
+                                onCheckedChange={(checked) => handleDebugTestToggle("debugMode_startTrackblazerInventorySyncTest", checked)}
+                                label="Start Trackblazer Inventory Sync Test"
+                                description="Disables normal bot operations and starts the Trackblazer inventory sync test. Opens the Training Items dialog if on the Main Screen and logs inventory contents and quick-use intentions."
+                                style={{ marginTop: 10 }}
+                            />
+
+                            <CustomCheckbox
+                                searchId="debug-trackblazer-buy-items-test"
+                                checked={bsc.settings.debug.debugMode_startTrackblazerBuyItemsTest}
+                                onCheckedChange={(checked) => handleDebugTestToggle("debugMode_startTrackblazerBuyItemsTest", checked)}
+                                label="Start Trackblazer Buy Items Test"
+                                description="Disables normal bot operations and starts the Trackblazer buy items test. Opens the Shop if on the Main Screen and logs shop contents and purchase intentions without actually buying anything."
                                 style={{ marginTop: 10 }}
                             />
                         </View>

@@ -620,6 +620,24 @@ const searchConfig: SearchOption[] = [
         description: "Disables normal bot operations and starts the Training screen OCR test. Only on the Training screen and tests detecting various components on the screen.",
         page: "DebugSettings",
     },
+    {
+        id: "debug-trackblazer-race-selection-test",
+        title: "Start Trackblazer Race Selection Test",
+        description: "Disables normal bot operations and starts the Trackblazer race selection test. Navigates to the Race List if on the Main Screen and identifies the best race to run, including Rivals.",
+        page: "DebugSettings",
+    },
+    {
+        id: "debug-trackblazer-inventory-sync-test",
+        title: "Start Trackblazer Inventory Sync Test",
+        description: "Disables normal bot operations and starts the Trackblazer inventory sync test. Opens the Training Items dialog if on the Main Screen and logs inventory contents and quick-use intentions.",
+        page: "DebugSettings",
+    },
+    {
+        id: "debug-trackblazer-buy-items-test",
+        title: "Start Trackblazer Buy Items Test",
+        description: "Disables normal bot operations and starts the Trackblazer buy items test. Opens the Shop if on the Main Screen and logs shop contents and purchase intentions without actually buying anything.",
+        page: "DebugSettings",
+    },
 ]
 
 export default searchConfig
