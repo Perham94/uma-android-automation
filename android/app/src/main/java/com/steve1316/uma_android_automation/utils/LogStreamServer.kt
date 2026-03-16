@@ -21,6 +21,11 @@ import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
 import org.json.JSONArray
 import org.json.JSONObject
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.util.Base64
+import java.io.ByteArrayOutputStream
+import java.io.File
 import java.io.IOException
 import java.util.concurrent.CopyOnWriteArraySet
 import java.util.regex.Pattern
@@ -40,6 +45,9 @@ object LogStreamServer {
 
 	// Coroutine scope for the server and background tasks.
 	private var serverScope: CoroutineScope? = null
+
+	// Application context for accessing file system.
+	private var applicationContext: Context? = null
 
 	@Volatile
 	var isRunning = false
@@ -143,6 +151,7 @@ object LogStreamServer {
 		}
 
 		try {
+			applicationContext = context.applicationContext
 			serverScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 			actionChannel = Channel(Channel.UNLIMITED)
 
@@ -263,6 +272,7 @@ object LogStreamServer {
 		// Shutdown the Ktor server instance with a brief grace period.
 		server?.stop(500, 1000)
 		server = null
+		applicationContext = null
 
 		// Cancel the coroutine scope to clean up background tasks.
 		serverScope?.cancel()
@@ -416,7 +426,12 @@ object LogStreamServer {
 		try {
 			// Keep the session alive until the client disconnects.
 			for (frame in session.incoming) {
-				// The server does not handle incoming messages from clients.
+				if (frame is Frame.Text) {
+					val text = frame.readText()
+					if (text == "CMD:REFRESH_IMAGES") {
+						sendDebugImages(session)
+					}
+				}
 			}
 		} catch (e: Exception) {
 			Log.w(TAG, "WebSocket session exception: ${e.message}")
@@ -453,6 +468,55 @@ object LogStreamServer {
 		} catch (e: Exception) {
 			Log.e(TAG, "Failed to sync history for new client: ${e.message}")
 		}
+	}
+
+	/**
+	 * Scans the temp directory, compresses found images, and sends them to the client.
+	 *
+	 * @param session The active WebSocket server session.
+	 */
+	private suspend fun sendDebugImages(session: DefaultWebSocketServerSession) {
+		val context = applicationContext ?: return
+		val tempDir = File(context.getExternalFilesDir(null), "temp")
+		if (!tempDir.exists() || !tempDir.isDirectory) {
+			Log.w(TAG, "Temp directory does not exist or is not a directory: ${tempDir.absolutePath}")
+			return
+		}
+
+		val imageFiles = tempDir.listFiles { _, name ->
+			name.lowercase().endsWith(".png") ||
+					name.lowercase().endsWith(".jpg") ||
+					name.lowercase().endsWith(".jpeg") ||
+					name.lowercase().endsWith(".webp")
+		} ?: return
+
+		Log.d(TAG, "Found ${imageFiles.size} image files in temp directory.")
+
+		for (file in imageFiles) {
+			try {
+				val bitmap = BitmapFactory.decodeFile(file.absolutePath)
+				if (bitmap != null) {
+					val outputStream = ByteArrayOutputStream()
+					// Compress to 50% quality JPEG.
+					bitmap.compress(Bitmap.CompressFormat.JPEG, 50, outputStream)
+					val byteArray = outputStream.toByteArray()
+					val base64Image = Base64.encodeToString(byteArray, Base64.DEFAULT)
+
+					val json = JSONObject().apply {
+						put("type", "image")
+						put("name", file.name)
+						put("data", base64Image)
+					}
+					session.send(Frame.Text(json.toString()))
+					bitmap.recycle()
+				}
+			} catch (e: Exception) {
+				Log.e(TAG, "Failed to send image ${file.name}: ${e.message}")
+			}
+		}
+
+		// Signal completion of image batch transmission.
+		session.send(Frame.Text(JSONObject().apply { put("type", "image_batch_done") }.toString()))
 	}
 
 	/**
