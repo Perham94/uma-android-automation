@@ -9,6 +9,7 @@ import com.steve1316.uma_android_automation.bot.Game
 import com.steve1316.uma_android_automation.components.*
 import com.steve1316.uma_android_automation.utils.ScrollList
 import com.steve1316.uma_android_automation.utils.ScrollListEntry
+import org.opencv.core.Point
 
 /**
  * Handles interaction with the item shop list in the Trackblazer scenario.
@@ -111,30 +112,14 @@ class TrackblazerShopList(private val game: Game) {
 	 * @return True if the scrolling process finished normally, false otherwise.
 	 */
 	fun scrollShop(): Boolean {
-		val list: ScrollList = ScrollList.create(game) ?: return false
-
-		// Check if the shop is on sale only once per scroll process.
-		isShopOnSale = LabelOnSale.check(game.imageUtils)
-        MessageLog.i(TAG, "Shop is on sale: $isShopOnSale")
-
-		var lastSeenName: String? = null
-		return list.process { _, entry: ScrollListEntry ->
-			val itemName = getShopItemName(entry.bitmap)
+		return processItemsWithFallback { entry ->
+			val isDisabled = ButtonSkillUp.checkDisabled(game.imageUtils, entry.bitmap) == true
+			val itemName = getShopItemName(entry, isDisabled)
 			if (itemName != null) {
-				if (itemName == lastSeenName) {
-					// Skip duplicate read of the same item. Items in this list are never back to back.
-					false
-				} else {
-					lastSeenName = itemName
-					val itemPrice = getShopItemPrice(itemName, entry.bitmap)
-					MessageLog.v(TAG, "Detected Shop Item: \"$itemName\" with price $itemPrice at index ${entry.index}.")
-					false
-				}
-			} else {
-				// Item already purchased or not detected.
-				MessageLog.v(TAG, "Shop Item already purchased or not detected at index ${entry.index}.")
-				false
+				val itemPrice = getShopItemPrice(itemName, entry.bitmap)
+				MessageLog.v(TAG, "Detected Shop Item: \"$itemName\" with price $itemPrice at index ${entry.index}.")
 			}
+			false
 		}
 	}
 
@@ -144,43 +129,86 @@ class TrackblazerShopList(private val game: Game) {
 	 * @param bitmap A bitmap of a single cropped Shop entry.
 	 * @return The item name if detected, NULL otherwise.
 	 */
-	fun getShopItemName(bitmap: Bitmap): String? {
+	fun getShopItemName(entry: ScrollListEntry, isDisabled: Boolean = false): String? {
+        val bitmap = entry.bitmap
 		// Find the item's checkbox to use as a reference point.
-		val checkboxPoint = CheckboxShopItem.findImageWithBitmap(game.imageUtils, bitmap)
-		if (checkboxPoint == null) {
-			Log.d(TAG, "Failed to find checkbox for this Shop Item.")
+		var refPoint = CheckboxShopItem.findImageWithBitmap(game.imageUtils, bitmap)
+		
+		if (refPoint == null) {
+            if (entry.refX != null && entry.refY != null) {
+                refPoint = Point(entry.refX.toDouble(), entry.refY.toDouble())
+                if (game.debugMode) MessageLog.d(TAG, "Using preserved reference point for item name detection: $refPoint")
+            } else {
+                // Fallback: Try to find the plus button if the checkbox isn't there (e.g., in the inventory dialog).
+                refPoint = ButtonSkillUp.findImageWithBitmap(game.imageUtils, bitmap)
+                if (refPoint != null && game.debugMode) {
+                    MessageLog.d(TAG, "Using plus button as reference for item name detection.")
+                }
+            }
+		}
+
+		if (refPoint == null) {
+			if (game.debugMode) MessageLog.d(TAG, "Failed to find any reference point (checkbox or plus button) for this Item.")
 			return null
 		}
 
 		val nameBBox = BoundingBox(
-			x = game.imageUtils.relX(checkboxPoint.x, -680),
-			y = game.imageUtils.relY(checkboxPoint.y, -75),
-			w = game.imageUtils.relWidth(525),
-			h = game.imageUtils.relHeight(50)
+			x = game.imageUtils.relX(refPoint.x, -850).coerceAtLeast(0),
+			y = game.imageUtils.relY(refPoint.y, -75).coerceAtLeast(0),
+			w = game.imageUtils.relWidth(750),
+			h = game.imageUtils.relHeight(60)
 		)
 
-		val croppedName = game.imageUtils.createSafeBitmap(bitmap, nameBBox, "ShopItemName") ?: return null
+		val croppedName = game.imageUtils.createSafeBitmap(bitmap, nameBBox, "ShopItemName")
+        if (croppedName == null) {
+            if (game.debugMode) MessageLog.d(TAG, "Failed to crop name region for reference point at $refPoint.")
+            return null
+        }
 
-		val detectedText = game.imageUtils.performOCROnRegion(
-			croppedName,
-			0,
-			0,
-			croppedName.width,
-			croppedName.height,
-			useThreshold = true,
-			useGrayscale = true,
-			scale = 2.0,
-			ocrEngine = "mlkit",
-			debugName = "ShopItemNameOCR"
-		)
+		var detectedText = ""
+        
+        if (!isDisabled) {
+            detectedText = game.imageUtils.performOCROnRegion(
+                croppedName,
+                0,
+                0,
+                croppedName.width,
+                croppedName.height,
+                useThreshold = true,
+                useGrayscale = true,
+                scale = 2.0,
+                ocrEngine = "mlkit",
+                debugName = "ShopItemNameOCR_Threshold"
+            )
+        }
+
+        if (detectedText.isEmpty()) {
+            if (game.debugMode && !isDisabled) MessageLog.d(TAG, "Threshold OCR failed for $refPoint, trying without thresholding...")
+            detectedText = game.imageUtils.performOCROnRegion(
+                croppedName,
+                0,
+                0,
+                croppedName.width,
+                croppedName.height,
+                useThreshold = false,
+                useGrayscale = true,
+                scale = 2.0,
+                ocrEngine = "mlkit",
+                debugName = "ShopItemNameOCR_NoThreshold"
+            )
+        }
 
 		if (detectedText.isEmpty()) {
-			MessageLog.w(TAG, "Parsed empty string for Shop Item Name.")
+			if (game.debugMode) MessageLog.w(TAG, "Parsed empty string for Shop Item Name at $refPoint after both OCR passes.")
 			return null
 		}
 
 		// Perform fuzzy matching against known shop item names.
-		return TextUtils.matchStringInList(detectedText, shopItems.keys.toList(), threshold = 0.8) ?: detectedText
+		val matchedName = TextUtils.matchStringInList(detectedText, shopItems.keys.toList(), threshold = 0.8)
+        if (matchedName == null) {
+            if (game.debugMode) MessageLog.d(TAG, "Failed to match text \"$detectedText\" to any known item.")
+        }
+        return matchedName ?: detectedText
 	}
 
 	/**
@@ -253,8 +281,9 @@ class TrackblazerShopList(private val game: Game) {
 		// Scan the entire shop to log each item and its price, and to identify what is available.
 		MessageLog.d(TAG, "[SHOP] Beginning process of scanning shop items...")
 		val availableInShop = mutableMapOf<String, Int>()
-		list.process { _, entry: ScrollListEntry ->
-			val itemName = getShopItemName(entry.bitmap)
+		processItemsWithFallback { entry ->
+			val isDisabled = ButtonSkillUp.checkDisabled(game.imageUtils, entry.bitmap) == true
+			val itemName = getShopItemName(entry, isDisabled)
 			if (itemName != null) {
 				val price = getShopItemPrice(itemName, entry.bitmap)
 				MessageLog.d(TAG, "\t$itemName: $price coins")
@@ -292,8 +321,9 @@ class TrackblazerShopList(private val game: Game) {
 		// Step 3: Purchasing Phase.
 		// Re-process the list to click on the selected items.
 		val itemsBought = mutableSetOf<String>()
-		list.process { _, entry: ScrollListEntry ->
-			val itemName = getShopItemName(entry.bitmap)
+		processItemsWithFallback { entry ->
+			val isDisabled = ButtonSkillUp.checkDisabled(game.imageUtils, entry.bitmap) == true
+			val itemName = getShopItemName(entry, isDisabled)
 			if (itemName != null && itemName in itemsToBuy && itemName !in itemsBought) {
 				MessageLog.i(TAG, "Selecting \"$itemName\" for ${availableInShop[itemName]} coins.")
 				game.tap(entry.bbox.cx.toDouble(), entry.bbox.cy.toDouble())
@@ -335,11 +365,12 @@ class TrackblazerShopList(private val game: Game) {
 		val list: ScrollList = ScrollList.create(game) ?: return
 		var anyUsed = false
 
-		list.process { _, entry: ScrollListEntry ->
-			val itemName = getShopItemName(entry.bitmap)
+		processItemsWithFallback { entry ->
+			val isDisabled = ButtonSkillUp.checkDisabled(game.imageUtils, entry.bitmap) == true
+			val itemName = getShopItemName(entry, isDisabled)
 			if (itemName != null && shopItems[itemName]?.third == true) {
 				// Check if the item's "+" button is disabled.
-				if (ButtonSkillUp.checkDisabled(game.imageUtils, entry.bitmap) == false) {
+				if (!isDisabled) {
 					val plusButtonPoint = ButtonSkillUp.findImageWithBitmap(game.imageUtils, entry.bitmap)
 					if (plusButtonPoint != null) {
 						MessageLog.i(TAG, "Using item: \"$itemName\".")
@@ -368,17 +399,18 @@ class TrackblazerShopList(private val game: Game) {
         val list: ScrollList = ScrollList.create(game) ?: return false
         var used = false
 
-        list.process { _, entry: ScrollListEntry ->
-            val name = getShopItemName(entry.bitmap)
+        processItemsWithFallback { entry ->
+            val isDisabled = ButtonSkillUp.checkDisabled(game.imageUtils, entry.bitmap) == true
+            val name = getShopItemName(entry, isDisabled)
             if (name != null && name == itemName) {
                 // Check if the item's "+" button is disabled.
-                if (ButtonSkillUp.checkDisabled(game.imageUtils, entry.bitmap) == false) {
+                if (!isDisabled) {
                     val plusButtonPoint = ButtonSkillUp.findImageWithBitmap(game.imageUtils, entry.bitmap)
                     if (plusButtonPoint != null) {
                         MessageLog.i(TAG, "Queuing specific item for use: \"$itemName\".")
                         game.tap(entry.bbox.x + plusButtonPoint.x, entry.bbox.y + plusButtonPoint.y)
                         used = true
-                        return@process true
+                        return@processItemsWithFallback true
                     }
                 }
             }
@@ -433,11 +465,77 @@ class TrackblazerShopList(private val game: Game) {
     }
 
     /**
+     * Extracts item entries from a non-scrollable list using template matching for plus buttons.
+     *
+     * @param sourceBitmap The source bitmap to scan.
+     * @return A list of pseudo-ScrollListEntry objects.
+     */
+    private fun getEntriesNonScrollable(sourceBitmap: Bitmap): List<ScrollListEntry> {
+        MessageLog.d(TAG, "[TRACKBLAZER] Scanning full screen for plus buttons...")
+        val plusButtons = ButtonSkillUp.findAll(game.imageUtils, sourceBitmap = sourceBitmap)
+        MessageLog.d(TAG, "[TRACKBLAZER] Found ${plusButtons.size} plus buttons.")
+        plusButtons.sortBy { it.y }
+
+        return plusButtons.mapIndexed { index, point ->
+            val entryHeight = game.imageUtils.relHeight(220)
+            val entryY = (point.y - (entryHeight / 2)).toInt().coerceIn(0, sourceBitmap.height - entryHeight)
+            val entryBBox = BoundingBox(x = 0, y = entryY, w = sourceBitmap.width, h = entryHeight)
+            val entryBitmap = game.imageUtils.createSafeBitmap(sourceBitmap, entryBBox, "PseudoEntry_$index")
+
+            ScrollListEntry(
+                index = index,
+                bitmap = entryBitmap ?: sourceBitmap,
+                bbox = entryBBox,
+                refX = point.x.toInt(),
+                refY = (point.y - entryY).toInt()
+            )
+        }
+    }
+
+    /**
      * Uses the Good-Luck Charm if available.
      *
      * @return True if the charm was queued.
      */
     fun useGoodLuckCharm(): Boolean {
         return useSpecificItem("Good-Luck Charm")
+    }
+
+    /**
+     * Processes items in a dialog, handling both scrollable and non-scrollable cases.
+     *
+     * @param callback The callback to execute for each entry. Return true to stop.
+     * @return True if the process completed successfully.
+     */
+    fun processItemsWithFallback(callback: (ScrollListEntry) -> Boolean): Boolean {
+        val sourceBitmap = game.imageUtils.getSourceBitmap()
+        
+        // Step 1: Check if this is a non-scrollable case by looking for buttons directly.
+        // This is much more reliable than relying on ScrollList corner detection for small dialogs.
+        val nonScrollableEntries = getEntriesNonScrollable(sourceBitmap)
+        if (nonScrollableEntries.isNotEmpty()) {
+            MessageLog.d(TAG, "[TRACKBLAZER] Using non-scrollable entry detection.")
+            for (entry in nonScrollableEntries) {
+                val found = callback(entry)
+                if (!found && game.debugMode) {
+                    MessageLog.d(TAG, "[TRACKBLAZER] No item detected in non-scrollable entry at index ${entry.index}.")
+                }
+                if (found) break
+            }
+            return true
+        }
+
+        // Step 2: Fallback to ScrollList if no buttons found or if we want to support scrolling.
+        MessageLog.d(TAG, "[TRACKBLAZER] No plus buttons found on initial scan. Attempting ScrollList detection...")
+        val list = ScrollList.create(game, bitmap = sourceBitmap)
+        if (list == null) {
+            MessageLog.e(TAG, "[TRACKBLAZER] Failed to detect shop list or scrollable region.")
+            return false
+        }
+
+        // Always check if the shop is on sale.
+        isShopOnSale = LabelOnSale.check(game.imageUtils, sourceBitmap = sourceBitmap)
+
+        return list.process { _, entry -> callback(entry) }
     }
 }
