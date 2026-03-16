@@ -1769,11 +1769,12 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
                 return 0
             }
 
-			val numericPart = if (constructedString.startsWith("+") && constructedString.substring(1).isNotEmpty()) {
-				constructedString.substring(1)
-			} else {
-				constructedString
-			}
+            val plusIndex = constructedString.indexOf('+')
+            val numericPart = if (plusIndex != -1 && plusIndex < constructedString.length - 1) {
+                constructedString.substring(plusIndex + 1)
+            } else {
+                constructedString
+            }
 
 			val result = numericPart.toInt()
 
