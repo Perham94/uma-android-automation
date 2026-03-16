@@ -365,9 +365,15 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
 
 			// Parse the result.
 			val result = try {
-				val cleanedResult = detectedText.replace(Regex("[^0-9]"), "")
-				MessageLog.i(TAG, "Detected day for extra racing: $detectedText")
-				cleanedResult.toInt()
+				if (detectedText.lowercase().contains("ace") || detectedText.lowercase().contains("da")) {
+					// This is "Race Day", so there are 0 turns left before the mandatory race.
+					MessageLog.i(TAG, "Detected Race Day for extra racing: $detectedText")
+					0
+				} else {
+					val cleanedResult = detectedText.replace(Regex("[^0-9]"), "")
+					MessageLog.i(TAG, "Detected day for extra racing: $detectedText")
+					cleanedResult.toInt()
+				}
 			} catch (_: NumberFormatException) {
 				MessageLog.e(TAG, "Could not convert \"$detectedText\" to integer for the turns remaining.")
 				-1
