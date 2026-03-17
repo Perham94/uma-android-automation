@@ -621,6 +621,12 @@ const searchConfig: SearchOption[] = [
         page: "DebugSettings",
     },
     {
+        id: "debug-scrollbar-detection-test",
+        title: "Start Scrollbar Detection Test",
+        description: "Disables normal bot operations and starts the Scrollbar detection test. Detects the scrollbar on the current screen and attempts to scroll it up and down to verify functionality.",
+        page: "DebugSettings",
+    },
+    {
         id: "debug-trackblazer-race-selection-test",
         title: "Start Trackblazer Race Selection Test",
         description: "Disables normal bot operations and starts the Trackblazer race selection test. Navigates to the Race List if on the Main Screen and identifies the best race to run, including Rivals.",

@@ -164,6 +164,7 @@ export interface Settings {
         debugMode_startTraineeNameOCRTest: boolean
         debugMode_startMainScreenOCRTest: boolean
         debugMode_startTrainingScreenOCRTest: boolean
+        debugMode_startScrollBarDetectionTest: boolean
         debugMode_startTrackblazerRaceSelectionTest: boolean
         debugMode_startTrackblazerInventorySyncTest: boolean
         debugMode_startTrackblazerBuyItemsTest: boolean
@@ -364,6 +365,7 @@ export const defaultSettings: Settings = {
         debugMode_startTraineeNameOCRTest: false,
         debugMode_startMainScreenOCRTest: false,
         debugMode_startTrainingScreenOCRTest: false,
+        debugMode_startScrollBarDetectionTest: false,
         debugMode_startTrackblazerRaceSelectionTest: false,
         debugMode_startTrackblazerInventorySyncTest: false,
         debugMode_startTrackblazerBuyItemsTest: false,

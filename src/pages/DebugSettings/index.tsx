@@ -39,6 +39,7 @@ const DebugSettings = () => {
         "debugMode_startTrackblazerRaceSelectionTest",
         "debugMode_startTrackblazerInventorySyncTest",
         "debugMode_startTrackblazerBuyItemsTest",
+        "debugMode_startScrollBarDetectionTest",
     ] as const
 
     /**
@@ -561,6 +562,15 @@ const DebugSettings = () => {
                                 onCheckedChange={(checked) => handleDebugTestToggle("debugMode_startTrainingScreenOCRTest", checked)}
                                 label="Start Training Screen OCR Test"
                                 description="Disables normal bot operations and starts the Training screen OCR test. Only on the Training screen and tests detecting various components on the screen."
+                                style={{ marginTop: 10 }}
+                            />
+
+                            <CustomCheckbox
+                                searchId="debug-scrollbar-detection-test"
+                                checked={bsc.settings.debug.debugMode_startScrollBarDetectionTest}
+                                onCheckedChange={(checked) => handleDebugTestToggle("debugMode_startScrollBarDetectionTest", checked)}
+                                label="Start Scrollbar Detection Test"
+                                description="Disables normal bot operations and starts the Scrollbar detection test. Detects the scrollbar on the current screen and attempts to scroll it up and down to verify functionality."
                                 style={{ marginTop: 10 }}
                             />
 
