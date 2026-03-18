@@ -847,7 +847,8 @@ class Trackblazer(game: Game) : Campaign(game) {
 		game.wait(0.5)
 
 		// Initial Training Analysis.
-		training.analyzeTrainings()
+		val hasCharm = date.day >= 13 && !bUsedCharmToday && (currentInventory["Good-Luck Charm"] ?: 0) > 0
+		training.analyzeTrainings(ignoreFailureChance = hasCharm)
 		var trainingSelected: StatName? = training.recommendTraining()
 
 		// Finally, perform a consolidated item usage pass after the training is finalized.

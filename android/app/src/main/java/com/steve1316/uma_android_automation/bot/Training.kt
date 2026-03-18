@@ -707,7 +707,7 @@ class Training(private val game: Game, private val campaign: Campaign) {
 	 * @param test Flag that forces the failure chance through even if it is not in the acceptable range for testing purposes.
 	 * @param singleTraining Flag that forces only singular training analysis for the current training on the screen.
 	 */
-	fun analyzeTrainings(test: Boolean = false, singleTraining: Boolean = false) {
+	fun analyzeTrainings(test: Boolean = false, singleTraining: Boolean = false, ignoreFailureChance: Boolean = false) {
 		if (singleTraining) {
             MessageLog.i(TAG, "\n[TRAINING] Now starting process to analyze the training on screen.")
         } else {
@@ -878,9 +878,11 @@ class Training(private val game: Game, private val campaign: Campaign) {
         val isWithinRegularThreshold = failureChance <= maximumFailureChance
         val isWithinRiskyThreshold = enableRiskyTraining && failureChance <= riskyTrainingMaxFailureChance
         val isFinals = campaign.checkFinals()
-        if (test || isWithinRegularThreshold || isWithinRiskyThreshold || isFinals) {
+        if (test || isWithinRegularThreshold || isWithinRiskyThreshold || isFinals || ignoreFailureChance) {
             if (!test) {
-                if (isFinals) {
+                if (ignoreFailureChance) {
+                    MessageLog.i(TAG, "[TRAINING] $failureChance% exceeds thresholds but ignoring failure chance check. Proceeding to acquire all other percentages and total stat increases...")
+                } else if (isFinals) {
                     MessageLog.i(TAG, "[TRAINING] $failureChance% exceeds thresholds but it is the Finals. Ignoring and proceeding to acquire all other percentages and total stat increases...")
                 } else if (isWithinRegularThreshold) {
                     MessageLog.i(TAG, "[TRAINING] $failureChance% within acceptable range of ${maximumFailureChance}%. Proceeding to acquire all other percentages and total stat increases...")
@@ -1118,7 +1120,7 @@ class Training(private val game: Game, private val campaign: Campaign) {
 
                     // For Risky Training, filter out trainings that exceed the effective failure chance threshold or do not meet the minimum main stat gain threshold.
                     val mainStatGain = result.statGains[result.name] ?: 0
-                    if (!test && result.failureChance > effectiveFailureChance) {
+                    if (!test && !ignoreFailureChance && result.failureChance > effectiveFailureChance) {
                         MessageLog.i(TAG, "[TRAINING] Skipping $statName training due to failure chance (${result.failureChance}%) exceeding the effective failure chance threshold (${effectiveFailureChance}%).")
                         continue
                     }
@@ -1195,13 +1197,27 @@ class Training(private val game: Game, private val campaign: Campaign) {
                     }
                     
                     // Filter out trainings that exceed the effective failure chance threshold.
-                    if (!test && result.failureChance > effectiveFailureChance) {
+                    if (!test && !ignoreFailureChance && result.failureChance > effectiveFailureChance) {
                         if (enableRiskyTraining && mainStatGain >= riskyTrainingMinStatGain) {
                             MessageLog.i(TAG, "[TRAINING] Skipping ${result.name} training due to failure chance (${result.failureChance}%) exceeding risky threshold (${riskyTrainingMaxFailureChance}%) despite high main stat gain of $mainStatGain.")
                         } else {
                             MessageLog.i(TAG, "[TRAINING] Skipping ${result.name} training due to failure chance (${result.failureChance}%) exceeding threshold (${maximumFailureChance}%).")
                         }
 
+                        // Store the skipped training for logging purposes.
+                        val skippedTraining = TrainingOption(
+                            name = result.name,
+                            statGains = result.statGains,
+                            correctedStats = result.correctedStats,
+                            failureChance = result.failureChance,
+                            relationshipBars = result.relationshipBars,
+                            numRainbow = result.numRainbow,
+                            numSpiritGaugesCanFill = result.numSpiritGaugesCanFill,
+                            numSpiritGaugesReadyToBurst = result.numSpiritGaugesReadyToBurst,
+                            numSkillHints = result.numSkillHints,
+                        )
+                        skippedTrainingMap[result.name] = skippedTraining
+                        continue
                         // Store the skipped training for logging purposes.
                         val skippedTraining = TrainingOption(
                             name = result.name,
