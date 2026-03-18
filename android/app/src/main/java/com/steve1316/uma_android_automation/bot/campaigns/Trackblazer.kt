@@ -467,6 +467,26 @@ class Trackblazer(game: Game) : Campaign(game) {
             useItems(trainee)
         }
 
+        // Recover mood if it is below Normal and we do not have any mood recovery items.
+        if (trainee.mood < Mood.NORMAL) {
+            val hasMoodItems = currentInventory.any { (name, count) ->
+                count > 0 && (name == "Berry Sweet Cupcake" || name == "Plain Cupcake")
+            }
+
+            if (!hasMoodItems) {
+                MessageLog.i(TAG, "[TRACKBLAZER] Mood is ${trainee.mood} and no mood items are available. Attempting to recover mood...")
+                if (recoverMood()) {
+                    // Turn is over if we recovered mood.
+                    bHasUpdatedThisTurn = false
+                    if (trainee.megaphoneTurnCounter > 0) {
+                        trainee.megaphoneTurnCounter--
+                        MessageLog.i(TAG, "[TRACKBLAZER] Megaphone duration reduced after mood recovery. Turns remaining: ${trainee.megaphoneTurnCounter}")
+                    }
+                    return true
+                }
+            }
+        }
+
         // Flag on whether to race or train.
         val sourceBitmap = game.imageUtils.getSourceBitmap()
         val bIsScheduledRaceDay = LabelScheduledRace.check(game.imageUtils, sourceBitmap = sourceBitmap)
