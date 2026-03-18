@@ -178,21 +178,26 @@ class Trackblazer(game: Game) : Campaign(game) {
                     MessageLog.e(TAG, "[TRACKBLAZER] Failed to find ButtonOk on consecutive race warning screen. Counter will be incremented after race.")
                 }
 
-                MessageLog.i(TAG, "[TRACKBLAZER] Current consecutive race count: $consecutiveRaceCount")
+				MessageLog.i(TAG, "[TRACKBLAZER] Current consecutive race count: $consecutiveRaceCount")
 
-                // Check if we should ignore the warning based on global settings or arguments.
-                val overrideIgnoreConsecutiveRaceWarning = args["overrideIgnoreConsecutiveRaceWarning"] as? Boolean ?: false
-                val forceRace = overrideIgnoreConsecutiveRaceWarning || racing.enableForceRacing || racing.ignoreConsecutiveRaceWarning
+				// Check if we should ignore the warning based on global settings or arguments.
+				val overrideIgnoreConsecutiveRaceWarning = args["overrideIgnoreConsecutiveRaceWarning"] as? Boolean ?: false
+				val forceRace = overrideIgnoreConsecutiveRaceWarning || racing.enableForceRacing || racing.ignoreConsecutiveRaceWarning
 
-                if (forceRace || consecutiveRaceCount < 6) {
-                    if (forceRace) {
-                        MessageLog.i(TAG, "[TRACKBLAZER] Consecutive race warning! Forced racing enabled. Continuing...")
-                    } else {
-                        MessageLog.i(TAG, "[TRACKBLAZER] Consecutive race count $consecutiveRaceCount < 6. Continuing with racing...")
-                    }
-                    detectedDialog.ok(game.imageUtils)
-                    game.wait(1.0, skipWaitingForLoading = true)
-                } else {
+				// Edge case: if there is only 1 turn left before a mandatory race, we can safely race
+				// even if it would be our 6th consecutive race.
+				val turnsRemaining = game.imageUtils.determineTurnsRemainingBeforeNextGoal()
+				val onlyOneTurnLeft = turnsRemaining == 1
+
+				if (forceRace || consecutiveRaceCount < 6 || onlyOneTurnLeft) {
+					when {
+						forceRace -> MessageLog.i(TAG, "[TRACKBLAZER] Consecutive race warning! Forced racing enabled. Continuing...")
+						onlyOneTurnLeft && consecutiveRaceCount >= 6 -> MessageLog.i(TAG, "[TRACKBLAZER] Consecutive race count $consecutiveRaceCount >= 6, but only 1 turn remains before mandatory race. Racing is safe. Continuing...")
+						else -> MessageLog.i(TAG, "[TRACKBLAZER] Consecutive race count $consecutiveRaceCount < 6. Continuing with racing...")
+					}
+					detectedDialog.ok(game.imageUtils)
+					game.wait(1.0, skipWaitingForLoading = true)
+				} else {
                     // At 6 consecutive races and above, we start losing 30 stats in addition to the mood down and injury.
                     MessageLog.i(TAG, "[TRACKBLAZER] Consecutive race count $consecutiveRaceCount >= 6. Aborting racing...")
                     racing.encounteredRacingPopup = false
@@ -281,7 +286,7 @@ class Trackblazer(game: Game) : Campaign(game) {
             
 			// Handle any consecutive race warning dialogs that might pop up after clicking "Races".
 			val dialogResult = handleDialogs(args = mapOf("overrideIgnoreConsecutiveRaceWarning" to true))
-			if (dialogResult is DialogHandlerResult.Handled && consecutiveRaceCount >= 6) {
+			if (dialogResult is DialogHandlerResult.Handled && consecutiveRaceCount >= 6 && game.imageUtils.determineTurnsRemainingBeforeNextGoal() != 1) {
 				MessageLog.i(TAG, "[TRACKBLAZER] Consecutive race warning obeyed. Aborting racing.")
 				return false
 			}
