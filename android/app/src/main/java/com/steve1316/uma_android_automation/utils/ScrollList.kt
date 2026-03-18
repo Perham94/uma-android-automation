@@ -651,53 +651,65 @@ class ScrollList private constructor(
         // Used as break point.
         var prevThumbY: Int? = null
 
-        // Set of keys for entries that have already been processed to avoid duplicates across scrolls.
-        val processedKeys = mutableSetOf<String>()
+        // Stores keys from the previous frame to identify the overlap with the current frame.
+        var lastFrameKeys: List<String> = emptyList()
 
         var index = 0
         while (System.currentTimeMillis() - startTime < maxTimeMs) {
             bitmap = game.imageUtils.getSourceBitmap()
 
-            var bboxes: List<BoundingBox> = if (bScrollBottomToTop) {
-                detectEntries(bitmap).reversed()
+            val currentFrameEntries: List<ScrollListEntry> = if (bScrollBottomToTop) {
+                detectEntries(bitmap).reversed().map { entryBbox ->
+                    ScrollListEntry(index++, game.imageUtils.createSafeBitmap(bitmap, entryBbox, "ScrollList.process: cropped entry") ?: bitmap, entryBbox)
+                }
             } else {
-                detectEntries(bitmap)
+                detectEntries(bitmap).map { entryBbox ->
+                    ScrollListEntry(index++, game.imageUtils.createSafeBitmap(bitmap, entryBbox, "ScrollList.process: cropped entry") ?: bitmap, entryBbox)
+                }
             }
 
-            for (bbox in bboxes) {
-                val cropped: Bitmap? = game.imageUtils.createSafeBitmap(
-                    bitmap,
-                    bbox,
-                    "ScrollList.process: cropped entry",
-                )
-
-                if (cropped == null) {
-                    MessageLog.e(TAG, "Failed to create cropped bitmap for entry $index at $bbox.")
-                    return false
-                }
-
-                val entry = ScrollListEntry(index++, cropped, bbox)
-
-                // Skip this entry if we've already processed it based on its unique key.
-                if (keyExtractor != null) {
-                    val key = keyExtractor(entry)
-                    if (key != null) {
-                        if (processedKeys.contains(key)) {
-                            continue
+            if (currentFrameEntries.isEmpty()) {
+                MessageLog.d(TAG, "ScrollList.process: No entries detected in current frame.")
+            } else {
+                // Determine the overlap with the previous frame's entries using the provided keyExtractor.
+                var skipCount = 0
+                if (keyExtractor != null && lastFrameKeys.isNotEmpty()) {
+                    val currentFrameKeys = currentFrameEntries.map { keyExtractor(it) ?: "UNKNOWN_${it.index}" }
+                    
+                    // Find the largest suffix of lastFrameKeys that matches a prefix of currentFrameKeys.
+                    for (i in Math.min(lastFrameKeys.size, currentFrameKeys.size) downTo 1) {
+                        val suffix = lastFrameKeys.takeLast(i)
+                        val prefix = currentFrameKeys.take(i)
+                        if (suffix == prefix) {
+                            skipCount = i
+                            break
                         }
-                        processedKeys.add(key)
+                    }
+                    
+                    if (game.debugMode && skipCount > 0) {
+                        MessageLog.d(TAG, "ScrollList.process: Identified overlap of $skipCount items between frames. Matching sequence: ${currentFrameKeys.take(skipCount).joinToString(", ")}")
                     }
                 }
 
-                if (onEntry(this, entry)) {
-                    MessageLog.d(TAG, "onEntry callback returned TRUE for entry $index. Exiting loop.")
-                    return true
+                // Process only the new entries that weren't part of the overlap.
+                for (i in skipCount until currentFrameEntries.size) {
+                    val entry = currentFrameEntries[i]
+                    if (onEntry(this, entry)) {
+                        MessageLog.d(TAG, "onEntry callback returned TRUE for entry ${entry.index}. Exiting loop.")
+                        return true
+                    }
+                }
+
+                // Update the last frame's keys for the next iteration's overlap detection.
+                if (keyExtractor != null) {
+                    lastFrameKeys = currentFrameEntries.map { keyExtractor(it) ?: "UNKNOWN_${it.index}" }
                 }
             }
 
-            entryBboxes.addAll(bboxes)
-            val avgEntryHeight: Int = entryBboxes.map { it.h }.average().toInt()
-            val scrollStartLoc: Point? = if (bboxes.isEmpty()) null else Point(bboxEntries.x.toDouble(), bboxes.last().y.toDouble())
+            entryBboxes.addAll(currentFrameEntries.map { it.bbox })
+            val avgEntryHeight: Int = if (entryBboxes.isEmpty()) 0 else entryBboxes.map { it.h }.average().toInt()
+            val scrollStartLoc: Point? = if (currentFrameEntries.isEmpty()) null else Point(bboxEntries.x.toDouble(), currentFrameEntries.last().bbox.y.toDouble())
+
             if (bIsScrollable) {
                 if (bScrollBottomToTop) {
                     scrollUp(startLoc = scrollStartLoc, entryHeight = avgEntryHeight)
@@ -708,23 +720,19 @@ class ScrollList private constructor(
                 game.wait(0.5, skipWaitingForLoading = true)
             } else {
                 MessageLog.d(TAG, "ScrollList.process: List is not scrollable. Exiting loop.")
-                return false
+                return true // Return true since we processed the only frame.
             }
 
             // SCROLLBAR CHANGE DETECTION LOGIC
-            // Breaks loop if no change to Y position.
+            // Breaks loop if no change to Y position or no scrollbar detected.
             val bboxThumb: BoundingBox? = getListScrollBarBoundingRegion().second
             if (bboxThumb == null) {
                 MessageLog.d(TAG, "ScrollList.process: No scrollbar thumb detected. Exiting loop.")
-                return false
+                return true
             }
 
-            // If the scrollbar hasn't changed after scrolling,
-            // that means we've reached the end of the list.
-            if (prevThumbY != null &&
-                bboxThumb != null &&
-                bboxThumb.y == prevThumbY
-            ) {
+            // If the scrollbar hasn't changed after scrolling, that means we've reached the end of the list.
+            if (prevThumbY != null && bboxThumb.y == prevThumbY) {
                 MessageLog.d(TAG, "ScrollList.process: Reached end of scroll list. Exiting loop.")
                 return true
             }
