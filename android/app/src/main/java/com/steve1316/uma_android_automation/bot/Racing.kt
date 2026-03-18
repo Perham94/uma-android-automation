@@ -2070,6 +2070,42 @@ class Racing (private val game: Game, private val campaign: Campaign) {
                 ButtonSkip.click(game.imageUtils, sourceBitmap = bitmap) -> {
                     MessageLog.i(TAG, "[RACE] Clicked skip button.")
                 }
+                // Handle post-race Rival popups.
+                game.scenario == "Trackblazer" && ButtonClose.click(game.imageUtils, sourceBitmap = bitmap) -> {
+                    MessageLog.i(TAG, "[RACE] [TRACKBLAZER] Closed post-race Rival popup.")
+                    campaign.onRaceWin()
+                    game.wait(1.0)
+
+                    // After closing the popup, check if we can retry a G1 race.
+                    if (lastRaceGrade == RaceGrade.G1 && ButtonTryAgain.checkDisabled(game.imageUtils) == false) {
+                        MessageLog.i(TAG, "[RACE] [TRACKBLAZER] G1 race detected and retry button is available. Retrying...")
+                        if (ButtonTryAgain.click(game.imageUtils)) {
+                            game.wait(3.0)
+                        }
+                    } else if (lastRaceIsRival && !bRetriedCurrentRace && ButtonTryAgain.checkDisabled(game.imageUtils) == false) {
+                        // Trackblazer Rival Race retry logic: retry once then stop.
+                        MessageLog.i(TAG, "[RACE] [TRACKBLAZER] Rival Race retry button is available. Retrying once...")
+                        bRetriedCurrentRace = true
+                        if (ButtonTryAgain.click(game.imageUtils)) {
+                            game.wait(3.0)
+                        }
+                    }
+                }
+                game.scenario == "Trackblazer" && lastRaceGrade == RaceGrade.G1 && ButtonTryAgain.checkDisabled(game.imageUtils, sourceBitmap = bitmap) == false -> {
+                    // Check if we can retry a G1 race even if no popup appeared.
+                    MessageLog.i(TAG, "[RACE] [TRACKBLAZER] G1 race detected and retry button is available. Retrying...")
+                    if (ButtonTryAgain.click(game.imageUtils, sourceBitmap = bitmap)) {
+                        game.wait(3.0)
+                    }
+                }
+                game.scenario == "Trackblazer" && lastRaceIsRival && !bRetriedCurrentRace && ButtonTryAgain.checkDisabled(game.imageUtils, sourceBitmap = bitmap) == false -> {
+                    // Trackblazer Rival Race retry logic even if no popup appeared.
+                    MessageLog.i(TAG, "[RACE] [TRACKBLAZER] Rival Race retry button is available. Retrying once...")
+                    bRetriedCurrentRace = true
+                    if (ButtonTryAgain.click(game.imageUtils, sourceBitmap = bitmap)) {
+                        game.wait(3.0)
+                    }
+                }
                 ButtonNext.check(game.imageUtils, sourceBitmap = bitmap) -> {
                     MessageLog.i(TAG, "[RACE] Reached race results screen. Exiting race retry loop...")
                     return true
@@ -2118,47 +2154,6 @@ class Racing (private val game: Game, private val campaign: Campaign) {
 
             val bitmap: Bitmap = game.imageUtils.getSourceBitmap()
 
-            // Handle post-race Rival popups.
-            if (ButtonClose.click(game.imageUtils, sourceBitmap = bitmap)) {
-                MessageLog.i(TAG, "[RACE] Closed post-race Rival popup.")
-                campaign.onRaceWin()
-                game.wait(1.0)
-
-                // After closing the popup, check if we can retry a G1 race.
-                if (lastRaceGrade == RaceGrade.G1 && ButtonTryAgain.checkDisabled(game.imageUtils) == false) {
-                    MessageLog.i(TAG, "[RACE] G1 race detected and retry button is available. Retrying...")
-                    if (ButtonTryAgain.click(game.imageUtils)) {
-                        game.wait(3.0)
-                        return runRaceWithRetries()
-                    }
-                } else if (game.scenario == "Trackblazer" && lastRaceIsRival && !bRetriedCurrentRace && ButtonTryAgain.checkDisabled(game.imageUtils) == false) {
-					// Trackblazer Rival Race retry logic: retry once then stop.
-					MessageLog.i(TAG, "[RACE] [TRACKBLAZER] Rival Race retry button is available. Retrying once...")
-					bRetriedCurrentRace = true
-					if (ButtonTryAgain.click(game.imageUtils)) {
-						game.wait(3.0)
-						return runRaceWithRetries()
-					}
-				}
-                continue
-            } else if (lastRaceGrade == RaceGrade.G1 && ButtonTryAgain.checkDisabled(game.imageUtils, sourceBitmap = bitmap) == false) {
-                // Check if we can retry a G1 race even if no popup appeared.
-                MessageLog.i(TAG, "[RACE] G1 race detected and retry button is available. Retrying...")
-                if (ButtonTryAgain.click(game.imageUtils, sourceBitmap = bitmap)) {
-                    game.wait(3.0)
-                    return runRaceWithRetries()
-                }
-                continue
-            } else if (game.scenario == "Trackblazer" && lastRaceIsRival && !bRetriedCurrentRace && ButtonTryAgain.checkDisabled(game.imageUtils, sourceBitmap = bitmap) == false) {
-				// Trackblazer Rival Race retry logic even if no popup appeared.
-				MessageLog.i(TAG, "[RACE] [TRACKBLAZER] Rival Race retry button is available. Retrying once...")
-				bRetriedCurrentRace = true
-				if (ButtonTryAgain.click(game.imageUtils, sourceBitmap = bitmap)) {
-					game.wait(3.0)
-					return runRaceWithRetries()
-				}
-				continue
-			}
             when {
                 ButtonNext.click(game.imageUtils, sourceBitmap = bitmap) -> {
                     MessageLog.i(TAG, "[RACE] Clicked on Next (race results) button.")
