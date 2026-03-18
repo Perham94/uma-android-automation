@@ -2301,6 +2301,27 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
         tempImage.release()
     }
 
+    /** Draws bounding boxes on a bitmap and saves it as a debug image.
+     *
+     * @param bitmap The bitmap to draw on.
+     * @param bboxes The list of bounding boxes to draw.
+     * @param filename The filename for the saved debug image.
+     */
+    fun saveDebugImageWithBboxes(bitmap: Bitmap, bboxes: List<BoundingBox>, filename: String) {
+        val mat = Mat()
+        Utils.bitmapToMat(bitmap, mat)
+
+        for (bbox in bboxes) {
+            val pt1 = Point(bbox.x.toDouble(), bbox.y.toDouble())
+            val pt2 = Point((bbox.x + bbox.w).toDouble(), (bbox.y + bbox.h).toDouble())
+            // Draw a green rectangle.
+            Imgproc.rectangle(mat, pt1, pt2, Scalar(0.0, 255.0, 0.0), 5)
+        }
+
+        Imgcodecs.imwrite("$matchFilePath/$filename.png", mat)
+        mat.release()
+    }
+
     /** Saves a bitmap for debugging purposes.
      *
      * @param bitmap The optional bitmap to save.
