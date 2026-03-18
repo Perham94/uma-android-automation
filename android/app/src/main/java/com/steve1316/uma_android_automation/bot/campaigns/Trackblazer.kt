@@ -361,7 +361,7 @@ class Trackblazer(game: Game) : Campaign(game) {
 		}
 
         // Update date first.
-        val dateChanged = date.update(game.imageUtils, isOnMainScreen = true)
+        val dateChanged = date.update(game.imageUtils, scenario = game.scenario, isOnMainScreen = true)
         if (!dateChanged) {
             MessageLog.e(TAG, "Failed to update date on main screen.")
             return false

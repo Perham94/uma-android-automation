@@ -656,7 +656,7 @@ abstract class Campaign(game: Game) : Task(game) {
     open fun updateDate(isOnMainScreen: Boolean = true): Boolean {
         MessageLog.i(TAG, "[DATE] Attempting to update the current date.")
         val prevDay: Int = date.day
-        if (!date.update(game.imageUtils, isOnMainScreen = isOnMainScreen)) {
+        if (!date.update(game.imageUtils, scenario = game.scenario, isOnMainScreen = isOnMainScreen)) {
             MessageLog.e(TAG, "[DATE] date.update() failed to update date.")
             return false
         }
