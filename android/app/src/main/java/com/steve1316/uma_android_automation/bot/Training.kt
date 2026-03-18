@@ -1124,6 +1124,11 @@ class Training(private val game: Game, private val campaign: Campaign) {
                         MessageLog.i(TAG, "[TRAINING] Skipping $statName training due to failure chance (${result.failureChance}%) exceeding the effective failure chance threshold (${effectiveFailureChance}%).")
                         continue
                     }
+
+                    if (!test && ignoreFailureChance && mainStatGain < 30) {
+                        MessageLog.i(TAG, "[TRAINING] Skipping $statName training with Good-Luck Charm because main stat gain ($mainStatGain) is less than 30.")
+                        continue
+                    }
                     if (!test && enableRiskyTraining && mainStatGain < riskyTrainingMinStatGain) {
                         MessageLog.i(TAG, "[TRAINING] Skipping $statName training due to main stat gain (${mainStatGain}) not meeting minimum threshold (${riskyTrainingMinStatGain}).")
                         continue
@@ -1218,6 +1223,11 @@ class Training(private val game: Game, private val campaign: Campaign) {
                         )
                         skippedTrainingMap[result.name] = skippedTraining
                         continue
+                    }
+
+                    if (!test && ignoreFailureChance && mainStatGain < 30) {
+                        MessageLog.i(TAG, "[TRAINING] Skipping ${result.name} training with Good-Luck Charm because main stat gain ($mainStatGain) is less than 30.")
+                        
                         // Store the skipped training for logging purposes.
                         val skippedTraining = TrainingOption(
                             name = result.name,
