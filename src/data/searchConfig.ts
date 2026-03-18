@@ -621,6 +621,12 @@ const searchConfig: SearchOption[] = [
         page: "DebugSettings",
     },
     {
+        id: "debug-skill-list-buy-test",
+        title: "Start Skill List Buy Test",
+        description: "Processes the list of skills in the Skills screen, reads all skills in the list, logs a summary and then logs another summary of which skills it will buy to bring down the current Skill Points as close to zero as possible and then it will stop there without actually doing the buying.",
+        page: "DebugSettings",
+    },
+    {
         id: "debug-scrollbar-detection-test",
         title: "Start Scrollbar Detection Test",
         description: "Disables normal bot operations and starts the Scrollbar detection test. Detects the scrollbar on the current screen and attempts to scroll it up and down to verify functionality.",

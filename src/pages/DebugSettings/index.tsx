@@ -36,10 +36,11 @@ const DebugSettings = () => {
         "debugMode_startTraineeNameOCRTest",
         "debugMode_startMainScreenOCRTest",
         "debugMode_startTrainingScreenOCRTest",
+        "debugMode_startSkillListBuyTest",
+        "debugMode_startScrollBarDetectionTest",
         "debugMode_startTrackblazerRaceSelectionTest",
         "debugMode_startTrackblazerInventorySyncTest",
         "debugMode_startTrackblazerBuyItemsTest",
-        "debugMode_startScrollBarDetectionTest",
     ] as const
 
     /**
@@ -562,6 +563,15 @@ const DebugSettings = () => {
                                 onCheckedChange={(checked) => handleDebugTestToggle("debugMode_startTrainingScreenOCRTest", checked)}
                                 label="Start Training Screen OCR Test"
                                 description="Disables normal bot operations and starts the Training screen OCR test. Only on the Training screen and tests detecting various components on the screen."
+                                style={{ marginTop: 10 }}
+                            />
+
+                            <CustomCheckbox
+                                searchId="debug-skill-list-buy-test"
+                                checked={bsc.settings.debug.debugMode_startSkillListBuyTest}
+                                onCheckedChange={(checked) => handleDebugTestToggle("debugMode_startSkillListBuyTest", checked)}
+                                label="Start Skill List Buy Test"
+                                description="Processes the list of skills in the Skills screen, reads all skills in the list, logs a summary and then logs another summary of which skills it will buy to bring down the current Skill Points as close to zero as possible and then it will stop there without actually doing the buying."
                                 style={{ marginTop: 10 }}
                             />
 
