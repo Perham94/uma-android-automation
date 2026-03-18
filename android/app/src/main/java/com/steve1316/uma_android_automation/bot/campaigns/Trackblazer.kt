@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 
 import com.steve1316.uma_android_automation.MainActivity
 import com.steve1316.uma_android_automation.bot.Campaign
+import com.steve1316.uma_android_automation.bot.CampaignBreakpointException
 import com.steve1316.uma_android_automation.bot.DialogHandlerResult
 import com.steve1316.uma_android_automation.bot.Game
 import com.steve1316.automation_library.utils.MessageLog
@@ -417,8 +418,45 @@ class Trackblazer(game: Game) : Campaign(game) {
                 trainee.fanCountClass = fanCountClass
             }
 
-            bHasUpdatedThisTurn = true
-        }
+			bHasUpdatedThisTurn = true
+
+			// Now check if we need to handle skills before finals.
+			if (date.day == 72 && skillPlan.skillPlans["preFinals"]?.bIsEnabled ?: false) {
+				ButtonSkills.click(game.imageUtils)
+				game.wait(1.0)
+				if (!handleSkillListScreen()) {
+					MessageLog.w(TAG, "handleMainScreen:: handleSkillList() for Pre-Finals failed.")
+				}
+			}
+		}
+
+		// Check if we need to handle the skill point check this run.
+		if (
+			!bHasHandledSkillPointCheck &&
+			enableSkillPointCheck &&
+			trainee.skillPoints >= skillPointsRequired
+		) {
+			if (skillPlan.skillPlans["skillPointCheck"]?.bIsEnabled ?: false) {
+				ButtonSkills.click(game.imageUtils)
+				game.wait(1.0)
+				if (!handleSkillListScreen("skillPointCheck")) {
+					throw InterruptedException("handleMainScreen:: handleSkillList() for Skill Point Check failed. Stopping bot...")
+				}
+				bHasHandledSkillPointCheck = true
+			} else {
+				throw CampaignBreakpointException("Bot reached skill point check threshold. Stopping bot...")
+			}
+		}
+
+		// Check if bot should stop before the finals.
+		if (checkFinalsStop()) {
+			throw InterruptedException(game.notificationMessage)
+		}
+
+		// Check if bot should stop at the user specified date.
+		if (checkStopAtDate()) {
+			throw InterruptedException(game.notificationMessage)
+		}
 
         // Before taking any action, check for items to use.
         // This handles Stats, Energy, Mood, and Bad Conditions.
