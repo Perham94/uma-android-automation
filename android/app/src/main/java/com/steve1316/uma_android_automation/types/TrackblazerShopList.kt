@@ -276,8 +276,6 @@ class TrackblazerShopList(private val game: Game) {
 			return emptyList()
 		}
 
-		val list: ScrollList = ScrollList.create(game) ?: return emptyList()
-
 		// Step 1: Pre-scan Phase.
 		// Scan the entire shop to log each item and its price, and to identify what is available.
 		MessageLog.d(TAG, "[SHOP] Beginning process of scanning shop items...")
@@ -372,7 +370,6 @@ class TrackblazerShopList(private val game: Game) {
 	 */
 	fun quickUseItems() {
 		MessageLog.i(TAG, "Determining if any items can be used right away.")
-		val list: ScrollList = ScrollList.create(game) ?: return
 		var anyUsed = false
 
 		processItemsWithFallback { entry ->
@@ -406,7 +403,6 @@ class TrackblazerShopList(private val game: Game) {
      * @return The name of the item used, or NULL if it could not be used.
      */
     fun useSpecificItem(itemName: String): Boolean {
-        val list: ScrollList = ScrollList.create(game) ?: return false
         var used = false
 
         processItemsWithFallback { entry ->
@@ -519,9 +515,17 @@ class TrackblazerShopList(private val game: Game) {
      */
     fun processItemsWithFallback(callback: (ScrollListEntry) -> Boolean): Boolean {
         val sourceBitmap = game.imageUtils.getSourceBitmap()
-        
-        // Step 1: Check if this is a non-scrollable case by looking for buttons directly.
-        // This is much more reliable than relying on ScrollList corner detection for small dialogs.
+        val list = if (ButtonConfirmUse.check(game.imageUtils, sourceBitmap = sourceBitmap)) {
+            // Training Items dialog detected.
+            ScrollList.create(
+                game,
+                bitmap = sourceBitmap,
+                listTopLeftComponent = IconDialogScrollListTopLeft,
+                listBottomRightComponent = IconDialogScrollListBottomRight
+            )
+        } else {
+            ScrollList.create(game, bitmap = sourceBitmap)
+        }
         val nonScrollableEntries = getEntriesNonScrollable(sourceBitmap)
         if (nonScrollableEntries.isNotEmpty()) {
             MessageLog.d(TAG, "[TRACKBLAZER] Using non-scrollable entry detection.")

@@ -625,6 +625,7 @@ class ScrollList private constructor(
      *
      * @param maxTimeMs The maximum runtime for this process before it times out.
      * @param bScrollBottomToTop Whether to process the list in reverse order.
+     * @param keyExtractor Optional callback that extracts a unique key for each entry to avoid processing duplicates.
      * @param onEntry A callback function that is called for each detected entry.
      * This callback can return TRUE to force this loop to exit early; before
      * finishing the list. See [OnEntryDetectedCallback] for more info.
@@ -634,6 +635,7 @@ class ScrollList private constructor(
     fun process(
         maxTimeMs: Int = MAX_PROCESS_TIME_DEFAULT_MS,
         bScrollBottomToTop: Boolean = false,
+        keyExtractor: ((ScrollListEntry) -> String?)? = null,
         onEntry: OnEntryDetectedCallback,
     ): Boolean {
         var bitmap = game.imageUtils.getSourceBitmap()
@@ -648,6 +650,9 @@ class ScrollList private constructor(
         val entryBboxes: MutableList<BoundingBox> = mutableListOf()
         // Used as break point.
         var prevThumbY: Int? = null
+
+        // Set of keys for entries that have already been processed to avoid duplicates across scrolls.
+        val processedKeys = mutableSetOf<String>()
 
         var index = 0
         while (System.currentTimeMillis() - startTime < maxTimeMs) {
@@ -671,7 +676,20 @@ class ScrollList private constructor(
                     return false
                 }
 
-                if (onEntry(this, ScrollListEntry(index++, cropped, bbox))) {
+                val entry = ScrollListEntry(index++, cropped, bbox)
+
+                // Skip this entry if we've already processed it based on its unique key.
+                if (keyExtractor != null) {
+                    val key = keyExtractor(entry)
+                    if (key != null) {
+                        if (processedKeys.contains(key)) {
+                            continue
+                        }
+                        processedKeys.add(key)
+                    }
+                }
+
+                if (onEntry(this, entry)) {
                     MessageLog.d(TAG, "onEntry callback returned TRUE for entry $index. Exiting loop.")
                     return true
                 }
