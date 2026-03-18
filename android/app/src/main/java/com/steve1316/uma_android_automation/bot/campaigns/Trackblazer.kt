@@ -1092,10 +1092,8 @@ class Trackblazer(game: Game) : Campaign(game) {
      */
     private fun handleInlineUsage(trainee: Trainee, itemName: String, entry: ScrollListEntry, isDisabled: Boolean, trainingSelected: StatName?, nextInventory: MutableMap<String, Int>): Boolean {
         if (isDisabled) return false
-        
-        // 1. Megaphone Check. (Legacy: Megaphones are now handled in manageInventoryItems)
 
-        // 2. Ankle Weights Check.
+        // Ankle Weights Check.
         if (date.day >= 13 && trainingSelected != null) {
             val neededWeight = when (trainingSelected) {
                 StatName.SPEED -> "Speed Ankle Weights"
@@ -1111,7 +1109,7 @@ class Trackblazer(game: Game) : Campaign(game) {
             }
         }
 
-        // 3. Good-Luck Charm Check.
+        // Good-Luck Charm Check.
         val failureChance = training.trainingMap[trainingSelected]?.failureChance ?: 0
         if (date.day >= 13 && !bUsedCharmToday && failureChance >= 20 && itemName == "Good-Luck Charm") {
             if (clickItemPlusButton(itemName, entry, "Queuing Good-Luck Charm via inline pass.", nextInventory)) {
@@ -1120,7 +1118,7 @@ class Trackblazer(game: Game) : Campaign(game) {
             }
         }
 
-        // 4. Energy Items Check. (Only one per pass)
+        // Energy Items Check (Only one per pass).
         if (trainee.energy <= energyThresholdToUseEnergyItems && shopList.energyItemNames.contains(itemName)) {
             val gainMap = mapOf("Vita 65" to 65, "Vita 40" to 40, "Vita 20" to 20)
             val gain = gainMap[itemName] ?: 0
@@ -1132,7 +1130,27 @@ class Trackblazer(game: Game) : Campaign(game) {
             }
         }
 
-        // 5. Mood Items Check.
+        // Royal Kale Juice Check.
+        if (itemName == "Royal Kale Juice") {
+            val hasMoodItems = nextInventory.any { (name, count) -> count > 0 && (name == "Berry Sweet Cupcake" || name == "Plain Cupcake") }
+            val shouldUse = if (trainee.energy <= 20) {
+                true
+            } else if (trainee.energy <= energyThresholdToUseEnergyItems) {
+                hasMoodItems
+            } else {
+                false
+            }
+
+            if (shouldUse) {
+                if (clickItemPlusButton(itemName, entry, "Queuing $itemName for use (Energy: ${trainee.energy}%, Mood: ${trainee.mood}).", nextInventory)) {
+                    trainee.energy = (trainee.energy + 100).coerceAtMost(100)
+                    trainee.mood = trainee.mood.decrement()
+                    return true
+                }
+            }
+        }
+
+        // Mood Items Check.
         if (trainee.mood.ordinal <= Mood.BAD.ordinal && (itemName == "Berry Sweet Cupcake" || itemName == "Plain Cupcake")) {
             // Very simple inline mood: use the first one seen.
             if (clickItemPlusButton(itemName, entry, "Queuing $itemName for mood recovery.", nextInventory)) {
