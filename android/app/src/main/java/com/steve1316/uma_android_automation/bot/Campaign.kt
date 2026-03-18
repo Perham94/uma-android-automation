@@ -147,6 +147,7 @@ abstract class Campaign(game: Game) : Task(game) {
             "debugMode_startMainScreenOCRTest" to ::startMainScreenOCRTest,
             "debugMode_startTrainingScreenOCRTest" to ::startTrainingScreenOCRTest,
             "debugMode_startScrollBarDetectionTest" to ::startScrollBarDetectionTest,
+            "debugMode_startSkillListBuyTest" to skillPlan::startSkillListBuyTest,
         )
 
         var bDidAnyTestsRun: Boolean = false

@@ -781,7 +781,70 @@ class SkillPlan (private val game: Game, private val campaign: Campaign) {
         }
 
         skillList.confirmAndExit()
-
         return true
+    }
+
+    /** Processes the list of skills in the Skills screen, reads all skills in the list,
+     * logs a summary and then logs another summary of which skills it will buy
+     * to bring down the current Skill Points as close to zero as possible.
+     */
+    fun startSkillListBuyTest() {
+        MessageLog.i(TAG, "\n[TEST] Now beginning Skill List Buy test.")
+
+        val skillList = SkillList(game, campaign)
+
+        // Verify we are on the Skill List screen.
+        if (!skillList.checkSkillListScreen()) {
+            MessageLog.e(TAG, "[TEST] Not on the Skill List screen. Ending test.")
+            return
+        }
+
+        // Detect current skill points.
+        val currentPoints = skillList.detectSkillPoints()
+        if (currentPoints == null) {
+            MessageLog.e(TAG, "[TEST] Failed to detect skill points. Ending test.")
+            return
+        }
+        MessageLog.i(TAG, "[TEST] Current Skill Points: $currentPoints")
+
+        // Parse all skill entries.
+        MessageLog.i(TAG, "[TEST] Scanning skill list...")
+        // Use mock data if enabled for testing this logic without a real game.
+        val allSkills = skillList.parseSkillListEntries(bUseMockData = USE_MOCK_DATA)
+
+        val availableSkills = allSkills.filter { !it.value.bIsObtained && !it.value.bIsVirtual }
+
+        // Log summary of all detected available skills.
+        MessageLog.i(TAG, "[TEST] Summary of available skills:")
+        availableSkills.forEach { (name, entry) ->
+            MessageLog.i(TAG, "\t- $name: ${entry.price} SP")
+        }
+
+        // Calculate "optimal" purchases (greedy approach to minimize remaining points).
+        // We want to get as close to zero as possible.
+        // A simple greedy approach starting from the most expensive skills is often a good heuristic for "spending as much as possible".
+        val sortedSkills = availableSkills.values.toList().sortedByDescending { it.price }
+
+        val skillsToBuy = mutableListOf<SkillListEntry>()
+        var remainingPoints = currentPoints
+
+        for (skill in sortedSkills) {
+            if (skill.price <= remainingPoints) {
+                skillsToBuy.add(skill)
+                remainingPoints -= skill.price
+            }
+        }
+
+        // Log summary of skills that would be bought.
+        MessageLog.i(TAG, "[TEST] Identified skills that would be bought to bring SP close to zero:")
+        if (skillsToBuy.isEmpty()) {
+            MessageLog.i(TAG, "\t- No skills can be bought with current SP.")
+        } else {
+            skillsToBuy.forEach { skill ->
+                MessageLog.i(TAG, "\t- ${skill.name}: ${skill.price} SP")
+            }
+        }
+        MessageLog.i(TAG, "[TEST] Expected remaining Skill Points: $remainingPoints")
+        MessageLog.i(TAG, "[TEST] Skill List Buy test complete.")
     }
 }
