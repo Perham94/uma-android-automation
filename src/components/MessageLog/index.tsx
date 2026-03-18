@@ -348,6 +348,9 @@ ${longTargetsString}
                 : ""
         }
 
+---------- Scenario Overrides ----------
+🏁 Trackblazer Consecutive Races Limit: ${settings.scenarioOverrides?.trackblazerConsecutiveRacesLimit}
+
 ---------- Misc Options ----------
 🔍 Popup Check: ${settings.general.enablePopupCheck ? "✅" : "❌"}
 🔍 Enable Crane Game Attempt: ${settings.general.enableCraneGameAttempt ? "✅" : "❌"}

@@ -184,6 +184,11 @@ export interface Settings {
         discordToken: string
         discordUserID: string
     }
+
+    // Scenario specific overrides
+    scenarioOverrides: {
+        trackblazerConsecutiveRacesLimit: number
+    }
 }
 
 // Set the default settings.
@@ -383,6 +388,9 @@ export const defaultSettings: Settings = {
         enableDiscordNotifications: false,
         discordToken: "",
         discordUserID: "",
+    },
+    scenarioOverrides: {
+        trackblazerConsecutiveRacesLimit: 5,
     },
 }
 
