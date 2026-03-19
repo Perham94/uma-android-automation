@@ -1470,8 +1470,15 @@ abstract class Campaign(game: Game) : Task(game) {
                     }
                     throw IllegalStateException()
                 }
-                racing.raceRetries--
-                result.dialog.ok(game.imageUtils)
+                if (racing.raceRetries >= 0) {
+                    MessageLog.i(TAG, "[RACE] Retrying the race. Retries remaining: ${racing.raceRetries}")
+                    racing.raceRetries--
+                    game.wait(0.5)
+                    ButtonTryAgain.click(game.imageUtils)
+                } else {
+                    MessageLog.w(TAG, "[RACE] No retries remaining but Try Again dialog detected. Closing dialog...")
+                    result.dialog.close(game.imageUtils)
+                }
             }
             "umamusume_class" -> {
                 val bitmap: Bitmap = game.imageUtils.getSourceBitmap()

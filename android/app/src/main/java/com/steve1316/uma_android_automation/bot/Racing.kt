@@ -296,9 +296,13 @@ class Racing (private val game: Game, private val campaign: Campaign) {
      * @return True if the mandatory/extra race was completed successfully. Otherwise false.
      */
     fun handleRaceEvents(isScheduledRace: Boolean = false): Boolean {
-        lastRaceGrade = null
-		lastRaceIsRival = false
-		bRetriedCurrentRace = false
+        // If the bot is already at the Race List screen and a race has already been selected,
+        // we should not reset the flags as they may have been set somewhere else.
+        if (!ButtonRace.check(game.imageUtils)) {
+            lastRaceGrade = null
+            lastRaceIsRival = false
+            bRetriedCurrentRace = false
+        }
         MessageLog.i(TAG, "\n********************")
         MessageLog.i(TAG, "[RACE] Starting Racing process on ${campaign.date}.")
 
@@ -2077,32 +2081,32 @@ class Racing (private val game: Game, private val campaign: Campaign) {
                     game.wait(1.0)
 
                     // After closing the popup, check if we can retry a G1 race.
-                    if (lastRaceGrade == RaceGrade.G1 && ButtonTryAgain.checkDisabled(game.imageUtils) == false) {
+                    if (lastRaceGrade == RaceGrade.G1 && ButtonTryAgainAlt.checkDisabled(game.imageUtils) == false) {
                         MessageLog.i(TAG, "[RACE] [TRACKBLAZER] G1 race detected and retry button is available. Retrying...")
-                        if (ButtonTryAgain.click(game.imageUtils)) {
+                        if (ButtonTryAgainAlt.click(game.imageUtils)) {
                             game.wait(3.0)
                         }
-                    } else if (lastRaceIsRival && !bRetriedCurrentRace && ButtonTryAgain.checkDisabled(game.imageUtils) == false) {
+                    } else if (lastRaceIsRival && !bRetriedCurrentRace && ButtonTryAgainAlt.checkDisabled(game.imageUtils) == false) {
                         // Trackblazer Rival Race retry logic: retry once then stop.
                         MessageLog.i(TAG, "[RACE] [TRACKBLAZER] Rival Race retry button is available. Retrying once...")
                         bRetriedCurrentRace = true
-                        if (ButtonTryAgain.click(game.imageUtils)) {
+                        if (ButtonTryAgainAlt.click(game.imageUtils)) {
                             game.wait(3.0)
                         }
                     }
                 }
-                game.scenario == "Trackblazer" && lastRaceGrade == RaceGrade.G1 && ButtonTryAgain.checkDisabled(game.imageUtils, sourceBitmap = bitmap) == false -> {
+                game.scenario == "Trackblazer" && lastRaceGrade == RaceGrade.G1 && ButtonTryAgainAlt.checkDisabled(game.imageUtils, sourceBitmap = bitmap) == false -> {
                     // Check if we can retry a G1 race even if no popup appeared.
                     MessageLog.i(TAG, "[RACE] [TRACKBLAZER] G1 race detected and retry button is available. Retrying...")
-                    if (ButtonTryAgain.click(game.imageUtils, sourceBitmap = bitmap)) {
+                    if (ButtonTryAgainAlt.click(game.imageUtils, sourceBitmap = bitmap)) {
                         game.wait(3.0)
                     }
                 }
-                game.scenario == "Trackblazer" && lastRaceIsRival && !bRetriedCurrentRace && ButtonTryAgain.checkDisabled(game.imageUtils, sourceBitmap = bitmap) == false -> {
+                game.scenario == "Trackblazer" && lastRaceIsRival && !bRetriedCurrentRace && ButtonTryAgainAlt.checkDisabled(game.imageUtils, sourceBitmap = bitmap) == false -> {
                     // Trackblazer Rival Race retry logic even if no popup appeared.
                     MessageLog.i(TAG, "[RACE] [TRACKBLAZER] Rival Race retry button is available. Retrying once...")
                     bRetriedCurrentRace = true
-                    if (ButtonTryAgain.click(game.imageUtils, sourceBitmap = bitmap)) {
+                    if (ButtonTryAgainAlt.click(game.imageUtils, sourceBitmap = bitmap)) {
                         game.wait(3.0)
                     }
                 }

@@ -223,6 +223,28 @@ class Trackblazer(game: Game) : Campaign(game) {
 				}
 				return DialogHandlerResult.Handled(detectedDialog)
             }
+            "try_again" -> {
+                // Specialized Trackblazer retry logic.
+                if (racing.lastRaceIsRival && !racing.bRetriedCurrentRace) {
+                    MessageLog.i(TAG, "[RACE] [TRACKBLAZER] Rival Race retry button is available. Retrying once...")
+                    racing.bRetriedCurrentRace = true
+                    if (detectedDialog.ok(game.imageUtils)) {
+                        game.wait(1.0)
+                    }
+                    return DialogHandlerResult.Handled(detectedDialog)
+                } else if (racing.lastRaceGrade == RaceGrade.G1 && racing.raceRetries >= 0) {
+                    MessageLog.i(TAG, "[RACE] [TRACKBLAZER] G1 race retry button is available. Retrying...")
+                    racing.raceRetries--
+                    if (detectedDialog.ok(game.imageUtils)) {
+                        game.wait(1.0)
+                    }
+                    return DialogHandlerResult.Handled(detectedDialog)
+                } else {
+                    MessageLog.w(TAG, "[RACE] [TRACKBLAZER] No retries remaining for this race. Closing dialog...")
+                    detectedDialog.close(game.imageUtils)
+                    return DialogHandlerResult.Handled(detectedDialog)
+                }
+            }
             else -> {
                 Log.w(TAG, "[DIALOG] Unknown dialog \"${detectedDialog.name}\" detected so it will not be handled.")
                 return DialogHandlerResult.Unhandled(detectedDialog)
