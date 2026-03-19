@@ -1007,8 +1007,7 @@ class Trackblazer(game: Game) : Campaign(game) {
                                 anyUsed = true
                             }
                         } else if (trainee != null) {
-                            // Handle Energy, Mood, Ankle Weights, Charm, etc.
-                            // Megaphones are NOT handled here to ensure the best one is selected after the scan.
+                            // Handle Energy, Mood, Ankle Weights, Charm, Megaphones, etc.
                             if (handleInlineUsage(trainee, itemName, entry, isDisabled, trainingSelected, nextInventory)) {
                                 anyUsed = true
                             }
@@ -1047,19 +1046,6 @@ class Trackblazer(game: Game) : Campaign(game) {
         // Print the categorized inventory summary.
         printCurrentInventory()
 
-		// Perform megaphone usage AFTER the scan to ensure the best one is used if available.
-		if (!bQuickUseOnly && !bDryRun && trainee != null && trainingSelected != null && trainee.megaphoneTurnCounter == 0) {
-			val megaphoneUsed = shopList.useBestMegaphone(scannedItemsList)
-			if (megaphoneUsed != null) {
-				trainee.megaphoneTurnCounter = when (megaphoneUsed) {
-					"Empowering Megaphone" -> 2
-					"Motivating Megaphone" -> 3
-					"Coaching Megaphone" -> 4
-					else -> 0
-				}
-				anyUsed = true
-			}
-		}
 
         finalizeManageInventoryItems(anyUsed, bDryRun)
     }
@@ -1134,6 +1120,34 @@ class Trackblazer(game: Game) : Campaign(game) {
                 trainee.mood = if (itemName == "Berry Sweet Cupcake") Mood.GOOD else Mood.NORMAL 
                 return true
             }
+        }
+
+        // Megaphone Check.
+		val megaphoneNames = listOf("Empowering Megaphone", "Motivating Megaphone", "Coaching Megaphone")
+        if (trainee.megaphoneTurnCounter == 0 && trainingSelected != null && megaphoneNames.contains(itemName)) {
+			// Check if there is a better megaphone in inventory that we haven't seen yet OR that we know is disabled.
+			val betterMegaphones = when (itemName) {
+				"Motivating Megaphone" -> listOf("Empowering Megaphone")
+				"Coaching Megaphone" -> listOf("Empowering Megaphone", "Motivating Megaphone")
+				else -> emptyList()
+			}
+
+			// We check both the updated scan result (nextInventory) AND the persistent disabledItems cache.
+			val hasBetterAvailable = betterMegaphones.any { better ->
+				(nextInventory[better] ?: 0) > 0 && !disabledItems.contains(better)
+			}
+
+			if (!hasBetterAvailable) {
+				if (clickItemPlusButton(itemName, entry, "Queuing best available megaphone: \"$itemName\".", nextInventory)) {
+					trainee.megaphoneTurnCounter = when (itemName) {
+						"Empowering Megaphone" -> 2
+						"Motivating Megaphone" -> 3
+						"Coaching Megaphone" -> 4
+						else -> 0
+					}
+					return true
+				}
+			}
         }
 
         return false
