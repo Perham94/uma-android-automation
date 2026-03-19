@@ -600,7 +600,7 @@ class Trackblazer(game: Game) : Campaign(game) {
 			if (handleDialogs(DialogExchangeComplete, args = mapOf("itemsBought" to itemsBought)) is DialogHandlerResult.Handled) {
 				MessageLog.i(TAG, "Successfully handled \"Exchange Complete\" dialog.")
                 ButtonBack.click(game.imageUtils)
-                game.wait(0.5)
+                game.wait(2.0)
 			}
 
 			// Update internal coins count via OCR after purchase.
