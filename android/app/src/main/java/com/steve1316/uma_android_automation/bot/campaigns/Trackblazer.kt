@@ -714,11 +714,11 @@ class Trackblazer(game: Game) : Campaign(game) {
 		game.wait(game.dialogWaitDelay)
 		ButtonUseTrainingItems.click(game.imageUtils)
 		// Lengthy delay here for the animation to finish.
-		game.wait(5.0)
+		game.wait(3.0)
 
 		// Finalize by closing the dialog.
 		MessageLog.i(TAG, "Closing training items dialog.")
-		if (ButtonClose.click(game.imageUtils, tries = 30)) {
+		if (ButtonClose.click(game.imageUtils, tries = 50)) {
 			game.wait(game.dialogWaitDelay)
 		}
 	}
