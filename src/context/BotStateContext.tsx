@@ -110,6 +110,7 @@ export interface Settings {
         trainWitDuringFinale: boolean
         enablePrioritizeSkillHints: boolean
         enableTrainingAnalysisValidation: boolean
+        enableYoloStatDetection: boolean
     }
 
     // Training Stat Target settings
@@ -330,6 +331,7 @@ export const defaultSettings: Settings = {
         trainWitDuringFinale: false,
         enablePrioritizeSkillHints: false,
         enableTrainingAnalysisValidation: false,
+        enableYoloStatDetection: false,
     },
     trainingStatTarget: {
         trainingSprintStatTarget_speedStatTarget: 900,
