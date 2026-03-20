@@ -71,6 +71,7 @@ object LogStreamServer {
 
 	// Pattern for matching logs: "00:12:34.567 [DEBUG] message content".
 	private val logPattern = Pattern.compile("^(\\n?)([\\d]{2}:[\\d]{2}:[\\d]{2}\\.[\\d]{3})\\s*\\[(VERBOSE|DEBUG|INFO|WARN|ERROR)\\]\\s*(.*)", Pattern.DOTALL)
+	private var isPreDebut: Boolean = false
 
 	// Regex patterns for structured detail extraction.
 	private val actionTrainingPattern = Pattern.compile("\\[TRAINING\\] Now starting process to execute training")
@@ -80,6 +81,9 @@ object LogStreamServer {
 	private val actionInjuryPattern = Pattern.compile("\\[INJURY\\] Injury detected and attempted to heal")
 	private val traineePattern = Pattern.compile("\\[TRAINEE\\] ([^:]+): (.*)")
 	private val dateNewPattern = Pattern.compile("\\[DATE\\] New date: (.*?) \\(Turn (\\d+)\\)", Pattern.CASE_INSENSITIVE)
+	private val dateDetectedPattern = Pattern.compile("Detected date: (.*)", Pattern.CASE_INSENSITIVE)
+	private val turnsRemainingPattern = Pattern.compile("Detected day for extra racing: (\\d+)", Pattern.CASE_INSENSITIVE)
+	private val turnsRemainingRaceDayPattern = Pattern.compile("Detected Race Day for extra racing:", Pattern.CASE_INSENSITIVE)
 
 	/**
 	 * Represents a parsed log entry for structured transmission.
@@ -539,6 +543,9 @@ object LogStreamServer {
 			val trainee = parseTraineeInfo(text)
 			val dateInfo = if (text.contains("[DATE]") ||
 				text.contains("New date:", ignoreCase = true) ||
+				text.contains("Detected date:", ignoreCase = true) ||
+				text.contains("Detected day for extra racing:", ignoreCase = true) ||
+				text.contains("Detected Race Day for extra racing:", ignoreCase = true) ||
 				text.contains("Turn", ignoreCase = true)
 			) {
 				parseDateInfo(text)
@@ -601,25 +608,92 @@ object LogStreamServer {
 	 * @return A JSONObject containing the date and turn if detected, otherwise NULL.
 	 */
 	private fun parseDateInfo(text: String): JSONObject? {
-		val matcher = dateNewPattern.matcher(text)
-		return if (matcher.find()) {
-			val date = matcher.group(1)?.trim() ?: ""
-			val turn = matcher.group(2) ?: ""
+		// Priority 1: Main bot date update log.
+		val newDateMatcher = dateNewPattern.matcher(text)
+		if (newDateMatcher.find()) {
+			val date = newDateMatcher.group(1)?.trim() ?: ""
+			val turn = newDateMatcher.group(2) ?: ""
 
-			JSONObject().apply {
+			// Update state.
+			isPreDebut = (turn.toIntOrNull() ?: 13) <= 12
+
+			return JSONObject().apply {
 				put("date", date)
 				put("turn", turn)
 			}
-		} else {
-			// Fallback: If no "[DATE] New date:" prefix but contains "(Turn X)", try extracting just the turn.
-			val turnOnlyPattern = Pattern.compile("\\(Turn (\\d+)\\)", Pattern.CASE_INSENSITIVE)
-			val turnMatcher = turnOnlyPattern.matcher(text)
-			if (turnMatcher.find()) {
-				JSONObject().apply {
-					put("turn", turnMatcher.group(1))
-				}
-			} else null
 		}
+
+		// Priority 2: Pre-Debut translation.
+		// If we detect turns remaining during pre-debut, we can calculate the absolute turn and date.
+		val turnsRemainingMatcher = turnsRemainingPattern.matcher(text)
+		if (turnsRemainingMatcher.find()) {
+			if (isPreDebut) {
+				val turnsLeft = turnsRemainingMatcher.group(1)?.toIntOrNull() ?: -1
+				if (turnsLeft != -1) {
+					val turn = (12 - turnsLeft).coerceIn(1, 12)
+					val date = dateFromDay(turn)
+					return JSONObject().apply {
+						put("date", date)
+						put("turn", turn.toString())
+					}
+				}
+			}
+		}
+
+		val turnsRemainingRaceDayMatcher = turnsRemainingRaceDayPattern.matcher(text)
+		if (turnsRemainingRaceDayMatcher.find()) {
+			if (isPreDebut) {
+				val turn = 12
+				val date = dateFromDay(turn)
+				return JSONObject().apply {
+					put("date", date)
+					put("turn", turn.toString())
+				}
+			}
+		}
+
+		// Priority 3: Raw OCR date detection log.
+		val detectedDateMatcher = dateDetectedPattern.matcher(text)
+		if (detectedDateMatcher.find()) {
+			val date = detectedDateMatcher.group(1)?.trim() ?: ""
+			// If it's the pre-debut string, ignore it and wait for the turn calculation log.
+			if (date.contains("debut", ignoreCase = true)) {
+				isPreDebut = true
+				return null
+			}
+
+			isPreDebut = false
+
+			return JSONObject().apply {
+				put("date", date)
+			}
+		}
+
+		// Priority 4: Fallback for any log containing turn info like "... (Turn X)".
+		val turnOnlyPattern = Pattern.compile("(.*?)\\s*\\(Turn (\\d+)\\)", Pattern.CASE_INSENSITIVE)
+		val turnMatcher = turnOnlyPattern.matcher(text)
+		if (turnMatcher.find()) {
+			val prefix = turnMatcher.group(1) ?: ""
+			val turn = turnMatcher.group(2) ?: ""
+
+			// Update state based on absolute turn number.
+			isPreDebut = (turn.toIntOrNull() ?: 13) <= 12
+
+			// Try to extract date from prefix if it looks like a date string.
+			// Common pattern: "fromDateString:: Detected Junior Year Early January (Turn 1)"
+			val date = if (prefix.contains("Detected ", ignoreCase = true)) {
+				prefix.substringAfter("Detected ", "").trim()
+			} else {
+				""
+			}
+
+			return JSONObject().apply {
+				if (date.isNotEmpty()) put("date", date)
+				put("turn", turn)
+			}
+		}
+
+		return null
 	}
 
 	/**
