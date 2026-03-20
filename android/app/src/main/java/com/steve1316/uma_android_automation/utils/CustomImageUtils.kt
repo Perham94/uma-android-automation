@@ -51,6 +51,7 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
 	override var confidence: Double = SettingsHelper.getStringSetting("debug", "templateMatchConfidence").toDouble()
 	override var customScale: Double = SettingsHelper.getStringSetting("debug", "templateMatchCustomScale").toDouble()
     private val manualStatCap: Int = SettingsHelper.getIntSetting("training", "manualStatCap")
+    private val useYolo: Boolean get() = SettingsHelper.getBooleanSetting("training", "enableYoloStatDetection")
 
 	////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////
@@ -111,6 +112,22 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
 		initTesseract("eng.traineddata")
 		SharedData.templateSubfolderPathName = "images/"
 	}
+
+    companion object {
+        @Volatile
+        private var yoloDetectorInstance: YoloDetector? = null
+
+        /**
+         * Returns the singleton YoloDetector instance, initializing it if necessary.
+         *
+         * @param context Android context for asset loading.
+         * @return The YoloDetector instance.
+         */
+        fun getYoloDetector(context: Context): YoloDetector =
+            yoloDetectorInstance ?: synchronized(this) {
+                yoloDetectorInstance ?: YoloDetector(context).also { yoloDetectorInstance = it }
+            }
+    }
 
 	/**
 	 * Find all occurrences of the specified image in the images folder using a provided source bitmap. Useful for parallel processing to avoid exceeding the maxImages buffer.
@@ -1384,24 +1401,59 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
 								val effectType = if (statName == trainingName) "main-effect" else "side-effect"
 								val trainingContext = "${trainingName.name} training for ${statName.name} $effectType"
 
-								// Process templates for this row using the row's specific suffix.
-								for (templateName in rowTemplates) {
-									// Check before each template processing operation.
-									if (!BotService.isRunning) {
-										processingFailed = true
-										break
-									}
-									val templateBitmap = templateBitmaps[templateName]
-									if (templateBitmap != null) {
-										val processedMatches = processStatGainTemplateWithTransparency(templateName, templateBitmap, rowWorking, mutableMapOf<String, MutableList<Point>>().apply {
-											rowTemplates.forEach { t -> this[t] = mutableListOf() }
-										}, row.rowName, trainingContext)
-										// Store original matches for this row (for debug visualization).
-										processedMatches[templateName]?.forEach { point ->
-											rowMatches[templateName]?.add(point)
+                                // Process results based on detection method.
+								if (useYolo) {
+									val yolo = getYoloDetector(context)
+									val detections = yolo.detect(rowBitmap)
+									
+									// Parse YOLO detections into rowMatches for compatibility with constructIntegerFromMatches
+									// and debug visualization.
+									val sortedDetections = detections.sortedBy { it.x }
+									var resultString = ""
+									for (detection in sortedDetections) {
+										val label = detection.label
+										resultString += label
+										
+										// Fake a template matching result by populating rowMatches.
+										// The constructIntegerFromMatches logic expects a template name including suffix.
+										val templateName = label + row.templateSuffix
+										if (!rowMatches.containsKey(templateName)) {
+											rowMatches[templateName] = mutableListOf()
 										}
-									} else {
-										Log.e(TAG, "[ERROR] Could not load template \"$templateName\" to process stat gains for $trainingName training.")
+										// We use the coordinates from YOLO (scaled back to rowBitmap space or just the raw detection coords).
+										rowMatches[templateName]?.add(Point(detection.x.toDouble(), detection.y.toDouble()))
+									}
+									
+									if (resultString.isNotEmpty()) {
+										Log.i(TAG, "[YOLO] Detections for $statName ${row.rowName}: $resultString")
+									}
+								} else {
+									// Process templates for this row using the row's specific suffix.
+									for (templateName in rowTemplates) {
+										// Check before each template processing operation.
+										if (!BotService.isRunning) {
+											processingFailed = true
+											break
+										}
+										val templateBitmap = templateBitmaps[templateName]
+										if (templateBitmap != null) {
+											val processedMatches = processStatGainTemplateWithTransparency(
+												templateName,
+												templateBitmap,
+												rowWorking,
+												mutableMapOf<String, MutableList<Point>>().apply {
+													rowTemplates.forEach { t -> this[t] = mutableListOf() }
+												},
+												row.rowName,
+												trainingContext
+											)
+											// Store original matches for this row (for debug visualization).
+											processedMatches[templateName]?.forEach { point ->
+												rowMatches[templateName]?.add(point)
+											}
+										} else {
+											Log.e(TAG, "[ERROR] Could not load template \"$templateName\" to process stat gains for $trainingName training.")
+										}
 									}
 								}
 
