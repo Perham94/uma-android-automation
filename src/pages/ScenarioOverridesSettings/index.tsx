@@ -47,7 +47,7 @@ const ScenarioOverridesSettings = () => {
                     backgroundColor: colors.background,
                 },
                 section: {
-                    marginBottom: 24,
+                    marginBottom: 8,
                 },
             }),
         [colors]
