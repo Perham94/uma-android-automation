@@ -44,7 +44,7 @@ const Home = () => {
     usePerformanceLogging("Home")
     const { StartModule } = NativeModules
 
-    const { isDark, colors } = useTheme()
+    const { colors } = useTheme()
     const [isRunning, setIsRunning] = useState<boolean>(false)
     const [showNotReadyDialog, setShowNotReadyDialog] = useState<boolean>(false)
     const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false)
