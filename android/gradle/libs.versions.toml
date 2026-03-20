@@ -17,6 +17,7 @@ kotlinGradlePlugin = "2.2.0"
 androidCvAutomationLibrary = "2.5.1"
 lottie = "6.6.9"
 ktor = "3.4.1"
+onnxruntime = "1.24.3"
 
 [libraries]
 androidGradleBuildTools = { group = "com.android.tools.build", name = "gradle", version.ref = "androidGradleBuildTools" }
@@ -31,6 +32,7 @@ ktor-server-cio = { module = "io.ktor:ktor-server-cio", version.ref = "ktor" }
 ktor-server-websockets = { module = "io.ktor:ktor-server-websockets", version.ref = "ktor" }
 react-android = { module = "com.facebook.react:react-android" }
 hermes-android = { module = "com.facebook.react:hermes-android" }
+onnxruntime = { module = "com.microsoft.onnxruntime:onnxruntime-android", version.ref = "onnxruntime" }
 
 [plugins]
 foojayJDKResolver = { id = "org.gradle.toolchains.foojay-resolver-convention", version = "1.0.0" }

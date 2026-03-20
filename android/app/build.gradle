@@ -227,6 +227,9 @@ dependencies {
     // Unit testing.
     testImplementation(libs.junit.jupiter)
     testRuntimeOnly(libs.junit.platform.launcher)
+
+    // ONNX Runtime for YOLOv8 inference.
+    implementation(libs.onnxruntime)
 }
 
 // ============================================================================
