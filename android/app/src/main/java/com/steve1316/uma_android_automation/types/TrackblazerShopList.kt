@@ -325,10 +325,11 @@ class TrackblazerShopList(private val game: Game) {
 	 *
 	 * @param priorityList An ordered list of item names to buy.
 	 * @param currentCoins The current amount of Shop Coins available.
+	 * @param inventoryLimits A map of item names to the maximum amount that can be bought for each.
 	 * @param bDryRun If true, only logs intentions without performing any clicks.
 	 * @return A list of successfully purchased items.
 	 */
-	fun buyItems(priorityList: List<String>, currentCoins: Int, bDryRun: Boolean = false): List<String> {
+	fun buyItems(priorityList: List<String>, currentCoins: Int, inventoryLimits: Map<String, Int>, bDryRun: Boolean = false): List<String> {
 		if (priorityList.isEmpty()) {
 			MessageLog.i(TAG, "Priority list is empty. No items to buy.")
 			return emptyList()
@@ -364,20 +365,29 @@ class TrackblazerShopList(private val game: Game) {
 		
 		val tempAvailable = availableInShop.toMutableList()
 		for (item in priorityList) {
-			val availableIndex = tempAvailable.indexOfFirst { it.first == item }
-			if (availableIndex != -1) {
-				val foundItem = tempAvailable[availableIndex]
-				val price = foundItem.second
-				if (remainingCoinsAfterProposed >= price) {
-					itemsToBuy.add(foundItem)
-					remainingCoinsAfterProposed -= price
-					// Remove from temp list so we don't buy the same SLOT twice for one priority entry.
-					tempAvailable.removeAt(availableIndex)
+			val limit = inventoryLimits[item] ?: 0
+			if (limit <= 0) continue
+
+			var boughtCount = 0
+			while (boughtCount < limit) {
+				val availableIndex = tempAvailable.indexOfFirst { it.first == item }
+				if (availableIndex != -1) {
+					val foundItem = tempAvailable[availableIndex]
+					val price = foundItem.second
+					if (remainingCoinsAfterProposed >= price) {
+						itemsToBuy.add(foundItem)
+						remainingCoinsAfterProposed -= price
+						// Remove from temp list so we don't buy the same SLOT twice for one priority entry.
+						tempAvailable.removeAt(availableIndex)
+						boughtCount++
+					} else {
+						skippedItemsReasons[item] = "Too expensive ($price required, but only $remainingCoinsAfterProposed left)"
+						break
+					}
 				} else {
-					skippedItemsReasons[item] = "Too expensive ($price required, but only $remainingCoinsAfterProposed left)"
+					skippedItemsReasons[item] = if (boughtCount == 0) "Not found in shop" else "No more instances found in shop"
+					break
 				}
-			} else {
-				skippedItemsReasons[item] = "Not found in shop"
 			}
 		}
 		
@@ -528,18 +538,25 @@ class TrackblazerShopList(private val game: Game) {
                 // If we already used this name and aren't using all, skip.
                 if (!bUseAll && successfullyUsedNames.contains(name)) continue
                 
-                val itemIndex = tempScanned.indexOfFirst { it.itemName == name && !it.isDisabled }
-                if (itemIndex != -1) {
-                    val info = tempScanned[itemIndex]
-                    val plusButtonPoint = ButtonSkillUp.findImageWithBitmap(game.imageUtils, info.entry.bitmap)
-                    if (plusButtonPoint != null) {
-                        MessageLog.i(TAG, "Queuing specific item for use: \"$name\" (from pre-scanned).")
-                        game.tap(info.entry.bbox.x + plusButtonPoint.x, info.entry.bbox.y + plusButtonPoint.y)
-                        successfullyUsedNames.add(name)
-                        // Remove from temp list so we don't try to use the SAME instance twice.
-                        tempScanned.removeAt(itemIndex)
-                        
-                        if (!bUseAll) return successfullyUsedNames
+                // If using all, find all available instances of this name.
+                while (true) {
+                    val itemIndex = tempScanned.indexOfFirst { it.itemName == name && !it.isDisabled }
+                    if (itemIndex != -1) {
+                        val info = tempScanned[itemIndex]
+                        val plusButtonPoint = ButtonSkillUp.findImageWithBitmap(game.imageUtils, info.entry.bitmap)
+                        if (plusButtonPoint != null) {
+                            MessageLog.i(TAG, "Queuing specific item for use: \"$name\" (from pre-scanned).")
+                            game.tap(info.entry.bbox.x + plusButtonPoint.x, info.entry.bbox.y + plusButtonPoint.y)
+                            successfullyUsedNames.add(name)
+                            // Remove from temp list so we don't try to use the SAME instance twice.
+                            tempScanned.removeAt(itemIndex)
+                            
+                            if (!bUseAll) return successfullyUsedNames
+                        } else {
+                            break
+                        }
+                    } else {
+                        break
                     }
                 }
             }
@@ -556,7 +573,10 @@ class TrackblazerShopList(private val game: Game) {
 		) { entry ->
             val isDisabled = ButtonSkillUp.checkDisabled(game.imageUtils, entry.bitmap) == true
             val name = itemNameMapInUseSpecific[entry.index] ?: getShopItemName(entry, isDisabled)
-            if (name != null && itemNames.contains(name) && !successfullyUsedNames.contains(name)) {
+            
+            // If bUseAll is true, we allow using multiple items with the same name.
+            val alreadyUsedMatch = successfullyUsedNames.contains(name)
+            if (name != null && itemNames.contains(name) && (!alreadyUsedMatch || bUseAll)) {
                 // Check if the item's "+" button is disabled.
                 if (!isDisabled) {
                     val plusButtonPoint = ButtonSkillUp.findImageWithBitmap(game.imageUtils, entry.bitmap)

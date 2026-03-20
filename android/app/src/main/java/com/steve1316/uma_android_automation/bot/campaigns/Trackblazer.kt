@@ -586,27 +586,26 @@ class Trackblazer(game: Game) : Campaign(game) {
 		// Rule: Each item is limited to 5 in the inventory.
 		// Bad Condition items except Rich Hand Cream and Miracle Cure will be limited to 1 in our current inventory.
 		val nonPriorityBadConditions = listOf("Fluffy Pillow", "Pocket Planner", "Smart Scale", "Aroma Diffuser", "Practice Drills DVD")
-		val filteredPriorityList = finalPriorityList.filter { itemName ->
+		val inventoryLimits = finalPriorityList.associateWith { itemName ->
 			val itemCount = currentInventory[itemName] ?: 0
-			if (nonPriorityBadConditions.contains(itemName)) {
-				itemCount < 1
-			} else {
-				itemCount < 5
-			}
+			val maxLimit = if (nonPriorityBadConditions.contains(itemName)) 1 else 5
+			(maxLimit - itemCount).coerceAtLeast(0)
 		}
+		
+		val filteredPriorityList = finalPriorityList.filter { (inventoryLimits[it] ?: 0) > 0 }
 		
 		if (filteredPriorityList.isEmpty()) {
 			MessageLog.i(TAG, "Filtered priority list is empty. All priority items are either at their limit in the inventory or none were identified.")
 			printCurrentInventory()
 		} else if (bDryRun) {
             MessageLog.i(TAG, "[TEST] Dry Run: Identified items that would be bought: ${filteredPriorityList.joinToString(", ")}")
-            shopList.buyItems(filteredPriorityList, shopCoins, bDryRun = true)
+            shopList.buyItems(filteredPriorityList, shopCoins, inventoryLimits, bDryRun = true)
             return
         } else {
 			MessageLog.i(TAG, "Filtered priority list has ${filteredPriorityList.size} items to check in shop. Current coins: $shopCoins")
 		}
 		
-		val itemsBought = shopList.buyItems(filteredPriorityList, shopCoins)
+		val itemsBought = shopList.buyItems(filteredPriorityList, shopCoins, inventoryLimits)
 		if (itemsBought.isNotEmpty()) {
 			// Update internal inventory.
 			val nextInventory = currentInventory.toMutableMap()
