@@ -706,14 +706,20 @@ class Trackblazer(game: Game) : Campaign(game) {
 
 	/**
 	 * Confirms the usage of items and closes the Training Items dialog.
+	 *
+	 * @param itemsUsedCount The number of items used during this pass to determine the animation delay.
 	 */
-	private fun confirmAndCloseItemDialog() {
-		MessageLog.i(TAG, "Confirming usage of items.")
+	private fun confirmAndCloseItemDialog(itemsUsedCount: Int = 1) {
+		MessageLog.i(TAG, "Confirming usage of $itemsUsedCount items.")
 		ButtonConfirmUse.click(game.imageUtils)
 		game.wait(game.dialogWaitDelay)
 		ButtonUseTrainingItems.click(game.imageUtils)
+
 		// Lengthy delay here for the animation to finish.
-		game.wait(3.0)
+		// We increase the delay by a second for each additional item to be used after 3 items.
+		val animationDelay = if (itemsUsedCount > 3) 5.0 + (itemsUsedCount - 3) else 5.0
+		MessageLog.i(TAG, "Waiting for animation to finish (Delay: $animationDelay seconds)...")
+		game.wait(animationDelay)
 
 		// Finalize by closing the dialog.
 		MessageLog.i(TAG, "Closing training items dialog.")
@@ -790,7 +796,7 @@ class Trackblazer(game: Game) : Campaign(game) {
 				MessageLog.i(TAG, "[TRACKBLAZER] No suitable training found. Using Reset Whistle...")
 				if (shopList.openTrainingItemsDialog()) {
 					if (shopList.useSpecificItems(listOf("Reset Whistle")).isNotEmpty()) {
-						confirmAndCloseItemDialog()
+						confirmAndCloseItemDialog(1)
 
 						useInventoryItem("Reset Whistle")
 						bUsedWhistleToday = true
@@ -860,25 +866,25 @@ class Trackblazer(game: Game) : Campaign(game) {
 		if (hammerToUse != null || useGlowSticks) {
 			MessageLog.i(TAG, "[TRACKBLAZER] Suitable race items found in inventory (Hammer: $hammerToUse, Glow Sticks: $glowSticksStatus). Opening Training Items dialog...")
 			if (shopList.openTrainingItemsDialog()) {
-				var anyUsed = false
+				var itemsUsedCount = 0
 				
 				if (hammerToUse != null) {
 					if (shopList.useSpecificItems(listOf(hammerToUse)).isNotEmpty()) {
 						useInventoryItem(hammerToUse)
-						anyUsed = true
+						itemsUsedCount++
 					}
 				}
 
 				if (useGlowSticks) {
 					if (shopList.useSpecificItems(listOf("Glow Sticks")).isNotEmpty()) {
 						useInventoryItem("Glow Sticks")
-						anyUsed = true
+						itemsUsedCount++
 					}
 				}
 				
-				if (anyUsed) {
-					MessageLog.i(TAG, "[TRACKBLAZER] Queued race items for $grade ($fans fans). Confirming usage.")
-					confirmAndCloseItemDialog()
+				if (itemsUsedCount > 0) {
+					MessageLog.i(TAG, "[TRACKBLAZER] Queued $itemsUsedCount race items for $grade ($fans fans). Confirming usage.")
+					confirmAndCloseItemDialog(itemsUsedCount)
 					
 					bUsedHammerToday = true
 				} else {
@@ -908,7 +914,7 @@ class Trackblazer(game: Game) : Campaign(game) {
 		val nextInventory = currentInventory.toMutableMap()
 		val currentDisabledItems = mutableSetOf<String>()
         val scannedItemsList = mutableListOf<ScannedItem>()
-		var anyUsed = false
+		var itemsUsedCount = 0
 		var wasEarlyExit = false
 
 		// To improve efficiency, we identify which items we are actually interested in based on our cached inventory.
@@ -981,7 +987,7 @@ class Trackblazer(game: Game) : Campaign(game) {
                     if (bQuickUseOnly) {
                         if (isQuick && !isDisabled) {
                             if (clickItemPlusButton(itemName, entry, "Using quick-use item: \"$itemName\".", nextInventory)) {
-                                anyUsed = true
+                                itemsUsedCount++
                             }
                         }
                     } else {
@@ -989,7 +995,7 @@ class Trackblazer(game: Game) : Campaign(game) {
                             var clicks = 0
                             while (true) {
                                 if (clickItemPlusButton(itemName, entry, "Queuing stat item: \"$itemName\".", nextInventory, recheck = clicks > 0)) {
-                                    anyUsed = true
+                                    itemsUsedCount++
                                     clicks++
                                     if (clicks >= 5) break
                                     game.wait(0.2)
@@ -997,18 +1003,18 @@ class Trackblazer(game: Game) : Campaign(game) {
                                     break
                                 }
                             }
-                        } else if (isBad && !isDisabled) {
+                        } else if (isBad && !isDisabled && trainee?.currentNegativeStatuses?.isNotEmpty() == true) {
                             if (clickItemPlusButton(itemName, entry, "Queuing bad condition item: \"$itemName\".", nextInventory)) {
-                                anyUsed = true
+                                itemsUsedCount++
                             }
                         } else if (isQuick && !isDisabled) {
                             if (clickItemPlusButton(itemName, entry, "Queuing quick-use item: \"$itemName\".", nextInventory)) {
-                                anyUsed = true
+                                itemsUsedCount++
                             }
                         } else if (trainee != null) {
                             // Handle Energy, Mood, Ankle Weights, Charm, Megaphones, etc.
                             if (handleInlineUsage(trainee, itemName, entry, isDisabled, trainingSelected, nextInventory)) {
-                                anyUsed = true
+                                itemsUsedCount++
                             }
                         }
                     }
@@ -1046,7 +1052,7 @@ class Trackblazer(game: Game) : Campaign(game) {
         printCurrentInventory()
 
 
-        finalizeManageInventoryItems(anyUsed, bDryRun)
+        finalizeManageInventoryItems(itemsUsedCount, bDryRun)
     }
 
     /**
@@ -1152,9 +1158,9 @@ class Trackblazer(game: Game) : Campaign(game) {
         return false
     }
 
-    private fun finalizeManageInventoryItems(anyUsed: Boolean, bDryRun: Boolean) {
-        if (anyUsed && !bDryRun) {
-            confirmAndCloseItemDialog()
+    private fun finalizeManageInventoryItems(itemsUsedCount: Int, bDryRun: Boolean) {
+        if (itemsUsedCount > 0 && !bDryRun) {
+            confirmAndCloseItemDialog(itemsUsedCount)
         } else if (!bDryRun) {
             MessageLog.i(TAG, "No items were suited for use. Closing training items dialog.")
             if (ButtonClose.click(game.imageUtils, tries = 30)) {
@@ -1208,14 +1214,15 @@ class Trackblazer(game: Game) : Campaign(game) {
 
 		val potentialUse = (trainee.energy <= energyThresholdToUseEnergyItems && hasEnergyItems) || 
 						   (trainee.mood.ordinal <= Mood.BAD.ordinal && hasMoodItems) ||
-						   hasBadConditionItems || hasStatItems || hasMegaphones || hasAnkleWeights || hasCharm
+						   (trainee.currentNegativeStatuses.isNotEmpty() && hasBadConditionItems) ||
+						   hasStatItems || hasMegaphones || hasAnkleWeights || hasCharm
 
 		if (needSync || potentialUse) {
 			val reasons = mutableListOf<String>()
 			if (needSync) reasons.add("Sync needed")
 			if (trainee.energy <= energyThresholdToUseEnergyItems && hasEnergyItems) reasons.add("Low energy")
 			if (trainee.mood.ordinal <= Mood.BAD.ordinal && hasMoodItems) reasons.add("Low mood")
-			if (hasBadConditionItems) reasons.add("Bad conditions")
+			if (trainee.currentNegativeStatuses.isNotEmpty() && hasBadConditionItems) reasons.add("Bad conditions")
 			if (hasStatItems) reasons.add("Stat items available")
 			if (hasMegaphones) reasons.add("Megaphone available")
 			if (hasAnkleWeights) reasons.add("Ankle weights available")
