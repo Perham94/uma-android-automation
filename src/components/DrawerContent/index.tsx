@@ -44,7 +44,9 @@ const DrawerContent: React.FC<DrawerContentComponentProps> = (props) => {
         "RacingPlanSettings",
         "SkillSettings",
         ...Object.values(skillPlanSettingsPages).flatMap((item) => item.name),
+        "EventLogVisualizer",
         "DiscordSettings",
+        "ScenarioOverridesSettings",
         "DebugSettings",
     ]
 
@@ -249,6 +251,11 @@ const DrawerContent: React.FC<DrawerContentComponentProps> = (props) => {
                     name: "DiscordSettings",
                     label: "Discord Settings",
                     icon: () => "logo-discord",
+                },
+                {
+                    name: "ScenarioOverridesSettings",
+                    label: "Scenario Overrides Settings",
+                    icon: () => "options-outline",
                 },
                 {
                     name: "DebugSettings",

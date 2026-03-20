@@ -9,6 +9,9 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
+import net.ricecode.similarity.JaroWinklerStrategy
+import net.ricecode.similarity.StringSimilarityServiceImpl
+
 import com.steve1316.automation_library.utils.MessageLog
 import com.steve1316.automation_library.utils.BotService
 
@@ -42,6 +45,7 @@ import com.steve1316.uma_android_automation.components.LabelStatAptitudeS
 import com.steve1316.uma_android_automation.components.LabelStatDistance
 import com.steve1316.uma_android_automation.components.LabelStatStyle
 import com.steve1316.uma_android_automation.components.LabelStatTrackSurface
+import com.steve1316.uma_android_automation.components.ButtonConditions
 
 /** Defines a trainee (uma).
  *
@@ -68,6 +72,8 @@ import com.steve1316.uma_android_automation.components.LabelStatTrackSurface
  * @property trackSurface The trainee's preferred `TrackSurface`.
  * @property trackDistance The trainee's preferred `TrackDistance`.
  * @property runningStyle The trainee's preferred `RunningStyle`.
+ * @property energy The trainee's approximate energy level.
+ * @property megaphoneTurnCounter The remaining duration of the active megaphone effect in turns.
  */
 class Trainee {
     companion object {
@@ -160,12 +166,20 @@ class Trainee {
     var mood: Mood = Mood.NORMAL
     var name: String = ""
     var statTrackLocation: Point? = null
+    
+    private val positiveStatusList = listOf("Charming", "Fast Learner", "Practice Practice")
+    private val negativeStatusList = listOf("Practice Poor", "Migraine", "Night Owl", "Slow Metabolism", "Slacker")
+
+    val currentPositiveStatuses = mutableListOf<String>()
+    val currentNegativeStatuses = mutableListOf<String>()
 
     var bHasUpdatedAptitudes: Boolean = false
     var bHasUpdatedStats: Boolean = false
     var bHasUpdatedSkillPoints: Boolean = false
     var bTemporaryRunningStyleAptitudesUpdated: Boolean = false
     var bHasSetRunningStyle: Boolean = false
+    var energy: Int = 100
+    var megaphoneTurnCounter: Int = 0
 
     var fanCountClass: FanCountClass = FanCountClass.DEBUT
 
@@ -466,6 +480,7 @@ class Trainee {
         updateTrackSurfaceAptitudes(imageUtils = imageUtils)
         updateTrackDistanceAptitudes(imageUtils = imageUtils)
         updateRunningStyleAptitudes(imageUtils = imageUtils)
+        updateConditions(imageUtils = imageUtils)
 
         bHasUpdatedAptitudes = true
     }
@@ -519,7 +534,7 @@ class Trainee {
 
         if (detectedName.isNotEmpty()) {
             name = detectedName
-            MessageLog.i(TAG, "[TRAINEE] Detected trainee name: $name")
+            MessageLog.i(TAG, "[TRAINEE] Name: $name")
 
             // Set the log file name prefix to the trainee name with spaces replaced by underscores.
             // This is done to differentiate which logs belong to which trainee.
@@ -527,6 +542,111 @@ class Trainee {
         } else {
             MessageLog.w(TAG, "[TRAINEE] Could not detect trainee name from the aptitude dialog.")
         }
+    }
+
+    /**
+     * Reads the trainee's current conditions (positive and negative statuses) from the Umamusume Details dialog.
+     *
+     * @param imageUtils A reference to a CustomImageUtils instance.
+     */
+    private fun updateConditions(imageUtils: CustomImageUtils) {
+        val sourceBitmap = imageUtils.getSourceBitmap()
+        val refPoint = ButtonConditions.findImageWithBitmap(imageUtils = imageUtils, sourceBitmap = sourceBitmap) ?: Point(285.0, 1210.0)
+
+        currentPositiveStatuses.clear()
+        currentNegativeStatuses.clear()
+
+        for (i in 0 until 3) {
+            val offsetX = 10
+            val offsetY = 85 + (i * 180)
+            val cropX = imageUtils.relX(refPoint.x, offsetX)
+            val cropY = imageUtils.relY(refPoint.y, offsetY)
+            val cropWidth = imageUtils.relWidth(455)
+            val cropHeight = imageUtils.relHeight(55)
+
+            val croppedBitmap = imageUtils.createSafeBitmap(sourceBitmap, cropX, cropY, cropWidth, cropHeight, "updateConditions crop $i")
+            if (croppedBitmap == null) {
+                continue
+            }
+
+            // Detect status type by background color: #519FFB (Bad) or #FF9741 (Good).
+            // Check a few points in the region to determine the dominant background color.
+            val sampleX = croppedBitmap.width / 2
+            val sampleY = croppedBitmap.height / 2
+            val pixel = croppedBitmap.getPixel(sampleX, sampleY)
+            val r = android.graphics.Color.red(pixel)
+            val g = android.graphics.Color.green(pixel)
+            val b = android.graphics.Color.blue(pixel)
+
+            // Bad color: #519FFB (R:81, G:159, B:251). Good color: #FF9741 (R:255, G:151, B:65).
+            val isBad = (r in 70..95 && g in 145..175 && b in 240..255)
+            val isGood = (r in 240..255 && g in 140..165 && b in 50..80)
+
+            if (isBad || isGood) {
+                val statusTitle = imageUtils.performOCROnRegion(
+                    sourceBitmap, cropX, cropY, cropWidth, cropHeight,
+                    useThreshold = false, useGrayscale = true, scale = 1.0, ocrEngine = "tesseract",
+                    debugName = "updateConditions_status_$i"
+                ).trim()
+
+                if (statusTitle.isNotEmpty()) {
+                    val expectedList = if (isBad) negativeStatusList else positiveStatusList
+                    val match = findClosestMatch(statusTitle, expectedList)
+                    
+                    if (match != null) {
+                        if (isBad) {
+                            currentNegativeStatuses.add(match)
+                        } else {
+                            currentPositiveStatuses.add(match)
+                        }
+                    } else if (statusTitle.length >= 3) {
+                        // If no match found but it's long enough, add the original OCR text 
+                        // so we can see what was detected and potentially add it to the lists.
+                        if (isBad) {
+                            currentNegativeStatuses.add(statusTitle)
+                        } else {
+                            currentPositiveStatuses.add(statusTitle)
+                        }
+                    }
+                }
+            } else {
+                // Break once we encounter a non-status pixel.
+                break
+            }
+        }
+
+        if (currentPositiveStatuses.isNotEmpty()) {
+            MessageLog.i(TAG, "[TRAINEE] Positive Statuses: ${currentPositiveStatuses.joinToString(", ")}")
+        }
+        if (currentNegativeStatuses.isNotEmpty()) {
+            MessageLog.i(TAG, "[TRAINEE] Negative Statuses: ${currentNegativeStatuses.joinToString(", ")}")
+        }
+    }
+
+    /**
+     * Finds the closest match for a given OCR string from a list of expected strings.
+     *
+     * @param ocrText The detected OCR text.
+     * @param expectedList The list of valid status names.
+     * @param threshold The similarity threshold (0.0 to 1.0).
+     * @return The best match from the list, or NULL if no match meets the threshold.
+     */
+    private fun findClosestMatch(ocrText: String, expectedList: List<String>, threshold: Double = 0.8): String? {
+        val strategy = JaroWinklerStrategy()
+        val service = StringSimilarityServiceImpl(strategy)
+
+        var bestMatch: String? = null
+        var bestScore = 0.0
+
+        for (expected in expectedList) {
+            val score = service.score(ocrText.lowercase(), expected.lowercase())
+            if (score > bestScore) {
+                bestScore = score
+                bestMatch = expected
+            }
+        }
+
+        return if (bestScore >= threshold) bestMatch else null
     }
 
     /** Updates the trainee's skill points from the current screen.
@@ -723,6 +843,17 @@ class Trainee {
         mood = checkMood(imageUtils, sourceBitmap) ?: mood
     }
 
+    /** Updates the trainee's appproximate energy level from the current screen.
+     *
+     * @param imageUtils A reference to a CustomImageUtils instance.
+     */
+    fun updateEnergy(imageUtils: CustomImageUtils) {
+        val res = imageUtils.analyzeEnergyBar()
+        if (res != null) {
+            energy = res
+        }
+    }
+
     /**
 	 * Sets up stat targets for different race distances by reading values from SQLite settings.
      * These targets are used to determine training priorities based on the expected race distance.
@@ -743,26 +874,26 @@ class Trainee {
         }
 	}
 
-    /** Logs the trainee's current state to the message log. */
-    fun logInfo() {
-        MessageLog.i(TAG, "[TRAINEE] Current State:\n${this}")
-    }
-
     /** Logs the trainee's current state in a structured format for the Remote Log Viewer dashboard. */
-    fun logDetailedPlayerInfo() {
-        val statsString = "Spd=${stats.speed}, Sta=${stats.stamina}, Pow=${stats.power}, Gut=${stats.guts}, Wit=${stats.wit}"
+    fun logInfo() {
+        if (name.isNotEmpty()) {
+            MessageLog.i(TAG, "[TRAINEE] Name: $name")
+        }
+        MessageLog.i(TAG, "[TRAINEE] Stats: $stats")
+        MessageLog.i(TAG, "[TRAINEE] Energy: $energy%")
+        MessageLog.i(TAG, "[TRAINEE] Fans: $fans")
         val trackString = "Turf=${trackSurfaceAptitudes[TrackSurface.TURF]}, Dirt=${trackSurfaceAptitudes[TrackSurface.DIRT]}"
         val distanceString = "Sprint=${trackDistanceAptitudes[TrackDistance.SPRINT]}, Mile=${trackDistanceAptitudes[TrackDistance.MILE]}, Medium=${trackDistanceAptitudes[TrackDistance.MEDIUM]}, Long=${trackDistanceAptitudes[TrackDistance.LONG]}"
         val styleString = "Front=${runningStyleAptitudes[RunningStyle.FRONT_RUNNER]}, Pace=${runningStyleAptitudes[RunningStyle.PACE_CHASER]}, Late=${runningStyleAptitudes[RunningStyle.LATE_SURGER]}, End=${runningStyleAptitudes[RunningStyle.END_CLOSER]}"
-
-        // Log the trainee name if it has been detected.
-        if (name.isNotEmpty()) {
-            MessageLog.i(TAG, "[TRAINEE_DETAILED] Name: $name")
+        MessageLog.i(TAG, "[TRAINEE] Track: $trackString")
+        MessageLog.i(TAG, "[TRAINEE] Distance: $distanceString")
+        MessageLog.i(TAG, "[TRAINEE] Style: $styleString")
+        if (currentPositiveStatuses.isNotEmpty()) {
+            MessageLog.i(TAG, "[TRAINEE] Positive Statuses: ${currentPositiveStatuses.joinToString(", ")}")
         }
-        MessageLog.i(TAG, "[TRAINEE_DETAILED] Stats: $statsString")
-        MessageLog.i(TAG, "[TRAINEE_DETAILED] Track: $trackString")
-        MessageLog.i(TAG, "[TRAINEE_DETAILED] Distance: $distanceString")
-        MessageLog.i(TAG, "[TRAINEE_DETAILED] Style: $styleString")
+        if (currentNegativeStatuses.isNotEmpty()) {
+            MessageLog.i(TAG, "[TRAINEE] Negative Statuses: ${currentNegativeStatuses.joinToString(", ")}")
+        }
     }
 
     /** Returns a formatted string of the trainee's preferred aptitudes.
@@ -788,7 +919,9 @@ class Trainee {
             "\nStats: $statsString" +
             "\nSkill Points: $skillPoints" +
             "\nMood: $mood" +
+            "\nEnergy: $energy" +
             "\nFans: $fans" +
-            "\nFanCountClass: $fanCountClass"
+            "\nFanCountClass: $fanCountClass" +
+            "\nMegaphone turns remaining: $megaphoneTurnCounter"
     }
 }

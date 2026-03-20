@@ -51,13 +51,15 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
 	override var confidence: Double = SettingsHelper.getStringSetting("debug", "templateMatchConfidence").toDouble()
 	override var customScale: Double = SettingsHelper.getStringSetting("debug", "templateMatchCustomScale").toDouble()
     private val manualStatCap: Int = SettingsHelper.getIntSetting("training", "manualStatCap")
+    private val useYolo: Boolean get() = SettingsHelper.getBooleanSetting("training", "enableYoloStatDetection")
 
 	////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////
 
 	data class RaceDetails (
 		val fans: Int,
-		val hasDoublePredictions: Boolean
+		val hasDoublePredictions: Boolean,
+		val isRival: Boolean = false
 	)
 
     data class StatBlock(
@@ -110,6 +112,22 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
 		initTesseract("eng.traineddata")
 		SharedData.templateSubfolderPathName = "images/"
 	}
+
+    companion object {
+        @Volatile
+        private var yoloDetectorInstance: YoloDetector? = null
+
+        /**
+         * Returns the singleton YoloDetector instance, initializing it if necessary.
+         *
+         * @param context Android context for asset loading.
+         * @return The YoloDetector instance.
+         */
+        fun getYoloDetector(context: Context): YoloDetector =
+            yoloDetectorInstance ?: synchronized(this) {
+                yoloDetectorInstance ?: YoloDetector(context).also { yoloDetectorInstance = it }
+            }
+    }
 
 	/**
 	 * Find all occurrences of the specified image in the images folder using a provided source bitmap. Useful for parallel processing to avoid exceeding the maxImages buffer.
@@ -325,9 +343,9 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
         }
 
         if (debugMode) {
-            MessageLog.d(TAG, "Failure chance detected to be at $result%.")
+            MessageLog.i(TAG, "Failure chance detected to be at $result%.")
         } else {
-            Log.d(TAG, "Failure chance detected to be at $result%.")
+            Log.i(TAG, "Failure chance detected to be at $result%.")
         }
 		return result
 	}
@@ -364,9 +382,15 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
 
 			// Parse the result.
 			val result = try {
-				val cleanedResult = detectedText.replace(Regex("[^0-9]"), "")
-				MessageLog.i(TAG, "Detected day for extra racing: $detectedText")
-				cleanedResult.toInt()
+				if (detectedText.lowercase().contains("ace") || detectedText.lowercase().contains("da")) {
+					// This is "Race Day", so there are 0 turns left before the mandatory race.
+					MessageLog.i(TAG, "Detected Race Day for extra racing: $detectedText")
+					0
+				} else {
+					val cleanedResult = detectedText.replace(Regex("[^0-9]"), "")
+					MessageLog.i(TAG, "Detected day for extra racing: $detectedText")
+					cleanedResult.toInt()
+				}
 			} catch (_: NumberFormatException) {
 				MessageLog.e(TAG, "Could not convert \"$detectedText\" to integer for the turns remaining.")
 				-1
@@ -399,8 +423,10 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
 				debugName = "extractRaceName"
 			)
 			
-			MessageLog.i(TAG, "Extracted race name: \"$detectedText\"")
-			return detectedText
+            // Ensure forward slashes are surrounded by spaces.
+			val refinedResult = detectedText.replace(Regex("""\s*/\s*"""), " / ").trim()
+			MessageLog.i(TAG, "Extracted race name: \"$refinedResult\"")
+			return refinedResult
 		} catch (e: Exception) {
 			MessageLog.e(TAG, "Exception during race name extraction: ${e.message}")
 			return ""
@@ -473,11 +499,19 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
 	 * @return Number of fans to be gained from the extra race or -1 if not found as an object.
 	 */
 	fun determineExtraRaceFans(extraRaceLocation: Point, sourceBitmap: Bitmap, forceRacing: Boolean = false): RaceDetails {
+		// Check for Rival status.
+		val rivalCheck = if (game.scenario == "Trackblazer") {
+			val rivalBitmap = createSafeBitmap(sourceBitmap, relX(extraRaceLocation.x, -165), relY(extraRaceLocation.y, -165), relWidth(320), relHeight(80), "determineExtraRaceFans rival")
+			if (rivalBitmap != null) {
+				LabelRivalRacer.check(this, sourceBitmap = rivalBitmap, region = intArrayOf(0, 0, 0, 0))
+			} else false
+		} else false
+
 		// Crop the source screenshot to show only the fan amount and the predictions.
 		val croppedBitmap = createSafeBitmap(sourceBitmap, relX(extraRaceLocation.x, -173), relY(extraRaceLocation.y, -106), relWidth(163), relHeight(96), "determineExtraRaceFans prediction")
 		if (croppedBitmap == null) {
 			MessageLog.e(TAG, "Failed to create cropped bitmap for extra race prediction detection.")
-			return RaceDetails(-1, false)
+			return RaceDetails(-1, false, rivalCheck)
 		}
 
 		val cvImage = Mat()
@@ -492,10 +526,16 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
 			else if (debugMode) MessageLog.d(TAG, "Check for double predictions was skipped due to the force racing flag being enabled. Now checking how many fans this race gives.")
 
 			// Crop the source screenshot to show only the fans.
-			val croppedBitmap2 = createSafeBitmap(sourceBitmap, relX(extraRaceLocation.x, -625), relY(extraRaceLocation.y, -75), relWidth(250), relHeight(35), "determineExtraRaceFans fans")
+            var xOffset = -625
+            var yOffset = -75
+            if (game.scenario == "Trackblazer") {
+                xOffset = -580
+                yOffset = -50
+            }
+			val croppedBitmap2 = createSafeBitmap(sourceBitmap, relX(extraRaceLocation.x, xOffset), relY(extraRaceLocation.y, yOffset), relWidth(250), relHeight(35), "determineExtraRaceFans fans")
 			if (croppedBitmap2 == null) {
 				MessageLog.e(TAG, "Failed to create cropped bitmap for extra race fans detection.")
-				return RaceDetails(-1, predictionCheck)
+				return RaceDetails(-1, predictionCheck, rivalCheck)
 			}
 
 			// Make the cropped screenshot grayscale.
@@ -545,13 +585,13 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
 			try {
 				Log.d(TAG, "Converting $result to integer for fans")
 				val cleanedResult = result.replace(Regex("[^0-9]"), "")
-				RaceDetails(cleanedResult.toInt(), predictionCheck)
+				RaceDetails(cleanedResult.toInt(), predictionCheck, rivalCheck)
 			} catch (_: NumberFormatException) {
-				RaceDetails(-1, predictionCheck)
+				RaceDetails(-1, predictionCheck, rivalCheck)
 			}
 		} else {
 			Log.d(TAG, "This race has no double prediction.")
-			return RaceDetails(-1, false)
+			return RaceDetails(-1, false, rivalCheck)
 		}
 	}
 
@@ -681,6 +721,10 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
 					Triple("stat_support_etsuko_otonashi", "Etsuko Otonashi", false),
 					// Riko Kashimoto can also show up as a support card support with stat_trainer_block.
 					Triple("stat_support_riko_kashimoto", "Riko Kashimoto", true)
+				)
+				"Trackblazer" -> listOf(
+					Triple("stat_support_etsuko_otonashi", "Etsuko Otonashi", false),
+					Triple("stat_support_yayoi_akikawa", "Yayoi Akikawa", false)
 				)
 				else -> emptyList()
 			}
@@ -1192,10 +1236,10 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
 	 */
 	fun determineStatGainFromTraining(trainingName: StatName, sourceBitmap: Bitmap? = null, skillPointsLocation: Point? = null): StatGainResult {
         // Scenario-specific checks.
-		val isUnityCup = game.scenario == "Unity Cup"
+		val useTwoRows = game.scenario != "URA Finale"
 
 		// Determine all template suffixes needed for this scenario.
-		val templateSuffixes = if (isUnityCup) {
+		val templateSuffixes = if (useTwoRows) {
 			listOf("_mini", "_mini_bold")
 		} else {
 			listOf("")
@@ -1265,7 +1309,7 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
 
 						// Determine crop regions based on campaign.
 						val firstRowStartX = relX(skillPointsLocation.x, -934 + xOffset)
-						val firstRowStartY = if (isUnityCup) {
+						val firstRowStartY = if (useTwoRows) {
                             relY(skillPointsLocation.y, -65)
                         } else {
                             relY(skillPointsLocation.y, -103)
@@ -1275,13 +1319,14 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
 						var croppedBitmap: Bitmap? = null
 
 						// Build the row configurations based on the current scenario.
-						val rows = if (isUnityCup) {
-							// For Unity Cup, stats are in two rows on top of each other.
+						val rows = if (useTwoRows) {
+							// For some scenarios, stats are in two rows on top of each other.
 							// First row uses "_mini" suffix, second row uses "_mini_bold" suffix.
-							val secondRowStartY = relY(firstRowStartY.toDouble(), -55)
+							val row2Offset = if (game.scenario == "Trackblazer") -60 else -55
+							val secondRowStartY = relY(firstRowStartY.toDouble(), row2Offset)
 							listOf(
-								StatGainRowConfig(firstRowStartX, firstRowStartY, relWidth(150), relHeight(55), "row1", "_mini"),
-                                StatGainRowConfig(firstRowStartX, secondRowStartY, relWidth(150), relHeight(55), "row2", "_mini_bold")
+								StatGainRowConfig(firstRowStartX, firstRowStartY, relWidth(150), relHeight(55), "row 1", "_mini"),
+                                StatGainRowConfig(firstRowStartX, secondRowStartY, relWidth(150), relHeight(55), "row 2", "_mini_bold")
 							)
 						} else {
 							// Default: single row.
@@ -1314,8 +1359,8 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
 									return@Thread
 								}
 
-								// Set croppedBitmap for non-Unity Cup path (used in debug visualization).
-								if (!isUnityCup) {
+								// Set croppedBitmap for scenarios with only one row (used in debug visualization).
+								if (!useTwoRows) {
 									croppedBitmap = rowBitmap
 								}
 
@@ -1353,24 +1398,62 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
 									return@Thread
 								}
 
-								// Process templates for this row using the row's specific suffix.
-								for (templateName in rowTemplates) {
-									// Check before each template processing operation.
-									if (!BotService.isRunning) {
-										processingFailed = true
-										break
-									}
-									val templateBitmap = templateBitmaps[templateName]
-									if (templateBitmap != null) {
-										val processedMatches = processStatGainTemplateWithTransparency(templateName, templateBitmap, rowWorking, mutableMapOf<String, MutableList<Point>>().apply {
-											rowTemplates.forEach { t -> this[t] = mutableListOf() }
-										})
-										// Store original matches for this row (for debug visualization).
-										processedMatches[templateName]?.forEach { point ->
-											rowMatches[templateName]?.add(point)
+								val effectType = if (statName == trainingName) "main-effect" else "side-effect"
+								val trainingContext = "${trainingName.name} training for ${statName.name} $effectType"
+
+                                // Process results based on detection method.
+								if (useYolo) {
+									val yolo = getYoloDetector(context)
+									val detections = yolo.detect(rowBitmap)
+									
+									// Parse YOLO detections into rowMatches for compatibility with constructIntegerFromMatches
+									// and debug visualization.
+									val sortedDetections = detections.sortedBy { it.x }
+									var resultString = ""
+									for (detection in sortedDetections) {
+										val label = detection.label
+										resultString += label
+										
+										// Fake a template matching result by populating rowMatches.
+										// The constructIntegerFromMatches logic expects a template name including suffix.
+										val templateName = label + row.templateSuffix
+										if (!rowMatches.containsKey(templateName)) {
+											rowMatches[templateName] = mutableListOf()
 										}
-									} else {
-										Log.e(TAG, "[ERROR] Could not load template \"$templateName\" to process stat gains for $trainingName training.")
+										// We use the coordinates from YOLO (scaled back to rowBitmap space or just the raw detection coords).
+										rowMatches[templateName]?.add(Point(detection.x.toDouble(), detection.y.toDouble()))
+									}
+									
+									if (resultString.isNotEmpty()) {
+										Log.i(TAG, "[YOLO] Detections for $statName ${row.rowName}: $resultString")
+									}
+								} else {
+									// Process templates for this row using the row's specific suffix.
+									for (templateName in rowTemplates) {
+										// Check before each template processing operation.
+										if (!BotService.isRunning) {
+											processingFailed = true
+											break
+										}
+										val templateBitmap = templateBitmaps[templateName]
+										if (templateBitmap != null) {
+											val processedMatches = processStatGainTemplateWithTransparency(
+												templateName,
+												templateBitmap,
+												rowWorking,
+												mutableMapOf<String, MutableList<Point>>().apply {
+													rowTemplates.forEach { t -> this[t] = mutableListOf() }
+												},
+												row.rowName,
+												trainingContext
+											)
+											// Store original matches for this row (for debug visualization).
+											processedMatches[templateName]?.forEach { point ->
+												rowMatches[templateName]?.add(point)
+											}
+										} else {
+											Log.e(TAG, "[ERROR] Could not load template \"$templateName\" to process stat gains for $trainingName training.")
+										}
 									}
 								}
 
@@ -1388,16 +1471,16 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
 
 						// Analyze results and construct the final integer value for this region.
 						val finalValue = if (rows.size > 1) {
-							// For Unity Cup with multiple rows, sum the values from each row.
+							// For scenarios with multiple rows, sum the values from each row.
 							val rowValues = rowDebugInfo.mapIndexed { index, rowInfo ->
-								constructIntegerFromMatches(rowInfo.matches)
+								constructIntegerFromMatches(rowInfo.matches, "for ${rowInfo.config.rowName}")
 							}
                             // Store row values for sequential logging after threads complete.
                             rowValuesMap[statName] = rowValues
 							rowValues.sum()
 						} else {
 							// For single row scenarios, use the existing behavior.
-							constructIntegerFromMatches(rowDebugInfo[0].matches)
+							constructIntegerFromMatches(rowDebugInfo[0].matches, "for stat $statName")
 						}
 						threadSafeResults[statName] = finalValue
 
@@ -1493,10 +1576,12 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
 	 * @param templateBitmap Bitmap of the template image (must have 4-channel RGBA format with transparency).
 	 * @param workingMat Working matrix to search in (grayscale source image).
 	 * @param matchResults Map to store match results, organized by template name.
+	 * @param rowName The name of the row being processed (e.g., "row 1", "row 2").
+	 * @param trainingContext The training context (e.g., "SPEED training for POWER side-effect").
 	 *
 	 * @return The modified matchResults mapping containing all valid matches found for this template
 	 */
-	private fun processStatGainTemplateWithTransparency(templateName: String, templateBitmap: Bitmap, workingMat: Mat, matchResults: MutableMap<String, MutableList<Point>>): MutableMap<String, MutableList<Point>> {
+	private fun processStatGainTemplateWithTransparency(templateName: String, templateBitmap: Bitmap, workingMat: Mat, matchResults: MutableMap<String, MutableList<Point>>, rowName: String = "", trainingContext: String = ""): MutableMap<String, MutableList<Point>> {
 		// These values have been tested for the best results against the dynamic background.
 		val matchConfidence = 0.9
 		val minPixelMatchRatio = 0.1
@@ -1619,7 +1704,11 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
 							}
 
 							if (!hasOverlap) {
-								Log.d(TAG, "[DEBUG] Found valid match for template \"$templateName\" at ($centerX, $centerY).")
+								val rowSuffix = if (trainingContext.isNotEmpty() && rowName.isNotEmpty()) " for $trainingContext $rowName"
+								else if (trainingContext.isNotEmpty()) " for $trainingContext"
+								else if (rowName.isNotEmpty()) " for $rowName"
+								else ""
+								Log.i(TAG, "Found valid match for template \"$templateName\" at ($centerX, $centerY)$rowSuffix.")
 								matchResults[templateName]?.add(Point(centerX.toDouble(), centerY.toDouble()))
 
                                 // If it found the + symbol, then there is no need to look for additional pluses.
@@ -1700,7 +1789,7 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
 	 *
 	 * @return The constructed integer value or -1 if it failed.
 	 */
-	private fun constructIntegerFromMatches(matchResults: Map<String, MutableList<Point>>): Int {
+	private fun constructIntegerFromMatches(matchResults: Map<String, MutableList<Point>>, logLabel: String = ""): Int {
 		// Collect all matches with their template names.
 		val allMatches = mutableListOf<Pair<String, Point>>()
 		matchResults.forEach { (templateName, points) ->
@@ -1709,32 +1798,35 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
 			}
 		}
 
+		val logSuffix = if (logLabel.isNotEmpty()) " $logLabel" else ""
+
 		if (allMatches.isEmpty()) {
-			Log.d(TAG, "[WARNING] No matches found to construct integer value.")
+			Log.d(TAG, "[WARNING] No matches found to construct integer value$logSuffix.")
 			return 0
 		}
 
 		// Sort matches by x-coordinate (left to right).
 		allMatches.sortBy { it.second.x }
-		Log.d(TAG, "[DEBUG] Sorted matches: ${allMatches.map { "${it.first}@(${it.second.x}, ${it.second.y})" }}")
+		Log.i(TAG, "Sorted matches$logSuffix: ${allMatches.map { "${it.first}@(${it.second.x}, ${it.second.y})" }}")
 
 		// Construct the string representation by extracting the character part from template names (removing suffixes like "_mini").
 		// Template names can be "+", "0"-"9" or "+_mini", "0_mini"-"9_mini", so we extract the first character.
 		val constructedString = allMatches.joinToString("") { it.first[0].toString() }
-		Log.d(TAG, "[DEBUG] Constructed string: \"$constructedString\".")
+		Log.i(TAG, "Constructed string$logSuffix: \"$constructedString\".")
 
 		// Extract the numeric part and convert to integer.
 		return try {
             if (constructedString == "+") {
-                Log.w(TAG, "[WARNING] Constructed string was just the plus sign. Setting the result to 0.")
+                Log.w(TAG, "[WARNING] Constructed string$logSuffix was just the plus sign. Setting the result to 0.")
                 return 0
             }
 
-			val numericPart = if (constructedString.startsWith("+") && constructedString.substring(1).isNotEmpty()) {
-				constructedString.substring(1)
-			} else {
-				constructedString
-			}
+            val plusIndex = constructedString.indexOf('+')
+            val numericPart = if (plusIndex != -1 && plusIndex < constructedString.length - 1) {
+                constructedString.substring(plusIndex + 1)
+            } else {
+                constructedString
+            }
 
 			val result = numericPart.toInt()
 
@@ -1742,16 +1834,16 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
 			// The max stat gain per training is +100, so higher values indicate a false 3rd digit detection.
 			val correctedResult = if (result > 100) {
 				val corrected = result / 10
-				Log.d(TAG, "[DEBUG] Corrected stat gain from $result to $corrected (dropped false 3rd digit).")
+				Log.d(TAG, "[DEBUG] Corrected stat gain$logSuffix from $result to $corrected (dropped false 3rd digit).")
 				corrected
 			} else {
 				result
 			}
 
-			Log.d(TAG, "[DEBUG] Successfully constructed integer value: $correctedResult from \"$constructedString\".")
+			Log.d(TAG, "[DEBUG] Successfully constructed integer value: $correctedResult from \"$constructedString\"$logSuffix.")
 			correctedResult
 		} catch (e: NumberFormatException) {
-			Log.e(TAG, "[ERROR] Could not convert \"$constructedString\" to integer for stat gain: ${e.stackTraceToString()}")
+			Log.e(TAG, "[ERROR] Could not convert \"$constructedString\" to integer for stat gain$logSuffix: ${e.stackTraceToString()}")
 			0
 		}
 	}
@@ -2259,6 +2351,27 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
             Imgcodecs.imwrite("$matchFilePath/$filename.png", tempImage)
         }
         tempImage.release()
+    }
+
+    /** Draws bounding boxes on a bitmap and saves it as a debug image.
+     *
+     * @param bitmap The bitmap to draw on.
+     * @param bboxes The list of bounding boxes to draw.
+     * @param filename The filename for the saved debug image.
+     */
+    fun saveDebugImageWithBboxes(bitmap: Bitmap, bboxes: List<BoundingBox>, filename: String) {
+        val mat = Mat()
+        Utils.bitmapToMat(bitmap, mat)
+
+        for (bbox in bboxes) {
+            val pt1 = Point(bbox.x.toDouble(), bbox.y.toDouble())
+            val pt2 = Point((bbox.x + bbox.w).toDouble(), (bbox.y + bbox.h).toDouble())
+            // Draw a green rectangle.
+            Imgproc.rectangle(mat, pt1, pt2, Scalar(0.0, 255.0, 0.0), 5)
+        }
+
+        Imgcodecs.imwrite("$matchFilePath/$filename.png", mat)
+        mat.release()
     }
 
     /** Saves a bitmap for debugging purposes.

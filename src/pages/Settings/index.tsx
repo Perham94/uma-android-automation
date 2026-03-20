@@ -176,6 +176,16 @@ const Settings = () => {
         )
     }
 
+    const renderScenarioOverridesLink = () => {
+        return (
+            <NavigationLink
+                title="Go to Scenario Overrides Settings"
+                description="Configure behavior overrides specific to each scenario."
+                onPress={() => navigation.navigate("ScenarioOverridesSettings" as never)}
+            />
+        )
+    }
+
     const renderDebugLink = () => {
         return (
             <NavigationLink
@@ -435,6 +445,7 @@ const Settings = () => {
                         {renderSkillsLink()}
                         {renderEventLogVisualizerLink()}
                         {renderDiscordLink()}
+                        {renderScenarioOverridesLink()}
                         {renderDebugLink()}
                         {renderMiscSettings()}
                     </View>

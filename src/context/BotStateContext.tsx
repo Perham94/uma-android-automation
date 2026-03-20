@@ -110,6 +110,7 @@ export interface Settings {
         trainWitDuringFinale: boolean
         enablePrioritizeSkillHints: boolean
         enableTrainingAnalysisValidation: boolean
+        enableYoloStatDetection: boolean
     }
 
     // Training Stat Target settings
@@ -164,6 +165,11 @@ export interface Settings {
         debugMode_startTraineeNameOCRTest: boolean
         debugMode_startMainScreenOCRTest: boolean
         debugMode_startTrainingScreenOCRTest: boolean
+        debugMode_startSkillListBuyTest: boolean
+        debugMode_startScrollBarDetectionTest: boolean
+        debugMode_startTrackblazerRaceSelectionTest: boolean
+        debugMode_startTrackblazerInventorySyncTest: boolean
+        debugMode_startTrackblazerBuyItemsTest: boolean
         enableHideOCRComparisonResults: boolean
         enableScreenRecording: boolean
         recordingBitRate: number
@@ -178,6 +184,15 @@ export interface Settings {
         enableDiscordNotifications: boolean
         discordToken: string
         discordUserID: string
+    }
+
+    // Scenario specific overrides
+    scenarioOverrides: {
+        trackblazerConsecutiveRacesLimit: number
+        trackblazerEnergyThreshold: number
+        trackblazerShopCheckGrades: string[]
+        trackblazerMinStatGainForCharm: number
+        trackblazerMaxRetriesPerRace: number
     }
 }
 
@@ -320,6 +335,7 @@ export const defaultSettings: Settings = {
         trainWitDuringFinale: false,
         enablePrioritizeSkillHints: false,
         enableTrainingAnalysisValidation: false,
+        enableYoloStatDetection: false,
     },
     trainingStatTarget: {
         trainingSprintStatTarget_speedStatTarget: 900,
@@ -361,6 +377,11 @@ export const defaultSettings: Settings = {
         debugMode_startTraineeNameOCRTest: false,
         debugMode_startMainScreenOCRTest: false,
         debugMode_startTrainingScreenOCRTest: false,
+        debugMode_startSkillListBuyTest: false,
+        debugMode_startScrollBarDetectionTest: false,
+        debugMode_startTrackblazerRaceSelectionTest: false,
+        debugMode_startTrackblazerInventorySyncTest: false,
+        debugMode_startTrackblazerBuyItemsTest: false,
         enableHideOCRComparisonResults: true,
         enableScreenRecording: false,
         recordingBitRate: 6,
@@ -373,6 +394,13 @@ export const defaultSettings: Settings = {
         enableDiscordNotifications: false,
         discordToken: "",
         discordUserID: "",
+    },
+    scenarioOverrides: {
+        trackblazerConsecutiveRacesLimit: 5,
+        trackblazerEnergyThreshold: 40,
+        trackblazerShopCheckGrades: ["G1", "G2", "G3"],
+        trackblazerMinStatGainForCharm: 30,
+        trackblazerMaxRetriesPerRace: 1,
     },
 }
 

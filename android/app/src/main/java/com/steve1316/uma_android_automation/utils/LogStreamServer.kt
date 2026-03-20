@@ -21,6 +21,11 @@ import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
 import org.json.JSONArray
 import org.json.JSONObject
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.util.Base64
+import java.io.ByteArrayOutputStream
+import java.io.File
 import java.io.IOException
 import java.util.concurrent.CopyOnWriteArraySet
 import java.util.regex.Pattern
@@ -40,6 +45,9 @@ object LogStreamServer {
 
 	// Coroutine scope for the server and background tasks.
 	private var serverScope: CoroutineScope? = null
+
+	// Application context for accessing file system.
+	private var applicationContext: Context? = null
 
 	@Volatile
 	var isRunning = false
@@ -63,15 +71,19 @@ object LogStreamServer {
 
 	// Pattern for matching logs: "00:12:34.567 [DEBUG] message content".
 	private val logPattern = Pattern.compile("^(\\n?)([\\d]{2}:[\\d]{2}:[\\d]{2}\\.[\\d]{3})\\s*\\[(VERBOSE|DEBUG|INFO|WARN|ERROR)\\]\\s*(.*)", Pattern.DOTALL)
+	private var isPreDebut: Boolean = false
 
 	// Regex patterns for structured detail extraction.
 	private val actionTrainingPattern = Pattern.compile("\\[TRAINING\\] Now starting process to execute training")
-	private val actionRacePattern = Pattern.compile("\\[RACE\\] Racing process for .*? Race is completed")
+	private val actionRacePattern = Pattern.compile("\\[RACE\\] Racing process for .*? Race is completed", Pattern.CASE_INSENSITIVE)
 	private val actionMoodPattern = Pattern.compile("Recovering mood now", Pattern.CASE_INSENSITIVE)
 	private val actionEnergyPattern = Pattern.compile("\\[ENERGY\\] Successfully recovered energy")
 	private val actionInjuryPattern = Pattern.compile("\\[INJURY\\] Injury detected and attempted to heal")
-	private val traineeDetailedPattern = Pattern.compile("\\[TRAINEE_DETAILED\\] ([^:]+): (.*)")
+	private val traineePattern = Pattern.compile("\\[TRAINEE\\] ([^:]+): (.*)")
 	private val dateNewPattern = Pattern.compile("\\[DATE\\] New date: (.*?) \\(Turn (\\d+)\\)", Pattern.CASE_INSENSITIVE)
+	private val dateDetectedPattern = Pattern.compile("Detected date: (.*)", Pattern.CASE_INSENSITIVE)
+	private val turnsRemainingPattern = Pattern.compile("Detected day for extra racing: (\\d+)", Pattern.CASE_INSENSITIVE)
+	private val turnsRemainingRaceDayPattern = Pattern.compile("Detected Race Day for extra racing:", Pattern.CASE_INSENSITIVE)
 
 	/**
 	 * Represents a parsed log entry for structured transmission.
@@ -143,6 +155,7 @@ object LogStreamServer {
 		}
 
 		try {
+			applicationContext = context.applicationContext
 			serverScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 			actionChannel = Channel(Channel.UNLIMITED)
 
@@ -263,6 +276,7 @@ object LogStreamServer {
 		// Shutdown the Ktor server instance with a brief grace period.
 		server?.stop(500, 1000)
 		server = null
+		applicationContext = null
 
 		// Cancel the coroutine scope to clean up background tasks.
 		serverScope?.cancel()
@@ -416,7 +430,12 @@ object LogStreamServer {
 		try {
 			// Keep the session alive until the client disconnects.
 			for (frame in session.incoming) {
-				// The server does not handle incoming messages from clients.
+				if (frame is Frame.Text) {
+					val text = frame.readText()
+					if (text == "CMD:REFRESH_IMAGES") {
+						sendDebugImages(session)
+					}
+				}
 			}
 		} catch (e: Exception) {
 			Log.w(TAG, "WebSocket session exception: ${e.message}")
@@ -456,6 +475,55 @@ object LogStreamServer {
 	}
 
 	/**
+	 * Scans the temp directory, compresses found images, and sends them to the client.
+	 *
+	 * @param session The active WebSocket server session.
+	 */
+	private suspend fun sendDebugImages(session: DefaultWebSocketServerSession) {
+		val context = applicationContext ?: return
+		val tempDir = File(context.getExternalFilesDir(null), "temp")
+		if (!tempDir.exists() || !tempDir.isDirectory) {
+			Log.w(TAG, "Temp directory does not exist or is not a directory: ${tempDir.absolutePath}")
+			return
+		}
+
+		val imageFiles = tempDir.listFiles { _, name ->
+			name.lowercase().endsWith(".png") ||
+					name.lowercase().endsWith(".jpg") ||
+					name.lowercase().endsWith(".jpeg") ||
+					name.lowercase().endsWith(".webp")
+		} ?: return
+
+		Log.d(TAG, "Found ${imageFiles.size} image files in temp directory.")
+
+		for (file in imageFiles) {
+			try {
+				val bitmap = BitmapFactory.decodeFile(file.absolutePath)
+				if (bitmap != null) {
+					val outputStream = ByteArrayOutputStream()
+					// Compress to 50% quality JPEG.
+					bitmap.compress(Bitmap.CompressFormat.JPEG, 50, outputStream)
+					val byteArray = outputStream.toByteArray()
+					val base64Image = Base64.encodeToString(byteArray, Base64.DEFAULT)
+
+					val json = JSONObject().apply {
+						put("type", "image")
+						put("name", file.name)
+						put("data", base64Image)
+					}
+					session.send(Frame.Text(json.toString()))
+					bitmap.recycle()
+				}
+			} catch (e: Exception) {
+				Log.e(TAG, "Failed to send image ${file.name}: ${e.message}")
+			}
+		}
+
+		// Signal completion of image batch transmission.
+		session.send(Frame.Text(JSONObject().apply { put("type", "image_batch_done") }.toString()))
+	}
+
+	/**
 	 * Parses a raw log string into a JSON object.
 	 *
 	 * @param message The raw log message to parse.
@@ -475,6 +543,9 @@ object LogStreamServer {
 			val trainee = parseTraineeInfo(text)
 			val dateInfo = if (text.contains("[DATE]") ||
 				text.contains("New date:", ignoreCase = true) ||
+				text.contains("Detected date:", ignoreCase = true) ||
+				text.contains("Detected day for extra racing:", ignoreCase = true) ||
+				text.contains("Detected Race Day for extra racing:", ignoreCase = true) ||
 				text.contains("Turn", ignoreCase = true)
 			) {
 				parseDateInfo(text)
@@ -520,7 +591,7 @@ object LogStreamServer {
 	 * @return A JSONObject containing the trainee details if detected, otherwise NULL.
 	 */
 	private fun parseTraineeInfo(text: String): JSONObject? {
-		val matcher = traineeDetailedPattern.matcher(text)
+		val matcher = traineePattern.matcher(text)
 		return if (matcher.find()) {
 			JSONObject().apply {
 				put("category", matcher.group(1))
@@ -537,25 +608,92 @@ object LogStreamServer {
 	 * @return A JSONObject containing the date and turn if detected, otherwise NULL.
 	 */
 	private fun parseDateInfo(text: String): JSONObject? {
-		val matcher = dateNewPattern.matcher(text)
-		return if (matcher.find()) {
-			val date = matcher.group(1)?.trim() ?: ""
-			val turn = matcher.group(2) ?: ""
+		// Priority 1: Main bot date update log.
+		val newDateMatcher = dateNewPattern.matcher(text)
+		if (newDateMatcher.find()) {
+			val date = newDateMatcher.group(1)?.trim() ?: ""
+			val turn = newDateMatcher.group(2) ?: ""
 
-			JSONObject().apply {
+			// Update state.
+			isPreDebut = (turn.toIntOrNull() ?: 13) <= 12
+
+			return JSONObject().apply {
 				put("date", date)
 				put("turn", turn)
 			}
-		} else {
-			// Fallback: If no "[DATE] New date:" prefix but contains "(Turn X)", try extracting just the turn.
-			val turnOnlyPattern = Pattern.compile("\\(Turn (\\d+)\\)", Pattern.CASE_INSENSITIVE)
-			val turnMatcher = turnOnlyPattern.matcher(text)
-			if (turnMatcher.find()) {
-				JSONObject().apply {
-					put("turn", turnMatcher.group(1))
-				}
-			} else null
 		}
+
+		// Priority 2: Pre-Debut translation.
+		// If we detect turns remaining during pre-debut, we can calculate the absolute turn and date.
+		val turnsRemainingMatcher = turnsRemainingPattern.matcher(text)
+		if (turnsRemainingMatcher.find()) {
+			if (isPreDebut) {
+				val turnsLeft = turnsRemainingMatcher.group(1)?.toIntOrNull() ?: -1
+				if (turnsLeft != -1) {
+					val turn = (12 - turnsLeft).coerceIn(1, 12)
+					val date = dateFromDay(turn)
+					return JSONObject().apply {
+						put("date", date)
+						put("turn", turn.toString())
+					}
+				}
+			}
+		}
+
+		val turnsRemainingRaceDayMatcher = turnsRemainingRaceDayPattern.matcher(text)
+		if (turnsRemainingRaceDayMatcher.find()) {
+			if (isPreDebut) {
+				val turn = 12
+				val date = dateFromDay(turn)
+				return JSONObject().apply {
+					put("date", date)
+					put("turn", turn.toString())
+				}
+			}
+		}
+
+		// Priority 3: Raw OCR date detection log.
+		val detectedDateMatcher = dateDetectedPattern.matcher(text)
+		if (detectedDateMatcher.find()) {
+			val date = detectedDateMatcher.group(1)?.trim() ?: ""
+			// If it's the pre-debut string, ignore it and wait for the turn calculation log.
+			if (date.contains("debut", ignoreCase = true)) {
+				isPreDebut = true
+				return null
+			}
+
+			isPreDebut = false
+
+			return JSONObject().apply {
+				put("date", date)
+			}
+		}
+
+		// Priority 4: Fallback for any log containing turn info like "... (Turn X)".
+		val turnOnlyPattern = Pattern.compile("(.*?)\\s*\\(Turn (\\d+)\\)", Pattern.CASE_INSENSITIVE)
+		val turnMatcher = turnOnlyPattern.matcher(text)
+		if (turnMatcher.find()) {
+			val prefix = turnMatcher.group(1) ?: ""
+			val turn = turnMatcher.group(2) ?: ""
+
+			// Update state based on absolute turn number.
+			isPreDebut = (turn.toIntOrNull() ?: 13) <= 12
+
+			// Try to extract date from prefix if it looks like a date string.
+			// Common pattern: "fromDateString:: Detected Junior Year Early January (Turn 1)"
+			val date = if (prefix.contains("Detected ", ignoreCase = true)) {
+				prefix.substringAfter("Detected ", "").trim()
+			} else {
+				""
+			}
+
+			return JSONObject().apply {
+				if (date.isNotEmpty()) put("date", date)
+				put("turn", turn)
+			}
+		}
+
+		return null
 	}
 
 	/**

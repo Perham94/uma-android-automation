@@ -24,6 +24,7 @@ import SkillPlanSettings from "./pages/SkillPlanSettings"
 import { skillPlanSettingsPages } from "./pages/SkillPlanSettings/config"
 import EventLogVisualizer from "./pages/EventLogVisualizer"
 import ImportSettingsPreview from "./pages/ImportSettingsPreview"
+import ScenarioOverridesSettings from "./pages/ScenarioOverridesSettings"
 import DebugSettings from "./pages/DebugSettings"
 import DiscordSettings from "./pages/DiscordSettings"
 import DrawerContent from "./components/DrawerContent"
@@ -55,6 +56,7 @@ function SettingsStack() {
             ))}
             <Stack.Screen name="EventLogVisualizer" component={EventLogVisualizer} />
             <Stack.Screen name="ImportSettingsPreview" component={ImportSettingsPreview} />
+            <Stack.Screen name="ScenarioOverridesSettings" component={ScenarioOverridesSettings} />
             <Stack.Screen name="DebugSettings" component={DebugSettings} />
             <Stack.Screen name="DiscordSettings" component={DiscordSettings} />
         </Stack.Navigator>

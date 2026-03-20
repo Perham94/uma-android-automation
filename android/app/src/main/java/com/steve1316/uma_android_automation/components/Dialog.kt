@@ -323,6 +323,7 @@ object DialogObjects {
         DialogConfirmAutoSelect,            // Career Selection
         DialogConfirmExchange,              // Main Screen
         DialogConfirmRestoreRP,             // Team Trials
+        DialogConfirmUse,                   // Career (Trackblazer)
         DialogConnectionError,              // Anywhere
         DialogConsecutiveRaceWarning,       // Career
         DialogContinueCareer,               // Main Screen
@@ -332,6 +333,7 @@ object DialogObjects {
         DialogDownloadError,                // Title Screen (only?)
         DialogEpithet,                      // Career End
         DialogEpithets,                     // Career DialogMenu -> Epithets button
+        DialogExchangeComplete,             // Career (Trackblazer)
         DialogExternalLink,                 // Main Screen
         DialogFans,                         // Career DialogGoals
         DialogFeaturedCards,                // Career
@@ -375,6 +377,7 @@ object DialogObjects {
         DialogScheduledRaces,               // Career
         DialogScheduleSettings,             // Career
         DialogSessionError,                 // Anywhere
+        DialogShop,                         // Career (Trackblazer)
         DialogSkillDetails,                 // Anywhere
         DialogSkillListConfirmation,        // Career
         DialogSkillListConfirmExit,         // Career
@@ -611,6 +614,18 @@ object DialogConfirmExchange : DialogInterface {
     )
 }
 
+object DialogConfirmUse : DialogInterface {
+    override val TAG: String = "[${MainActivity.loggerTag}]DialogConfirmUse"
+    override val name: String = "confirm_use"
+    override val title: String = "Confirm Use"
+    override val closeButton = null
+    override val okButton: BaseComponentInterface = ButtonUseTrainingItems
+    override val buttons: List<BaseComponentInterface> = listOf(
+        ButtonCancel,
+        ButtonUseTrainingItems,
+    )
+}
+
 object DialogConnectionError : DialogInterface {
     override val TAG: String = "[${MainActivity.loggerTag}]DialogConnectionError"
     override val name: String = "connection_error"
@@ -738,6 +753,18 @@ object DialogEpithets : DialogInterface {
     override val okButton = null
     override val buttons: List<BaseComponentInterface> = listOf(
         ButtonClose,
+    )
+}
+
+object DialogExchangeComplete : DialogInterface {
+    override val TAG: String = "[${MainActivity.loggerTag}]DialogExchangeComplete"
+    override val name: String = "exchange_complete"
+    override val title: String = "Exchange Complete"
+    override val closeButton: BaseComponentInterface = ButtonClose
+    override val okButton: BaseComponentInterface = ButtonConfirmUse
+    override val buttons: List<BaseComponentInterface> = listOf(
+        ButtonClose,
+        ButtonConfirmUse,
     )
 }
 
@@ -1292,6 +1319,18 @@ object DialogSessionError : DialogInterface {
     override val okButton = null
     override val buttons: List<BaseComponentInterface> = listOf(
         ButtonTitleScreen,
+    )
+}
+
+object DialogShop : DialogInterface {
+    override val TAG: String = "[${MainActivity.loggerTag}]DialogShop"
+    override val name: String = "shop"
+    override val title: String = "Shop"
+    override val closeButton = null
+    override val okButton: BaseComponentInterface = ButtonShop
+    override val buttons: List<BaseComponentInterface> = listOf(
+        ButtonClose,
+        ButtonShop,
     )
 }
 
