@@ -227,6 +227,9 @@ dependencies {
     // Unit testing.
     testImplementation(libs.junit.jupiter)
     testRuntimeOnly(libs.junit.platform.launcher)
+
+    // ONNX Runtime for YOLOv8 inference.
+    implementation(libs.onnxruntime)
 }
 
 // ============================================================================
@@ -257,9 +260,11 @@ tasks.register("generateBundle", Exec) {
     workingDir = projectDir.parentFile
     commandLine("node", "generate-bundle.js")
 
-    // Only run if the bundle generation script exists.
+    // Only run for non-debug builds and if the bundle generation script exists.
+    // In debug mode, Metro handles the bundling dynamically, so we can skip this step to save time.
     onlyIf {
-        file("${projectDir.parentFile}/generate-bundle.js").exists()
+        def isDebug = gradle.startParameter.taskNames.any { it.toLowerCase().contains("debug") }
+        file("${projectDir.parentFile}/generate-bundle.js").exists() && !isDebug
     }
 
     // Handle case where the bundle generation script doesn't exist.

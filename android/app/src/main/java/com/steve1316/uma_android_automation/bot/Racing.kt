@@ -23,6 +23,8 @@ import com.steve1316.uma_android_automation.types.RunningStyle
 import com.steve1316.uma_android_automation.types.RaceGrade
 import com.steve1316.uma_android_automation.types.DateYear
 import com.steve1316.uma_android_automation.types.BoundingBox
+import com.steve1316.uma_android_automation.utils.ScrollList
+import com.steve1316.uma_android_automation.utils.ScrollListEntry
 
 import com.steve1316.uma_android_automation.components.*
 
@@ -30,12 +32,12 @@ class Racing (private val game: Game, private val campaign: Campaign) {
     private val TAG: String = "[${MainActivity.loggerTag}]Racing"
 
     private val enableFarmingFans = SettingsHelper.getBooleanSetting("racing", "enableFarmingFans")
-    internal val ignoreConsecutiveRaceWarning = SettingsHelper.getBooleanSetting("racing", "ignoreConsecutiveRaceWarning")
+    val ignoreConsecutiveRaceWarning = SettingsHelper.getBooleanSetting("racing", "ignoreConsecutiveRaceWarning")
     private val daysToRunExtraRaces: Int = SettingsHelper.getIntSetting("racing", "daysToRunExtraRaces")
     internal val disableRaceRetries: Boolean = SettingsHelper.getBooleanSetting("racing", "disableRaceRetries")
     internal val enableFreeRaceRetry: Boolean = SettingsHelper.getBooleanSetting("racing", "enableFreeRaceRetry")
     internal val enableCompleteCareerOnFailure: Boolean = SettingsHelper.getBooleanSetting("racing", "enableCompleteCareerOnFailure")
-    internal val enableForceRacing = SettingsHelper.getBooleanSetting("racing", "enableForceRacing")
+    val enableForceRacing = SettingsHelper.getBooleanSetting("racing", "enableForceRacing")
 
     private val enableRacingPlan = SettingsHelper.getBooleanSetting("racing", "enableRacingPlan")
     private val lookAheadDays = SettingsHelper.getIntSetting("racing", "lookAheadDays")
@@ -62,6 +64,9 @@ class Racing (private val game: Game, private val campaign: Campaign) {
     var hasG3OrAboveRequirement = false  // Indicates that a G3 or above requirement has been detected (any race can fulfill it).
     private var nextSmartRaceDay: Int? = null  // Tracks the specific day to race based on opportunity cost analysis.
     private var hasLoadedUserRaceAgenda = false  // Tracks if the user's race agenda has been loaded this career.
+    var lastRaceGrade: RaceGrade? = null  // Tracks the grade of the last race selected.
+	var lastRaceIsRival: Boolean = false  // Tracks if the last race selected was a Rival Race.
+	var bRetriedCurrentRace: Boolean = false  // Tracks if the current race has already been retried.
 
     internal val enableStopOnMandatoryRace: Boolean = SettingsHelper.getBooleanSetting("racing", "enableStopOnMandatoryRaces")
     internal var detectedMandatoryRaceCheck = false
@@ -80,6 +85,15 @@ class Racing (private val game: Game, private val campaign: Campaign) {
     // Cached race plan data loaded once per class instance.
     private val raceData: Map<String, RaceData> = loadRaceData()
     private val userPlannedRaces: List<PlannedRace> = loadUserPlannedRaces()
+
+    private val maxRetriesPerRace = if (game.scenario == "Trackblazer") SettingsHelper.getIntSetting("scenarioOverrides", "trackblazerMaxRetriesPerRace", 1) else 1
+
+    init {
+        if (game.scenario == "Trackblazer") {
+            // Total pool of retries for the entire run.
+            raceRetries = 5
+        }
+    }
 
     companion object {
         private const val TABLE_RACES = "races"
@@ -100,7 +114,8 @@ class Racing (private val game: Game, private val campaign: Campaign) {
         val nameFormatted: String,
         val trackSurface: TrackSurface,
         val trackDistance: TrackDistance,
-        val turnNumber: Int
+        val turnNumber: Int,
+		var isRival: Boolean = false
     ) {
         constructor(
             name: String,
@@ -141,7 +156,7 @@ class Racing (private val game: Game, private val campaign: Campaign) {
     /**
      * Clears all racing requirement flags like fan and trophy requirements.
      */
-    internal fun clearRacingRequirementFlags() {
+    fun clearRacingRequirementFlags() {
         hasFanRequirement = false
         hasTrophyRequirement = false
         hasPreOpOrAboveRequirement = false
@@ -244,7 +259,7 @@ class Racing (private val game: Game, private val campaign: Campaign) {
         }
 
         // Detect the current date first.
-        campaign.updateDate()
+        campaign.updateDate(isOnMainScreen = false)
 
         // Check for all double star predictions.
         val doublePredictionLocations = IconRaceListPredictionDoubleStar.findAll(game.imageUtils)
@@ -284,6 +299,13 @@ class Racing (private val game: Game, private val campaign: Campaign) {
      * @return True if the mandatory/extra race was completed successfully. Otherwise false.
      */
     fun handleRaceEvents(isScheduledRace: Boolean = false): Boolean {
+        // If the bot is already at the Race List screen and a race has already been selected,
+        // we should not reset the flags as they may have been set somewhere else.
+        if (!ButtonRace.check(game.imageUtils)) {
+            lastRaceGrade = null
+            lastRaceIsRival = false
+            bRetriedCurrentRace = false
+        }
         MessageLog.i(TAG, "\n********************")
         MessageLog.i(TAG, "[RACE] Starting Racing process on ${campaign.date}.")
 
@@ -338,9 +360,13 @@ class Racing (private val game: Game, private val campaign: Campaign) {
                 return false
             }
             return handleExtraRace(isScheduledRace = isScheduledRace)
+        } else if (ButtonRace.check(game.imageUtils)) {
+            MessageLog.i(TAG, "[RACE] The bot is already at the Race List screen and a race has already been selected.")
+            return handleSelectedRace()
         } else if (ButtonChangeRunningStyle.check(game.imageUtils)) {
             MessageLog.i(TAG, "[RACE] The bot is currently sitting on the race screen. Most likely here for a scheduled race.")
             handleStandaloneRace()
+            return true
         }
 
         // Clear requirement flags if no race selection buttons were found.
@@ -362,6 +388,34 @@ class Racing (private val game: Game, private val campaign: Campaign) {
 
         MessageLog.i(TAG, "[RACE] Racing process for Standalone Race is completed.")
         MessageLog.i(TAG, "********************")
+    }
+
+    /**
+     * Handles a race that has already been selected, usually via custom racing logic.
+     *
+     * @return True if the race was completed successfully, false otherwise.
+     */
+    private fun handleSelectedRace(): Boolean {
+        MessageLog.i(TAG, "[RACE] Starting process for a race that is already selected.")
+
+        // Confirm the selection and the resultant popup and then wait for the game to load.
+        ButtonRace.click(game.imageUtils, tries = 30)
+        game.wait(1.0)
+        ButtonRace.click(game.imageUtils, tries = 10)
+        game.wait(2.0)
+
+        game.waitForLoading()
+
+        // Skip the race if possible, otherwise run it manually.
+        runRaceWithRetries()
+        finalizeRaceResults(isExtra = true)
+
+        // Clear the next smart race day tracker since we just completed a race.
+        nextSmartRaceDay = null
+
+        MessageLog.i(TAG, "[RACE] Racing process for already selected race is completed.")
+        MessageLog.i(TAG, "********************")
+        return true
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1060,6 +1114,8 @@ class Racing (private val game: Game, private val campaign: Campaign) {
 
         MessageLog.i(TAG, "[RACE] Selecting smart racing choice: ${bestRace.raceData.name} (score: ${game.decimalFormat.format(bestRace.score)}).")
         game.tap(targetRaceLocation.x, targetRaceLocation.y, IconRaceListPredictionDoubleStar.template.path, ignoreWaiting = true)
+        lastRaceGrade = bestRace.raceData.grade
+		lastRaceIsRival = bestRace.raceData.isRival
 
         return true
     }
@@ -1107,7 +1163,7 @@ class Racing (private val game: Game, private val campaign: Campaign) {
         // If Pre-OP or G3 criteria is active, any race is acceptable.
         if (maxCount == 1) {
             if (hasTrophyRequirement && !hasPreOpOrAboveRequirement && !hasG3OrAboveRequirement) {
-                campaign.updateDate()
+                campaign.updateDate(isOnMainScreen = false)
                 val raceName = game.imageUtils.extractRaceName(doublePredictionLocations[0])
                 val raceDataList = lookupRaceInDatabase(campaign.date.day, raceName)
                 // Check if any matched race is G1.
@@ -1165,7 +1221,7 @@ class Racing (private val game: Game, private val campaign: Campaign) {
 
         // If trophy requirement is active, filter to only G1 races.
         val (filteredRaces, filteredLocations, _) = if (hasTrophyRequirement && !hasPreOpOrAboveRequirement && !hasG3OrAboveRequirement) {
-            campaign.updateDate()
+            campaign.updateDate(isOnMainScreen = false)
             val g1Indices = raceNamesList.mapIndexedNotNull { index, raceName ->
                 val raceDataList = lookupRaceInDatabase(campaign.date.day, raceName)
                 // Check if any matched race is G1.
@@ -1203,12 +1259,41 @@ class Racing (private val game: Game, private val campaign: Campaign) {
         }
         MessageLog.i(TAG, "[RACE] Number of fans detected for each extra race are: ${filteredRaces.joinToString(", ") { it.fans.toString() }}")
 
-        // Evaluates which race to select based on maximum fans and double prediction priority (if force racing is enabled).
-        val index = if (!enableForceRacing) {
-            filteredRaces.indexOfFirst { it.fans == maxFans }
+        // Evaluates which race to select based on Rival priority, maximum fans and double prediction priority.
+        val index = if (filteredRaces.any { it.isRival }) {
+            MessageLog.i(TAG, "[RACE] Rival Race(s) detected. Prioritizing Rival Races.")
+            val rivalRaces = filteredRaces.filter { it.isRival }
+
+            if (enableForceRacing) {
+                val rivalsWithDouble = rivalRaces.filter { it.hasDoublePredictions }
+                if (rivalsWithDouble.isNotEmpty()) {
+                    val maxFansDouble = rivalsWithDouble.maxOf { it.fans }
+                    filteredRaces.indexOfFirst { it.isRival && it.hasDoublePredictions && it.fans == maxFansDouble }
+                } else {
+                    val maxRivalFans = rivalRaces.maxOf { it.fans }
+                    filteredRaces.indexOfFirst { it.isRival && it.fans == maxRivalFans }
+                }
+            } else {
+                val maxRivalFans = rivalRaces.maxOf { it.fans }
+                filteredRaces.indexOfFirst { it.isRival && it.fans == maxRivalFans }
+            }
         } else {
-            filteredRaces.indexOfFirst { it.hasDoublePredictions }.takeIf { it != -1 } ?: filteredRaces.indexOfFirst { it.fans == maxFans }
+            if (!enableForceRacing) {
+                filteredRaces.indexOfFirst { it.fans == maxFans }
+            } else {
+                filteredRaces.indexOfFirst { it.hasDoublePredictions }.takeIf { it != -1 } ?: filteredRaces.indexOfFirst { it.fans == maxFans }
+            }
         }
+
+        // Determine the grade of the selected race and store it for retry purposes.
+        val selectedRaceName = if (hasTrophyRequirement && index < raceNamesList.size) {
+            raceNamesList[index]
+        } else {
+            game.imageUtils.extractRaceName(extraRaceLocations[index])
+        }
+        val raceDataList = lookupRaceInDatabase(campaign.date.day, selectedRaceName)
+        lastRaceGrade = raceDataList.firstOrNull()?.grade
+		lastRaceIsRival = filteredRaces[index].isRival
 
         // Selects the determined race on screen.
         MessageLog.i(TAG, "[RACE] Selecting extra race at option #${index + 1}.")
@@ -1616,17 +1701,23 @@ class Racing (private val game: Game, private val campaign: Campaign) {
             return true
         }
 
-        // Check for common restrictions that apply to both smart and standard racing via screen checks.
-        val sourceBitmap = game.imageUtils.getSourceBitmap()
-        if (campaign.checkFinals()) {
-            MessageLog.i(TAG, "[RACE] It is UMA Finals right now so there will be no extra races. Stopping extra race check.")
-            return false
-        } else if (ButtonRaces.checkDisabled(game.imageUtils, sourceBitmap) == true) {
-            MessageLog.i(TAG, "[RACE] Extra Races button is currently locked. Stopping extra race check.")
-            return false
-        } else if (campaign.date.isSummer()) {
-            MessageLog.i(TAG, "[RACE] It is currently Summer right now. Stopping extra race check.")
-            return false
+        // For Trackblazer, we want to race as often as possible so we bypass most checks.
+        if (game.scenario == "Trackblazer") {
+            MessageLog.i(TAG, "[RACE] Trackblazer scenario detected. Bypassing smart racing and interval checks.")
+            
+            // Still check for finals and summer as they are hard restrictions.
+            if (campaign.checkFinals()) {
+                MessageLog.i(TAG, "[RACE] It is UMA Finals right now so there will be no extra races. Stopping extra race check.")
+                return false
+            } else if (campaign.date.isSummer()) {
+                MessageLog.i(TAG, "[RACE] It is currently Summer right now. Stopping extra race check.")
+                return false
+            } else if (ButtonRaces.checkDisabled(game.imageUtils) == true) {
+                MessageLog.i(TAG, "[RACE] Extra Races button is currently locked. Stopping extra race check.")
+                return false
+            }
+            
+            return !raceRepeatWarningCheck
         }
 
         // If fan or trophy requirement is detected, bypass smart racing logic to force racing.
@@ -1932,8 +2023,20 @@ class Racing (private val game: Game, private val campaign: Campaign) {
         // Flag used to prevent us from attempting to select a running style after
         // we've already successfully selected a running style once.
         var bDidSelectRaceStrategy: Boolean = false
+        var retriesThisRace = 0
+        var lastRaceRetries = raceRetries
+
+        // Safety counter to prevent infinite loop.
+        var loopCount = 0
+        val maxLoopCount = 100
 
         do {
+            loopCount++
+            if (loopCount > maxLoopCount) {
+                MessageLog.w(TAG, "[RACE] runRaceWithRetries: Safety loop limit reached. Exiting race retry loop...")
+                return false
+            }
+
             if (campaign.tryHandleAllDialogs()) {
                 continue
             }
@@ -1986,6 +2089,56 @@ class Racing (private val game: Game, private val campaign: Campaign) {
                 ButtonSkip.click(game.imageUtils, sourceBitmap = bitmap) -> {
                     MessageLog.i(TAG, "[RACE] Clicked skip button.")
                 }
+                // Handle post-race Rival popups.
+                game.scenario == "Trackblazer" && ButtonClose.click(game.imageUtils, sourceBitmap = bitmap) -> {
+                    MessageLog.i(TAG, "[RACE] [TRACKBLAZER] Closed post-race Rival popup.")
+                    campaign.onRaceWin()
+                    game.wait(1.0)
+
+                    // After closing the popup, check if we can retry a G1 race.
+                    if (lastRaceGrade == RaceGrade.G1 && raceRetries > 0 && retriesThisRace < maxRetriesPerRace && ButtonTryAgainAlt.checkDisabled(game.imageUtils) == false) {
+                        MessageLog.i(TAG, "[RACE] [TRACKBLAZER] G1 race detected and retry button is available. Retrying...")
+                        if (ButtonTryAgainAlt.click(game.imageUtils)) {
+                            game.wait(3.0)
+                            retriesThisRace++
+                            raceRetries--
+                            lastRaceRetries = raceRetries
+                        }
+                    } else if (lastRaceIsRival && !bRetriedCurrentRace && raceRetries > 0 && retriesThisRace < maxRetriesPerRace && ButtonTryAgainAlt.checkDisabled(game.imageUtils) == false) {
+                        // Trackblazer Rival Race retry logic: retry once then stop.
+                        MessageLog.i(TAG, "[RACE] [TRACKBLAZER] Rival Race retry button is available. Retrying once...")
+                        bRetriedCurrentRace = true
+                        if (ButtonTryAgainAlt.click(game.imageUtils)) {
+                            game.wait(3.0)
+                            retriesThisRace++
+                            raceRetries--
+                            lastRaceRetries = raceRetries
+                        }
+                    } else {
+                        MessageLog.d(TAG, "[RACE] [TRACKBLAZER] No retries remaining or G1/Rival race conditions not met.")
+                    }
+                }
+                game.scenario == "Trackblazer" && lastRaceGrade == RaceGrade.G1 && raceRetries > 0 && retriesThisRace < maxRetriesPerRace && ButtonTryAgainAlt.checkDisabled(game.imageUtils, sourceBitmap = bitmap) == false -> {
+                    // Check if we can retry a G1 race even if no popup appeared.
+                    MessageLog.i(TAG, "[RACE] [TRACKBLAZER] G1 race detected and retry button is available. Retrying...")
+                    if (ButtonTryAgainAlt.click(game.imageUtils, sourceBitmap = bitmap)) {
+                        game.wait(3.0)
+                        retriesThisRace++
+                        raceRetries--
+                        lastRaceRetries = raceRetries
+                    }
+                }
+                game.scenario == "Trackblazer" && lastRaceIsRival && !bRetriedCurrentRace && raceRetries > 0 && retriesThisRace < maxRetriesPerRace && ButtonTryAgainAlt.checkDisabled(game.imageUtils, sourceBitmap = bitmap) == false -> {
+                    // Trackblazer Rival Race retry logic even if no popup appeared.
+                    MessageLog.i(TAG, "[RACE] [TRACKBLAZER] Rival Race retry button is available. Retrying once...")
+                    bRetriedCurrentRace = true
+                    if (ButtonTryAgainAlt.click(game.imageUtils, sourceBitmap = bitmap)) {
+                        game.wait(3.0)
+                        retriesThisRace++
+                        raceRetries--
+                        lastRaceRetries = raceRetries
+                    }
+                }
                 ButtonNext.check(game.imageUtils, sourceBitmap = bitmap) -> {
                     MessageLog.i(TAG, "[RACE] Reached race results screen. Exiting race retry loop...")
                     return true
@@ -1996,10 +2149,7 @@ class Racing (private val game: Game, private val campaign: Campaign) {
                     game.tap(350.0, 450.0, taps = 3)
                 }
             }
-        } while (raceRetries >= 0)
-
-        MessageLog.d(TAG, "runRaceWithRetries: No retries remaining ($raceRetries). Returning FALSE.")
-        return false
+        } while (true)
     }
 
     /**
@@ -2031,7 +2181,9 @@ class Racing (private val game: Game, private val campaign: Campaign) {
                 game.wait(0.5, skipWaitingForLoading = true)
                 continue
             }
+
             val bitmap: Bitmap = game.imageUtils.getSourceBitmap()
+
             when {
                 ButtonNext.click(game.imageUtils, sourceBitmap = bitmap) -> {
                     MessageLog.i(TAG, "[RACE] Clicked on Next (race results) button.")
@@ -2527,7 +2679,213 @@ class Racing (private val game: Game, private val campaign: Campaign) {
             nextSmartRaceDay = bestUpcomingRaceData?.turnNumber
             MessageLog.i(TAG, "[RACE] Setting next smart race day to turn ${nextSmartRaceDay}.")
         }
-        
+
         return shouldRace
     }
+
+    /**
+     * Searches the race list for a race that meets Trackblazer criteria.
+     * 
+     * Junior Year: G1/G2/G3 with double predictions.
+     * Classic/Senior: Priority racing, but if consecutive race count >= 3, only G1/G2.
+     *
+     * @param consecutiveRaceCount Current number of consecutive races performed.
+     * @return Pair of the best suitable race's location and RaceData, or null if none found.
+     */
+	fun findSuitableTrackblazerRace(consecutiveRaceCount: Int): Pair<Point, RaceData>? {
+		val sb = StringBuilder()
+		sb.appendLine("\n========== Trackblazer Race Analysis ==========")
+		sb.appendLine("Current Date: ${campaign.date}")
+		sb.appendLine("Consecutive Race Count: $consecutiveRaceCount")
+
+		data class Candidate(val point: Point, val race: RaceData, val detectedName: String, val isRival: Boolean)
+		val allSuitableRaces = mutableListOf<Candidate>()
+
+		val scrollList = ScrollList.create(game)
+		if (scrollList != null) {
+			MessageLog.i(TAG, "[RACE] Scanning the whole race list for suitable Trackblazer races...")
+			val entryRaceNamesMap = mutableMapOf<Int, List<String>>()
+			scrollList.process(
+				keyExtractor = { entry ->
+					val doubleStarPredictions = IconRaceListPredictionDoubleStar.findAll(game.imageUtils, sourceBitmap = entry.bitmap, region = intArrayOf(0, 0, 0, 0))
+					val names = doubleStarPredictions.map { predLoc ->
+						val screenPoint = Point(entry.bbox.x + predLoc.x, entry.bbox.y + predLoc.y)
+						game.imageUtils.extractRaceName(screenPoint)
+					}
+					if (names.isNotEmpty()) entryRaceNamesMap[entry.index] = names
+					if (names.isEmpty()) null else names.joinToString("|")
+				}
+			) { _, entry ->
+				val doubleStarPredictions = IconRaceListPredictionDoubleStar.findAll(game.imageUtils, sourceBitmap = entry.bitmap, region = intArrayOf(0, 0, 0, 0))
+				val cachedNames = entryRaceNamesMap[entry.index] ?: emptyList()
+				for ((idx, predLoc) in doubleStarPredictions.withIndex()) {
+					// Check for Rival status on the entry's bitmap using relative coordinates.
+					val rivalBitmap = game.imageUtils.createSafeBitmap(
+						entry.bitmap,
+						game.imageUtils.relX(predLoc.x, -165),
+						game.imageUtils.relY(predLoc.y, -165),
+						game.imageUtils.relWidth(340),
+						game.imageUtils.relHeight(80),
+						"findSuitableTrackblazerRace rival scan"
+					)
+					val rivalFound = rivalBitmap != null && LabelRivalRacer.check(
+						game.imageUtils,
+						region = intArrayOf(0, 0, 0, 0),
+						sourceBitmap = rivalBitmap
+					)
+					
+					if (game.debugMode) {
+						game.imageUtils.saveBitmap(rivalBitmap, "rival_scan_${predLoc.x}_${predLoc.y}")
+					}
+
+					val screenPoint = Point(entry.bbox.x + predLoc.x, entry.bbox.y + predLoc.y)
+					val detectedName = if (idx < cachedNames.size) cachedNames[idx] else game.imageUtils.extractRaceName(screenPoint)
+					val matches = lookupRaceInDatabase(campaign.date.day, detectedName)
+
+					for (race in matches) {
+						var isSuitable = false
+						val reasons = mutableListOf<String>()
+
+						// Set Rival status on the race object.
+						race.isRival = rivalFound
+
+						if (campaign.date.year == DateYear.JUNIOR) {
+							// Junior Year: G1, G2, or G3 with double predictions.
+							if (listOf(RaceGrade.G1, RaceGrade.G2, RaceGrade.G3).contains(race.grade)) {
+								isSuitable = true
+							} else {
+								reasons.add("Junior Year: Grade ${race.grade} is not G1, G2, or G3")
+							}
+						} else {
+							// Classic/Senior Year: Allow extra races if there's a G1, G2, or G3 race when the consecutive race counter is 3 or above.
+							if (consecutiveRaceCount >= 3) {
+								if (listOf(RaceGrade.G1, RaceGrade.G2, RaceGrade.G3).contains(race.grade)) {
+									isSuitable = true
+								} else {
+									reasons.add("Consecutive races >= 3: Grade ${race.grade} is not G1, G2, or G3")
+								}
+							} else {
+								// If consecutive race count < 3, all races are suitable if they have double predictions.
+								isSuitable = true
+							}
+						}
+
+						if (isSuitable) {
+							allSuitableRaces.add(Candidate(screenPoint, race, detectedName, rivalFound))
+							sb.appendLine("\n- Found Suitable Race: \"${race.name}\" (${race.grade}) Rival: $rivalFound")
+						} else {
+							sb.appendLine("\n- Ignored Race: \"${race.name}\" (${race.grade}). Reason: ${reasons.joinToString(", ")}")
+						}
+					}
+				}
+				false // Continue scanning all pages.
+			}
+		} else {
+			MessageLog.e(TAG, "[RACE] Failed to create ScrollList. Falling back to single-page detection.")
+			val doubleStarPredictions = IconRaceListPredictionDoubleStar.findAll(game.imageUtils)
+			val sourceBitmap = game.imageUtils.getSourceBitmap()
+			for (location in doubleStarPredictions) {
+				// Check for Rival status.
+				val rivalBitmap = game.imageUtils.createSafeBitmap(
+					sourceBitmap,
+					game.imageUtils.relX(location.x, -165),
+					game.imageUtils.relY(location.y, -165),
+					game.imageUtils.relWidth(320),
+					game.imageUtils.relHeight(80),
+					"findSuitableTrackblazerRace rival fallback"
+				)
+				val rivalFound = rivalBitmap != null && LabelRivalRacer.check(
+					game.imageUtils,
+					region = intArrayOf(0, 0, 0, 0),
+					sourceBitmap = rivalBitmap
+				)
+
+				if (game.debugMode) {
+					game.imageUtils.saveBitmap(rivalBitmap, "rival_fallback_${location.x}_${location.y}")
+				}
+
+				val detectedName = game.imageUtils.extractRaceName(location)
+				val matches = lookupRaceInDatabase(campaign.date.day, detectedName)
+
+				for (race in matches) {
+					var isSuitable = false
+					val reasons = mutableListOf<String>()
+
+					// Set Rival status on the race object.
+					race.isRival = rivalFound
+
+					if (campaign.date.year == DateYear.JUNIOR) {
+						if (listOf(RaceGrade.G1, RaceGrade.G2, RaceGrade.G3).contains(race.grade)) {
+							isSuitable = true
+						} else {
+							reasons.add("Junior Year: Grade ${race.grade} is not G1, G2, or G3")
+						}
+					} else {
+						if (consecutiveRaceCount >= 3) {
+							if (listOf(RaceGrade.G1, RaceGrade.G2, RaceGrade.G3).contains(race.grade)) {
+								isSuitable = true
+							} else {
+								reasons.add("Consecutive races >= 3: Grade ${race.grade} is not G1, G2, or G3")
+							}
+						} else {
+							isSuitable = true
+						}
+					}
+
+					if (isSuitable) {
+						allSuitableRaces.add(Candidate(location, race, detectedName, rivalFound))
+					}
+				}
+			}
+		}
+
+		if (allSuitableRaces.isEmpty()) {
+			sb.appendLine("\nSummary: No suitable races found after analysis.")
+			sb.appendLine("================================================")
+			MessageLog.i(TAG, sb.toString())
+			return null
+		}
+
+		// Prioritize Rival Races then Grade.
+		val gradePriority = mapOf(
+			RaceGrade.G1 to 1,
+			RaceGrade.G2 to 2,
+			RaceGrade.G3 to 3,
+			RaceGrade.OP to 4,
+			RaceGrade.PRE_OP to 5
+		)
+
+		val sortedRaces = allSuitableRaces.sortedWith(compareByDescending<Candidate> { it.isRival }.thenBy { gradePriority[it.race.grade] ?: 99 })
+		val winner = sortedRaces.first()
+
+		sb.appendLine("\nSelected Race: ${winner.race.name} (${winner.race.grade}) Rival: ${winner.isRival}")
+		sb.appendLine("================================================")
+		MessageLog.i(TAG, sb.toString())
+
+		// Second pass to scroll to and return the winner's current clickable point.
+		return if (scrollList != null) {
+			MessageLog.i(TAG, "[RACE] Scrolling to selected race: \"${winner.race.name}\"...")
+			var finalWinnerPoint: Point? = null
+			scrollList.process { _, entry ->
+				val stars = IconRaceListPredictionDoubleStar.findAll(game.imageUtils, sourceBitmap = entry.bitmap, region = intArrayOf(0, 0, 0, 0))
+				for (starLoc in stars) {
+					val screenPoint = Point(entry.bbox.x + starLoc.x, entry.bbox.y + starLoc.y)
+					val name = game.imageUtils.extractRaceName(screenPoint)
+					val matches = lookupRaceInDatabase(campaign.date.day, name)
+					
+					if (matches.any { it.name == winner.race.name }) {
+						if (game.debugMode) {
+							MessageLog.i(TAG, "[RACE] Found winner \"${winner.race.name}\" (Detected: \"$name\", Target: \"${winner.detectedName}\")")
+						}
+						finalWinnerPoint = screenPoint
+						return@process true // Stop!
+					}
+				}
+				false
+			}
+			if (finalWinnerPoint != null) finalWinnerPoint!! to winner.race else null
+		} else {
+			winner.point to winner.race
+		}
+	}
 }

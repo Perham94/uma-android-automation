@@ -77,7 +77,8 @@ class Training(private val game: Game, private val campaign: Campaign) {
 		val numRainbow: Int,
 		val numSpiritGaugesCanFill: Int = 0,
 		val numSpiritGaugesReadyToBurst: Int = 0,
-		val numSkillHints: Int = 0
+		val numSkillHints: Int = 0,
+		val skipReason: String? = null
 	) {
 		override fun equals(other: Any?): Boolean {
 			if (this === other) return true
@@ -94,6 +95,7 @@ class Training(private val game: Game, private val campaign: Campaign) {
 			if (numSpiritGaugesCanFill != other.numSpiritGaugesCanFill) return false
 			if (numSpiritGaugesReadyToBurst != other.numSpiritGaugesReadyToBurst) return false
 			if (numSkillHints != other.numSkillHints) return false
+			if (skipReason != other.skipReason) return false
 
 			return true
 		}
@@ -108,6 +110,7 @@ class Training(private val game: Game, private val campaign: Campaign) {
 			result = 31 * result + numSpiritGaugesCanFill
 			result = 31 * result + numSpiritGaugesReadyToBurst
 			result = 31 * result + numSkillHints
+			result = 31 * result + (skipReason?.hashCode() ?: 0)
 			return result
 		}
 	}
@@ -178,16 +181,7 @@ class Training(private val game: Game, private val campaign: Campaign) {
 		private val TAG: String = "[${MainActivity.loggerTag}]Training"
 
 		fun getScenarioStatCap(scenario: String, statName: StatName): Int {
-			return when (scenario) {
-				"Trackblazer" -> when (statName) {
-					StatName.SPEED -> 1200
-					StatName.STAMINA -> 1900
-					StatName.POWER -> 1200
-					StatName.GUTS -> 1200
-					StatName.WIT -> 1500
-				}
-				else -> 1200
-			}
+			return 1200
 		}
 
 		fun getCurrentStatCap(statName: StatName, config: TrainingConfig): Int {
@@ -586,7 +580,7 @@ class Training(private val game: Game, private val campaign: Campaign) {
 		}
 	}
 
-	private val trainingMap: MutableMap<StatName, TrainingOption> = mutableMapOf()
+	val trainingMap: MutableMap<StatName, TrainingOption> = mutableMapOf()
 	private val skippedTrainingMap: MutableMap<StatName, TrainingOption> = mutableMapOf()
 	private val restrictedTrainingNames: MutableSet<StatName> = mutableSetOf()
 	private val statsTrainedOverBuffer: MutableSet<StatName> = mutableSetOf()
@@ -612,6 +606,7 @@ class Training(private val game: Game, private val campaign: Campaign) {
 	private fun getCurrentStatCap(statName: StatName): Int {
 		return getScenarioStatCap(game.scenario, statName)
 	}
+    private val minStatGainForCharm = SettingsHelper.getIntSetting("scenarioOverrides", "trackblazerMinStatGainForCharm", 30)
 
 	////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////
@@ -716,7 +711,7 @@ class Training(private val game: Game, private val campaign: Campaign) {
 	 * @param test Flag that forces the failure chance through even if it is not in the acceptable range for testing purposes.
 	 * @param singleTraining Flag that forces only singular training analysis for the current training on the screen.
 	 */
-	fun analyzeTrainings(test: Boolean = false, singleTraining: Boolean = false) {
+	fun analyzeTrainings(test: Boolean = false, singleTraining: Boolean = false, ignoreFailureChance: Boolean = false) {
 		if (singleTraining) {
             MessageLog.i(TAG, "\n[TRAINING] Now starting process to analyze the training on screen.")
         } else {
@@ -887,9 +882,11 @@ class Training(private val game: Game, private val campaign: Campaign) {
         val isWithinRegularThreshold = failureChance <= maximumFailureChance
         val isWithinRiskyThreshold = enableRiskyTraining && failureChance <= riskyTrainingMaxFailureChance
         val isFinals = campaign.checkFinals()
-        if (test || isWithinRegularThreshold || isWithinRiskyThreshold || isFinals) {
+        if (test || isWithinRegularThreshold || isWithinRiskyThreshold || isFinals || ignoreFailureChance) {
             if (!test) {
-                if (isFinals) {
+                if (ignoreFailureChance) {
+                    MessageLog.i(TAG, "[TRAINING] $failureChance% exceeds thresholds but ignoring failure chance check. Proceeding to acquire all other percentages and total stat increases...")
+                } else if (isFinals) {
                     MessageLog.i(TAG, "[TRAINING] $failureChance% exceeds thresholds but it is the Finals. Ignoring and proceeding to acquire all other percentages and total stat increases...")
                 } else if (isWithinRegularThreshold) {
                     MessageLog.i(TAG, "[TRAINING] $failureChance% within acceptable range of ${maximumFailureChance}%. Proceeding to acquire all other percentages and total stat increases...")
@@ -900,7 +897,7 @@ class Training(private val game: Game, private val campaign: Campaign) {
 
             // Early skill hint detection: If prioritization is enabled, scan for skill hints before analyzing trainings.
             // This ensures skill hints are detected even if some trainings are blacklisted.
-            if (enablePrioritizeSkillHints) {
+            if (!test && enablePrioritizeSkillHints) {
                 MessageLog.i(TAG, "[TRAINING] Skill hint prioritization is enabled. Scanning for skill hints before training analysis...")
                 val skillHintLocations: ArrayList<Point> = IconStatSkillHint.findAll(game.imageUtils, region = game.imageUtils.regionBottomHalf)
                 if (skillHintLocations.isNotEmpty()) {
@@ -1127,8 +1124,13 @@ class Training(private val game: Game, private val campaign: Campaign) {
 
                     // For Risky Training, filter out trainings that exceed the effective failure chance threshold or do not meet the minimum main stat gain threshold.
                     val mainStatGain = result.statGains[result.name] ?: 0
-                    if (!test && result.failureChance > effectiveFailureChance) {
+                    if (!test && !ignoreFailureChance && result.failureChance > effectiveFailureChance) {
                         MessageLog.i(TAG, "[TRAINING] Skipping $statName training due to failure chance (${result.failureChance}%) exceeding the effective failure chance threshold (${effectiveFailureChance}%).")
+                        continue
+                    }
+
+                    if (!test && ignoreFailureChance && result.failureChance > effectiveFailureChance && mainStatGain < 30) {
+                        MessageLog.i(TAG, "[TRAINING] Skipping $statName training with Good-Luck Charm because main stat gain ($mainStatGain) is less than 30 and failure chance (${result.failureChance}%) is risky.")
                         continue
                     }
                     if (!test && enableRiskyTraining && mainStatGain < riskyTrainingMinStatGain) {
@@ -1204,11 +1206,13 @@ class Training(private val game: Game, private val campaign: Campaign) {
                     }
                     
                     // Filter out trainings that exceed the effective failure chance threshold.
-                    if (!test && result.failureChance > effectiveFailureChance) {
-                        if (enableRiskyTraining && mainStatGain >= riskyTrainingMinStatGain) {
+                    if (!test && !ignoreFailureChance && result.failureChance > effectiveFailureChance) {
+                        val skipReason = if (enableRiskyTraining && mainStatGain >= riskyTrainingMinStatGain) {
                             MessageLog.i(TAG, "[TRAINING] Skipping ${result.name} training due to failure chance (${result.failureChance}%) exceeding risky threshold (${riskyTrainingMaxFailureChance}%) despite high main stat gain of $mainStatGain.")
+                            "high failure chance (risky)"
                         } else {
                             MessageLog.i(TAG, "[TRAINING] Skipping ${result.name} training due to failure chance (${result.failureChance}%) exceeding threshold (${maximumFailureChance}%).")
+                            "high failure chance"
                         }
 
                         // Store the skipped training for logging purposes.
@@ -1222,6 +1226,27 @@ class Training(private val game: Game, private val campaign: Campaign) {
                             numSpiritGaugesCanFill = result.numSpiritGaugesCanFill,
                             numSpiritGaugesReadyToBurst = result.numSpiritGaugesReadyToBurst,
                             numSkillHints = result.numSkillHints,
+                            skipReason = skipReason
+                        )
+                        skippedTrainingMap[result.name] = skippedTraining
+                        continue
+                    }
+
+                    if (!test && ignoreFailureChance && result.failureChance > effectiveFailureChance && mainStatGain < minStatGainForCharm) {
+                        MessageLog.i(TAG, "[TRAINING] Skipping ${result.name} training with Good-Luck Charm because main stat gain ($mainStatGain) is less than $minStatGainForCharm and failure chance (${result.failureChance}%) is risky.")
+                        
+                        // Store the skipped training for logging purposes.
+                        val skippedTraining = TrainingOption(
+                            name = result.name,
+                            statGains = result.statGains,
+                            correctedStats = result.correctedStats,
+                            failureChance = result.failureChance,
+                            relationshipBars = result.relationshipBars,
+                            numRainbow = result.numRainbow,
+                            numSpiritGaugesCanFill = result.numSpiritGaugesCanFill,
+                            numSpiritGaugesReadyToBurst = result.numSpiritGaugesReadyToBurst,
+                            numSkillHints = result.numSkillHints,
+                            skipReason = "low gain with charm"
                         )
                         skippedTrainingMap[result.name] = skippedTraining
                         continue
@@ -1280,7 +1305,7 @@ class Training(private val game: Game, private val campaign: Campaign) {
 	 *
 	 * @return The name of the recommended training option, or NULL if no suitable option found.
 	 */
-	private fun recommendTraining(): StatName? {
+	fun recommendTraining(): StatName? {
 		// Build skillHintsPerLocation from the training map.
 		val skillHintsPerLocation: Map<StatName, Int> = StatName.entries.associateWith { trainingMap[it]?.numSkillHints ?: 0 }
 
@@ -1338,7 +1363,7 @@ class Training(private val game: Game, private val campaign: Campaign) {
 	 * 
 	 * @param trainingSelected The stat name of the training to execute.
 	 */
-	private fun executeTraining(trainingSelected: StatName?) {
+	fun executeTraining(trainingSelected: StatName?) {
 		MessageLog.i(TAG, "[TRAINING] Now starting process to execute training...")
 
 		if (trainingSelected != null) {
@@ -1538,7 +1563,14 @@ class Training(private val game: Game, private val campaign: Campaign) {
 			val numSkipped = skippedScores.size
 			val numBlacklisted = config.blacklist.filterNotNull().size
 			val reasons = mutableListOf<String>()
-			if (numSkipped > 0) reasons.add("$numSkipped skipped due to high failure chance")
+			if (numSkipped > 0) {
+				val skipReasons = skippedTrainingMap.values.mapNotNull { it.skipReason }.distinct()
+				if (skipReasons.isNotEmpty()) {
+					reasons.add("$numSkipped skipped due to: ${skipReasons.joinToString(", ")}")
+				} else {
+					reasons.add("$numSkipped skipped due to high failure chance")
+				}
+			}
 			if (numBlacklisted > 0) reasons.add("$numBlacklisted blacklisted")
 			if (restrictedTrainingNames.isNotEmpty()) reasons.add("${restrictedTrainingNames.size} restricted")
 			

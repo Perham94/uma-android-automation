@@ -87,6 +87,7 @@ const TrainingSettings = () => {
         trainWitDuringFinale,
         enablePrioritizeSkillHints,
         enableTrainingAnalysisValidation,
+        enableYoloStatDetection,
     } = trainingSettings
 
     // Update global settings when local state changes, but skip the initial mount check.
@@ -637,6 +638,16 @@ const TrainingSettings = () => {
                                     ⚠️ Warning: Enabling this option will prevent accidental trainings at the cost of a significant increase in the time it takes to complete a scenario.
                                 </WarningContainer>
                             )}
+                        </View>
+                        <View style={styles.section}>
+                            <CustomCheckbox
+                                checked={enableYoloStatDetection}
+                                onCheckedChange={(checked) => updateTrainingSetting("enableYoloStatDetection", checked)}
+                                label="Enable YOLO Stat Detection"
+                                description="When enabled, the bot will use a custom YOLOv8 model for high-precision stat gain detection. This replaces the standard OCR/Template matching for stat gains."
+                                className="my-2"
+                                searchId="enable-yolo-stat-detection"
+                            />
                         </View>
 
                         <View style={styles.section}>

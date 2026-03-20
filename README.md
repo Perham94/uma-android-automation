@@ -33,6 +33,7 @@ This project is purely for educational purposes to learn about Android automatio
 -   [x] Completes a full run from start/midway to its conclusion.
 -   [x] Supports multiple scenarios including **URA Finale**, **Unity Cup**, and those in the future to come.
 -   [x] Advanced OpenCV template matching for real-time gamestate awareness.
+-   [x] YOLOv8-powered real-time stat gain detection for improved accuracy.
 -   [x] Tesseract OCR integrated with rapid fuzzy string matching.
 -   [x] Modern user interface built using React Native, Typescript and Expo for full configurability.
 -   [x] Remote Log Viewer to monitor real-time automation progress from any browser on the same network.
@@ -98,7 +99,8 @@ This project is separated into a React Native frontend configured via Expo and a
 
 1. Download and extract the repository.
 2. Download OpenCV for Android (v4.12.0) from `https://opencv.org/releases/`. Create `/android/opencv` and copy the extracted `/OpenCV-android-sdk/sdk/` contents into it.
-3. The project utilizes Expo. Run `yarn install` from the root directory to install frontend dependencies.
+3. **IMPORTANT:** The project uses a YOLOv8 model for stat gain detection. Ensure the `best.onnx` model file is present in the `android/app/src/main/assets/` directory.
+4. The project utilizes Expo. Run `yarn install` from the root directory to install frontend dependencies.
 4. The dev environment is ready. Run `yarn start` or `npx expo start` to run the Metro HTTP server.
 5. To test Android builds, execute `yarn android` to compile and install the application directly on your device. Use `yarn build` for release APK generation.
 6. *Note*: Do not run the React Native shell app directly from Android Studio. Always rely on the Expo Metro bundler for correct bridging.
@@ -110,9 +112,11 @@ This project is separated into a React Native frontend configured via Expo and a
 3. [AccessibilityService - Used to dispatch gestures like tapping and scrolling](https://developer.android.com/reference/android/accessibilityservice/AccessibilityService)
 4. [OpenCV Android - Used to template match](https://opencv.org/releases/)
 5. [Tesseract4Android - For performing OCR on the screen](https://github.com/adaptech-cz/Tesseract4Android)
-7. [string-similarity - For comparing string similarities during text detection](https://github.com/rrice/java-string-similarity)
-8. [AppUpdater - For automatically checking and notifying the user for new app updates](https://github.com/javiersantos/AppUpdater)
-9. [React Native - Used as the frontend](https://reactnative.dev/)
-10. [Expo - Modern modular frontend](https://expo.dev/)
-11. [SQLite - Local database via expo-sqlite](https://docs.expo.dev/versions/latest/sdk/sqlite/)
-12. [Ktor - For the Remote Log Viewer](https://ktor.io/)
+6. [string-similarity - For comparing string similarities during text detection](https://github.com/rrice/java-string-similarity)
+7. [AppUpdater - For automatically checking and notifying the user for new app updates](https://github.com/javiersantos/AppUpdater)
+8. [React Native - Used as the frontend](https://reactnative.dev/)
+9. [Expo - Modern modular frontend](https://expo.dev/)
+10. [SQLite - Local database via expo-sqlite](https://docs.expo.dev/versions/latest/sdk/sqlite/)
+11. [Ktor - For the Remote Log Viewer](https://ktor.io/)
+12. [YOLOv8 - Object detection](https://github.com/ultralytics/ultralytics)
+13. [ONNX Runtime - Lightweight engine for executing the YOLOv8 model](https://onnxruntime.ai/)

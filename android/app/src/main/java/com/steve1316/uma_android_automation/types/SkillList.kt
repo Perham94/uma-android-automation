@@ -313,13 +313,30 @@ class SkillList (private val game: Game, private val campaign: Campaign) {
         // but we can't just replace that character since some titles
         // actually end in those letters. So we just append this to the title
         // since it shouldn't cause fuzzy matching to fail.
-        val iconChar: String = when (match) {
-            IconSkillTitleDoubleCircle -> "◎"
-            IconSkillTitleCircle -> "○"
-            IconSkillTitleX -> "×"
-            else -> ""
-        }
-        skillName += iconChar
+		val iconChar: String = when (match) {
+			IconSkillTitleDoubleCircle -> "◎"
+			IconSkillTitleCircle -> "○"
+			IconSkillTitleX -> "×"
+			else -> ""
+		}
+
+		if (iconChar.isNotEmpty()) {
+			// Clean up any trailing noise characters that OCR might have picked up for the icon.
+			// These symbols are always preceded by a space in the English names in the database.
+			// Example: OCR gets "Kyoto Racecourse O" and we detected the "○" icon.
+			// We want to remove the 'O' and append " ○" to match the database's name.
+			skillName = skillName.trimEnd()
+			if (skillName.isNotEmpty() && skillName.last().isLetterOrDigit()) {
+				// If the last character is a single letter or digit and there is a space before it,
+				// then it is almost certainly a misread of the icon.
+				if (skillName.length == 1 || (skillName.length >= 2 && skillName[skillName.length - 2] == ' ')) {
+					skillName = skillName.dropLast(1).trimEnd()
+				}
+			}
+
+			// All skills in the database with these symbols have a space before them.
+			skillName += " $iconChar"
+		}
 
         // Most negative skills have "Remove" in front of their skill
         // name in the title. The actual skill itself in the database does
@@ -382,27 +399,32 @@ class SkillList (private val game: Game, private val campaign: Campaign) {
         bitmap: Bitmap,
         bIsObtained: Boolean,
         debugString: String = "",
+        cachedTitle: String? = null
     ): SkillListEntry? {
-        val latch = CountDownLatch(2)
+        val latch = CountDownLatch(if (cachedTitle == null) 2 else 1)
         var skillPrice: Int? = null
         var skillName: String? = null
 
         // TITLE
-        Thread {
-            try {
-                // Extract the skill name from the bitmap.
-                val tmpSkillName: String? = getSkillListEntryTitle(bitmap, debugString)
-                if (tmpSkillName == null) {
-                    Log.e(TAG, "[SKILLS] getSkillListEntryTitle() returned NULL.")
-                    return@Thread
+        if (cachedTitle == null) {
+            Thread {
+                try {
+                    // Extract the skill name from the bitmap.
+                    val tmpSkillName: String? = getSkillListEntryTitle(bitmap, debugString)
+                    if (tmpSkillName == null) {
+                        Log.e(TAG, "[SKILLS] getSkillListEntryTitle() returned NULL.")
+                        return@Thread
+                    }
+                    skillName = game.skillDatabase.checkSkillName(tmpSkillName, fuzzySearch = true)
+                } catch (e: Exception) {
+                    Log.e(TAG, "[ERROR] Error processing skill name: ${e.stackTraceToString()}")
+                } finally {
+                    latch.countDown()
                 }
-                skillName = game.skillDatabase.checkSkillName(tmpSkillName, fuzzySearch = true)
-            } catch (e: Exception) {
-                Log.e(TAG, "[ERROR] Error processing skill name: ${e.stackTraceToString()}")
-            } finally {
-                latch.countDown()
-            }
-        }.apply { isDaemon = true }.start()
+            }.apply { isDaemon = true }.start()
+        } else {
+            skillName = cachedTitle
+        }
 
         // PRICE
         Thread {
@@ -509,7 +531,7 @@ class SkillList (private val game: Game, private val campaign: Campaign) {
      * by processing the [entry] detected by the ScrollList.
      * Returns a single NULL if there are any errors processing the entry.
      */
-    private fun onScrollListEntry(entry: ScrollListEntry): Pair<SkillListEntry, Point>? {
+    private fun onScrollListEntry(entry: ScrollListEntry, cachedTitle: String? = null): Pair<SkillListEntry, Point>? {
         val skillUpLoc: Point? = ButtonSkillUp.findImageWithBitmap(
             game.imageUtils,
             sourceBitmap = entry.bitmap,
@@ -568,17 +590,11 @@ class SkillList (private val game: Game, private val campaign: Campaign) {
 
         // Extract all the information from the entry. In this function, the
         // [entries] mapping is updated with the extracted information.
-        val skillListEntry: SkillListEntry? = analyzeSkillListEntry(croppedSkillBox, bIsObtained, "${entry.index}")
+        val skillListEntry: SkillListEntry? = analyzeSkillListEntry(croppedSkillBox, bIsObtained, "${entry.index}", cachedTitle)
         if (skillListEntry == null) {
             MessageLog.e(TAG, "[SKILLS] onScrollListEntry: (${entry.index}) SkillListEntry is NULL.")
             return null
         }
-
-        // Log each detected skill entry for debugging.
-        MessageLog.d(TAG, "[SKILLS] Detected: \"${skillListEntry.name}\" | " +
-            "price: ${skillListEntry.price} (screen: ${skillListEntry.screenPrice}) | " +
-            "obtained: ${skillListEntry.bIsObtained} | " +
-            "virtual: ${skillListEntry.bIsVirtual}")
 
         // Finally, translate the localPoint to screen space before we return it.
         val point = Point(
@@ -614,19 +630,17 @@ class SkillList (private val game: Game, private val campaign: Campaign) {
             return emptyMap()
         }
 
-        list.process { _, entry: ScrollListEntry ->
-            val res: Pair<SkillListEntry, Point>? = onScrollListEntry(entry)
+        val skillTitleMap = mutableMapOf<Int, String>()
+        list.process(
+            keyExtractor = { entry -> 
+                val title = getSkillListEntryTitle(entry.bitmap)
+                if (title != null) skillTitleMap[entry.index] = title
+                title
+            }
+        ) { _, entry: ScrollListEntry ->
+            val res: Pair<SkillListEntry, Point>? = onScrollListEntry(entry, skillTitleMap[entry.index])
             if (onEntry != null && res != null) onEntry(this, res.first, res.second) else false
         }
-
-        // Log a summary of all detected skill entries for debugging.
-        MessageLog.d(TAG, "[SKILLS] ===== Scan Complete: ${entries.size} total entries =====")
-        for ((name, entry) in entries) {
-            if (!entry.bIsVirtual) {
-                MessageLog.d(TAG, "[SKILLS] Final: $entry")
-            }
-        }
-        Log.d(TAG, "[SKILLS] ================================================")
 
         return entries
     }

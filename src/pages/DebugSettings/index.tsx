@@ -36,6 +36,11 @@ const DebugSettings = () => {
         "debugMode_startTraineeNameOCRTest",
         "debugMode_startMainScreenOCRTest",
         "debugMode_startTrainingScreenOCRTest",
+        "debugMode_startSkillListBuyTest",
+        "debugMode_startScrollBarDetectionTest",
+        "debugMode_startTrackblazerRaceSelectionTest",
+        "debugMode_startTrackblazerInventorySyncTest",
+        "debugMode_startTrackblazerBuyItemsTest",
     ] as const
 
     /**
@@ -558,6 +563,51 @@ const DebugSettings = () => {
                                 onCheckedChange={(checked) => handleDebugTestToggle("debugMode_startTrainingScreenOCRTest", checked)}
                                 label="Start Training Screen OCR Test"
                                 description="Disables normal bot operations and starts the Training screen OCR test. Only on the Training screen and tests detecting various components on the screen."
+                                style={{ marginTop: 10 }}
+                            />
+
+                            <CustomCheckbox
+                                searchId="debug-skill-list-buy-test"
+                                checked={bsc.settings.debug.debugMode_startSkillListBuyTest}
+                                onCheckedChange={(checked) => handleDebugTestToggle("debugMode_startSkillListBuyTest", checked)}
+                                label="Start Skill List Buy Test"
+                                description="Processes the list of skills in the Skills screen, reads all skills in the list, logs a summary and then logs another summary of which skills it will buy to bring down the current Skill Points as close to zero as possible and then it will stop there without actually doing the buying."
+                                style={{ marginTop: 10 }}
+                            />
+
+                            <CustomCheckbox
+                                searchId="debug-scrollbar-detection-test"
+                                checked={bsc.settings.debug.debugMode_startScrollBarDetectionTest}
+                                onCheckedChange={(checked) => handleDebugTestToggle("debugMode_startScrollBarDetectionTest", checked)}
+                                label="Start Scrollbar Detection Test"
+                                description="Disables normal bot operations and starts the Scrollbar detection test. Detects the scrollbar on the current screen and attempts to scroll it up and down to verify functionality."
+                                style={{ marginTop: 10 }}
+                            />
+
+                            <CustomCheckbox
+                                searchId="debug-trackblazer-race-selection-test"
+                                checked={bsc.settings.debug.debugMode_startTrackblazerRaceSelectionTest}
+                                onCheckedChange={(checked) => handleDebugTestToggle("debugMode_startTrackblazerRaceSelectionTest", checked)}
+                                label="Start Trackblazer Race Selection Test"
+                                description="Disables normal bot operations and starts the Trackblazer race selection test. Navigates to the Race List if on the Main Screen and identifies the best race to run, including Rivals."
+                                style={{ marginTop: 10 }}
+                            />
+
+                            <CustomCheckbox
+                                searchId="debug-trackblazer-inventory-sync-test"
+                                checked={bsc.settings.debug.debugMode_startTrackblazerInventorySyncTest}
+                                onCheckedChange={(checked) => handleDebugTestToggle("debugMode_startTrackblazerInventorySyncTest", checked)}
+                                label="Start Trackblazer Inventory Sync Test"
+                                description="Disables normal bot operations and starts the Trackblazer inventory sync test. Opens the Training Items dialog if on the Main Screen and logs inventory contents and quick-use intentions."
+                                style={{ marginTop: 10 }}
+                            />
+
+                            <CustomCheckbox
+                                searchId="debug-trackblazer-buy-items-test"
+                                checked={bsc.settings.debug.debugMode_startTrackblazerBuyItemsTest}
+                                onCheckedChange={(checked) => handleDebugTestToggle("debugMode_startTrackblazerBuyItemsTest", checked)}
+                                label="Start Trackblazer Buy Items Test"
+                                description="Disables normal bot operations and starts the Trackblazer buy items test. Opens the Shop if on the Main Screen and logs shop contents and purchase intentions without actually buying anything."
                                 style={{ marginTop: 10 }}
                             />
                         </View>
