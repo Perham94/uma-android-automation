@@ -60,7 +60,7 @@ class Trackblazer(game: Game) : Campaign(game) {
     /** Whether a race hammer has been used this turn. */
     private var bUsedHammerToday: Boolean = false
 
-	/** Tracks whether the inventory has been synced at least once or needs a re-sync. */
+	/** Tracks whether the inventory has been synced at least once during this session. */
 	private var bInventorySynced: Boolean = false
 
 	/** Tracks items that were found to be disabled during the last inventory management pass. */
@@ -396,7 +396,6 @@ class Trackblazer(game: Game) : Campaign(game) {
 		bUsedWhistleToday = false
 		bUsedCharmToday = false
 		bUsedHammerToday = false
-		bInventorySynced = false
 	}
 
 	/**
