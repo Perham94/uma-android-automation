@@ -2840,17 +2840,16 @@ class Racing (private val game: Game, private val campaign: Campaign) {
 		return if (scrollList != null) {
 			MessageLog.i(TAG, "[RACE] Scrolling to selected race: \"${winner.race.name}\"...")
 			var finalWinnerPoint: Point? = null
-			val similarityService = StringSimilarityServiceImpl(JaroWinklerStrategy())
 			scrollList.process { _, entry ->
 				val stars = IconRaceListPredictionDoubleStar.findAll(game.imageUtils, sourceBitmap = entry.bitmap, region = intArrayOf(0, 0, 0, 0))
 				for (starLoc in stars) {
 					val screenPoint = Point(entry.bbox.x + starLoc.x, entry.bbox.y + starLoc.y)
 					val name = game.imageUtils.extractRaceName(screenPoint)
-					val similarity = similarityService.score(name, winner.detectedName)
+					val matches = lookupRaceInDatabase(campaign.date.day, name)
 					
-					if (similarity >= SIMILARITY_THRESHOLD) {
+					if (matches.any { it.name == winner.race.name }) {
 						if (game.debugMode) {
-							MessageLog.i(TAG, "[RACE] Found winner \"${winner.race.name}\" with similarity ${game.decimalFormat.format(similarity)} (Detected: \"$name\", Target: \"${winner.detectedName}\")")
+							MessageLog.i(TAG, "[RACE] Found winner \"${winner.race.name}\" (Detected: \"$name\", Target: \"${winner.detectedName}\")")
 						}
 						finalWinnerPoint = screenPoint
 						return@process true // Stop!
