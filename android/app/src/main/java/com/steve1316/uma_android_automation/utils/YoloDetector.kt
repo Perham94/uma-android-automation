@@ -9,6 +9,8 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.util.Log
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.scale
 import com.steve1316.automation_library.data.SharedData
 import java.nio.FloatBuffer
 import java.util.Collections
@@ -53,7 +55,7 @@ class YoloDetector(private val context: Context) {
     companion object {
         private const val TAG = "${SharedData.loggerTag}YoloDetector"
 
-        /** Path to the ONNX model file in the assets directory. */
+        /** Path to the ONNX model file in the /assets directory. */
         private const val MODEL_PATH = "best.onnx"
 
         /** Required input dimensions for the YOLO model. */
@@ -106,17 +108,17 @@ class YoloDetector(private val context: Context) {
         val newH = (h * ratio).toInt()
 
         // Create a blank canvas with the model's expected input size.
-        val letterboxBitmap = Bitmap.createBitmap(INPUT_SIZE, INPUT_SIZE, Bitmap.Config.ARGB_8888)
+        val letterboxBitmap = createBitmap(INPUT_SIZE, INPUT_SIZE)
         val canvas = Canvas(letterboxBitmap)
 
-        // Fill background with grey.
+        // Fill background with gray.
         canvas.drawColor(Color.rgb(114, 114, 114))
 
         val padX = (INPUT_SIZE - newW) / 2f
         val padY = (INPUT_SIZE - newH) / 2f
 
         // Scale the image and draw it centered onto the padded background.
-        val scaledBitmap = Bitmap.createScaledBitmap(bitmap, newW, newH, true)
+        val scaledBitmap = bitmap.scale(newW, newH)
         canvas.drawBitmap(scaledBitmap, padX, padY, Paint(Paint.FILTER_BITMAP_FLAG))
 
         return LetterboxInfo(letterboxBitmap, ratio, padX, padY)

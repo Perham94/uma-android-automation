@@ -199,11 +199,7 @@ class ScrollList private constructor(private val game: Game, private val bboxLis
             listBottomRightComponent: ComponentInterface? = null,
             entryDetectionConfig: ScrollListEntryDetectionConfig? = null,
         ): ScrollList? {
-            val bboxList: BoundingBox? = getListBoundingRegion(game, bitmap, listTopLeftComponent, listBottomRightComponent)
-            if (bboxList == null) {
-                return null
-            }
-
+            val bboxList: BoundingBox = getListBoundingRegion(game, bitmap, listTopLeftComponent, listBottomRightComponent) ?: return null
             return ScrollList(game, bboxList, entryDetectionConfig ?: ScrollListEntryDetectionConfig())
         }
 

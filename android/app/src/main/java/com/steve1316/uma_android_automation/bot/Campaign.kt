@@ -139,9 +139,6 @@ abstract class Campaign(game: Game) : Task(game) {
     /** Whether the bot should attempt the crane game. */
     protected val enableCraneGameAttempt: Boolean = SettingsHelper.getBooleanSetting("general", "enableCraneGameAttempt")
 
-    /** Whether the bot should prioritize farming fans. */
-    val enableFarmingFans: Boolean = SettingsHelper.getBooleanSetting("racing", "enableFarmingFans")
-
     /** Whether the bot should check for a skill point threshold. */
     protected val enableSkillPointCheck: Boolean = SettingsHelper.getBooleanSetting("skills", "enableSkillPointCheck")
 
@@ -151,7 +148,7 @@ abstract class Campaign(game: Game) : Task(game) {
     /** Whether the bot should stop before the final race. */
     protected val enableStopBeforeFinals: Boolean = SettingsHelper.getBooleanSetting("general", "enableStopBeforeFinals")
 
-    /** Whether the bot must rest before the summer season. */
+    /** Whether the bot must rest before Summer. */
     protected val mustRestBeforeSummer: Boolean = SettingsHelper.getBooleanSetting("training", "mustRestBeforeSummer")
 
     /** The number of skill points required to trigger a check. */
@@ -160,14 +157,8 @@ abstract class Campaign(game: Game) : Task(game) {
     /** The specific date string at which the bot should stop. */
     protected val stopAtDate: String = SettingsHelper.getStringSetting("general", "stopAtDate")
 
-    /** Whether the bot is currently in the final season. */
-    var isFinals: Boolean = false
-
     /** Whether a recreation date event has been completed today. */
     protected var recreationDateCompleted: Boolean = false
-
-    /** Whether the scenario check has been performed. */
-    protected var scenarioCheckPerformed: Boolean = false
 
     /** The turn number when the stop-at-date check first started. */
     protected var stopAtDateInitialTurnNumber: Int = -1
@@ -212,7 +203,7 @@ abstract class Campaign(game: Game) : Task(game) {
      *
      * @return True if any tests were run, false otherwise.
      */
-    open override fun startTests(): Boolean {
+    override fun startTests(): Boolean {
         val fnMap: Map<String, () -> Unit> =
             mapOf(
                 "debugMode_startTemplateMatchingTest" to ::startTemplateMatchingTest,
@@ -228,7 +219,7 @@ abstract class Campaign(game: Game) : Task(game) {
                 "debugMode_startSkillListBuyTest" to skillPlan::startSkillListBuyTest,
             )
 
-        var bDidAnyTestsRun: Boolean = false
+        var bDidAnyTestsRun = false
         for ((settingName, fn) in fnMap) {
             if (SettingsHelper.getBooleanSetting("debug", settingName)) {
                 fn()
@@ -532,7 +523,7 @@ abstract class Campaign(game: Game) : Task(game) {
      * @param args Additional arguments for dialog handling logic.
      * @return The result of the dialog handling operation.
      */
-    open override fun handleDialogs(dialog: DialogInterface?, args: Map<String, Any>): DialogHandlerResult {
+    override fun handleDialogs(dialog: DialogInterface?, args: Map<String, Any>): DialogHandlerResult {
         val result: DialogHandlerResult = super.handleDialogs(dialog, args)
         if (result !is DialogHandlerResult.Unhandled) {
             return result
@@ -555,15 +546,13 @@ abstract class Campaign(game: Game) : Task(game) {
             }
 
             "goal_not_reached" -> {
-                // We are handling the logic for when to race on our own.
-                // Thus we just close this warning.
+                // We are handling the logic for when to race on our own. Thus, we just close this warning.
                 racing.encounteredRacingPopup = true
                 result.dialog.close(game.imageUtils)
             }
 
             "insufficient_fans" -> {
-                // We are handling the logic for when to race on our own.
-                // Thus we just close this warning.
+                // We are handling the logic for when to race on our own. Thus, we just close this warning.
                 racing.encounteredRacingPopup = true
                 result.dialog.close(game.imageUtils)
             }
@@ -585,7 +574,7 @@ abstract class Campaign(game: Game) : Task(game) {
                     MessageLog.i(TAG, "[DIALOG] Unknown date. Using Original race strategy.")
                 }
 
-                var runningStyle: RunningStyle? = null
+                var runningStyle: RunningStyle?
                 val runningStyleString: String =
                     when {
                         // Special case for when the bot has not been able to check the date i.e. when the bot starts at the race screen.
@@ -748,8 +737,6 @@ abstract class Campaign(game: Game) : Task(game) {
             }
 
             "umamusume_details" -> {
-                val prevTrackSurface = trainee.trackSurface
-                val prevTrackDistance = trainee.trackDistance
                 val prevRunningStyle = trainee.runningStyle
                 trainee.updateAptitudes(game.imageUtils)
                 trainee.updateStats(game.imageUtils, isAptitudeDialog = true)
@@ -835,7 +822,7 @@ abstract class Campaign(game: Game) : Task(game) {
     }
 
     /**
-     * Executes logic after all updates and global checks have completed, but before decision making.
+     * Executes logic after all updates and global checks have completed, but before decision-making.
      */
     open fun onMainScreenEntry() {
         return
@@ -848,7 +835,7 @@ abstract class Campaign(game: Game) : Task(game) {
      * @return True if mood recovery is needed and possible, false otherwise.
      */
     open fun shouldRecoverMood(sourceBitmap: Bitmap): Boolean {
-        // Only recover mood if its below Good mood and its not Summer.
+        // Only recover mood if its below Good mood and it's not Summer.
         return if (training.firstTrainingCheck && trainee.mood == Mood.NORMAL && !ButtonRestAndRecreation.check(game.imageUtils, sourceBitmap = sourceBitmap)) {
             MessageLog.i(
                 TAG,
@@ -1012,19 +999,19 @@ abstract class Campaign(game: Game) : Task(game) {
         val targetYear =
             try {
                 DateYear.valueOf(parts[0].uppercase())
-            } catch (e: IllegalArgumentException) {
+            } catch (_: IllegalArgumentException) {
                 null
             }
         val targetMonth =
             try {
                 DateMonth.valueOf(parts[1].uppercase())
-            } catch (e: IllegalArgumentException) {
+            } catch (_: IllegalArgumentException) {
                 null
             }
         val targetPhase =
             try {
                 DatePhase.valueOf(parts[2].uppercase())
-            } catch (e: IllegalArgumentException) {
+            } catch (_: IllegalArgumentException) {
                 null
             }
 
@@ -1098,7 +1085,7 @@ abstract class Campaign(game: Game) : Task(game) {
      * @return True if in the finale season, false otherwise.
      */
     open fun checkFinals(): Boolean {
-        return date.bIsFinaleSeason ?: false
+        return date.bIsFinaleSeason
     }
 
     /**
@@ -1210,7 +1197,7 @@ abstract class Campaign(game: Game) : Task(game) {
 
         MessageLog.i(TAG, "[MOOD] Detected mood to be ${trainee.mood}.")
 
-        // Only recover mood if its below Good mood and its not Summer.
+        // Only recover mood if its below Good mood and it's not Summer.
         return if (training.firstTrainingCheck && trainee.mood == Mood.NORMAL && !ButtonRestAndRecreation.check(game.imageUtils, sourceBitmap = sourceBitmap)) {
             MessageLog.i(
                 TAG,
@@ -1619,7 +1606,7 @@ abstract class Campaign(game: Game) : Task(game) {
         // Scenario-specific main screen entry hook (e.g. for item usage).
         onMainScreenEntry()
 
-        // Decision making process.
+        // Decision-making process.
         val action = decideNextAction()
         return executeAction(action, bIsScheduledRaceDay)
     }
@@ -1878,7 +1865,7 @@ abstract class Campaign(game: Game) : Task(game) {
      *
      * @return The result of the task execution, or null if the loop should continue.
      */
-    open override fun process(): TaskResult? {
+    override fun process(): TaskResult? {
         try {
             // We always check for dialogs first.
             if (tryHandleAllDialogs()) {

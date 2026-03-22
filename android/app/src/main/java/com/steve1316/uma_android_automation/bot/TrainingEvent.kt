@@ -19,8 +19,6 @@ import org.opencv.core.Point
  * @property campaign The [Campaign] instance for accessing campaign-specific data.
  */
 class TrainingEvent(private val game: Game, private val campaign: Campaign) {
-    private val TAG: String = "[${MainActivity.loggerTag}]TrainingEvent"
-
     /** Recognizer used to perform OCR and string matching for Training Events. */
     private val trainingEventRecognizer: TrainingEventRecognizer = TrainingEventRecognizer(game, game.imageUtils)
 
@@ -102,6 +100,10 @@ class TrainingEvent(private val game: Game, private val campaign: Campaign) {
      * @property requiresConfirmation Whether the selection requires a confirmation dialog.
      */
     data class EventOverride(val selectedOption: String, val requiresConfirmation: Boolean)
+
+    companion object {
+        private val TAG: String = "[${MainActivity.loggerTag}]TrainingEvent"
+    }
 
     // //////////////////////////////////////////////////////////////////////////////////////////////////
     // //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -367,17 +369,23 @@ class TrainingEvent(private val game: Game, private val campaign: Campaign) {
 
             MessageLog.i(TAG, "[TRAINING_EVENT] Tutorial event detected for Unity Cup. Found $tutorialOptionCount option(s) on screen.")
 
-            if (tutorialOptionCount == 2) {
-                // If 2 options detected, select the last one (index 1).
-                optionSelected = 1
-                MessageLog.i(TAG, "[TRAINING_EVENT] Selecting last option (option 2) to dismiss Tutorial.")
-            } else if (tutorialOptionCount == 5) {
-                optionSelected = 4
-                MessageLog.i(TAG, "[TRAINING_EVENT] Selecting last option (option 5) first, then will select first option to close.")
-            } else {
-                // Default to last option if count doesn't match expected values.
-                optionSelected = if (tutorialOptionCount > 0) tutorialOptionCount - 1 else 0
-                MessageLog.w(TAG, "[WARN] handleTrainingEvent:: Unexpected option count ($tutorialOptionCount). Selecting last option.")
+            when (tutorialOptionCount) {
+                2 -> {
+                    // If 2 options detected, select the last one (index 1).
+                    optionSelected = 1
+                    MessageLog.i(TAG, "[TRAINING_EVENT] Selecting last option (option 2) to dismiss Tutorial.")
+                }
+
+                5 -> {
+                    optionSelected = 4
+                    MessageLog.i(TAG, "[TRAINING_EVENT] Selecting last option (option 5) first, then will select first option to close.")
+                }
+
+                else -> {
+                    // Default to last option if count doesn't match expected values.
+                    optionSelected = if (tutorialOptionCount > 0) tutorialOptionCount - 1 else 0
+                    MessageLog.w(TAG, "[WARN] handleTrainingEvent:: Unexpected option count ($tutorialOptionCount). Selecting last option.")
+                }
             }
 
             specialEventHandled = true
@@ -397,7 +405,7 @@ class TrainingEvent(private val game: Game, private val campaign: Campaign) {
                 optionSelected = eventRewards.size - 1
             }
 
-            if (eventRewards.isNotEmpty() && optionSelected < eventRewards.size) {
+            if (eventRewards.isNotEmpty()) {
                 MessageLog.i(TAG, "[TRAINING_EVENT] Special event override applied: option ${optionSelected + 1}: \"${eventRewards[optionSelected]}\"")
             } else {
                 MessageLog.i(TAG, "[TRAINING_EVENT] Special event override applied: option ${optionSelected + 1}")
@@ -700,7 +708,7 @@ class TrainingEvent(private val game: Game, private val campaign: Campaign) {
 
                 // Search for and click Next buttons until the Close button is detected.
                 var closeButtonFound = false
-                var maxIterations = 20 // Set a limit to prevent infinite loops.
+                val maxIterations = 20 // Set a limit to prevent infinite loops.
                 var iterationCount = 0
 
                 while (!closeButtonFound && iterationCount < maxIterations) {

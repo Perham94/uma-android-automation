@@ -58,7 +58,9 @@ sealed interface TaskResult {
  * @property game The [Game] instance used for bot interaction.
  */
 abstract class Task(game: Game) : DialogHandler(game) {
-    val TAG: String = "[${MainActivity.loggerTag}]${this::class.simpleName}"
+    companion object {
+        val TAG: String = "[${MainActivity.loggerTag}]${this::class.simpleName}"
+    }
 
     // //////////////////////////////////////////////////////////////////////////////////////////////////
     // //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -123,7 +125,7 @@ abstract class Task(game: Game) : DialogHandler(game) {
         val logMessage = "${result.javaClass.simpleName} (${result.code}): ${result.message}"
         game.notificationMessage = logMessage
         val discordMessage = "${this::class.simpleName}:: ${result.javaClass.simpleName} (${result.code}): ${result.message}"
-        var diffChar = ""
+        var diffChar: String
         when (result) {
             is TaskResult.Success -> {
                 MessageLog.i(TAG, logMessage)

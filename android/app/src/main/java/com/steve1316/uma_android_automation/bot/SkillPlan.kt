@@ -26,8 +26,6 @@ private const val MOCK_SKILL_POINTS: Int = 1495
  * @property campaign The [Campaign] instance currently being automated.
  */
 class SkillPlan(private val game: Game, private val campaign: Campaign) {
-    private val TAG: String = "[${MainActivity.loggerTag}]SkillPlan"
-
     /** The preferred running style from settings. */
     val skillSettingRunningStyleString = SettingsHelper.getStringSetting("skills", "preferredRunningStyle")
 
@@ -119,6 +117,10 @@ class SkillPlan(private val game: Game, private val campaign: Campaign) {
         val bEnableBuyNegativeSkills: Boolean,
         val skillNames: List<String>,
     )
+
+    companion object {
+        private val TAG: String = "[${MainActivity.loggerTag}]SkillPlan"
+    }
 
     // //////////////////////////////////////////////////////////////////////////////////////////////////
     // //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -463,7 +465,7 @@ class SkillPlan(private val game: Game, private val campaign: Campaign) {
                     .groupBy { it.communityTier }
                     .toSortedMap(compareBy { it })
 
-            // Iterate from highest tier to lowest, ignoring unranked (null) entries.
+            // Iterate from the highest tier to lowest, ignoring unranked (null) entries.
             for ((communityTier, group) in groupedByCommunityTier) {
                 if (communityTier == null) {
                     continue

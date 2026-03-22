@@ -460,12 +460,7 @@ class Trainee {
      * @param imageUtils A reference to a [CustomImageUtils] instance.
      */
     private fun updateTrackDistanceAptitudes(imageUtils: CustomImageUtils) {
-        val aptitudes = findAptitudesInBitmap<TrackDistance>(imageUtils = imageUtils, label = LabelStatDistance)
-
-        if (aptitudes == null) {
-            return
-        }
-
+        val aptitudes = findAptitudesInBitmap<TrackDistance>(imageUtils = imageUtils, label = LabelStatDistance) ?: return
         for ((key, value) in aptitudes) {
             trackDistanceAptitudes[key] = value
         }
@@ -477,12 +472,7 @@ class Trainee {
      * @param imageUtils A reference to a [CustomImageUtils] instance.
      */
     private fun updateRunningStyleAptitudes(imageUtils: CustomImageUtils) {
-        val aptitudes = findAptitudesInBitmap<RunningStyle>(imageUtils = imageUtils, label = LabelStatStyle)
-
-        if (aptitudes == null) {
-            return
-        }
-
+        val aptitudes = findAptitudesInBitmap<RunningStyle>(imageUtils = imageUtils, label = LabelStatStyle) ?: return
         for ((key, value) in aptitudes) {
             runningStyleAptitudes[key] = value
         }

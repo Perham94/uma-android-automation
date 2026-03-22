@@ -50,9 +50,6 @@ class Trackblazer(game: Game) : Campaign(game) {
     /** Flag indicating if the tutorial has been disabled. */
     private var tutorialDisabled = false
 
-    /** Flag indicating if the bot is currently in the finals. */
-    private var bIsFinals: Boolean = false
-
     /** Representation of the item shop list along with the mapping of items to their price and effect. */
     private val shopList: TrackblazerShopList = TrackblazerShopList(game)
 
@@ -65,7 +62,7 @@ class Trackblazer(game: Game) : Campaign(game) {
     /** The limit for consecutive races before the bot should stop and recover. */
     private val consecutiveRacesLimit: Int = SettingsHelper.getIntSetting("scenarioOverrides", "trackblazerConsecutiveRacesLimit", 5)
 
-    /** List of race grades that trigger a shop check afterwards. */
+    /** List of race grades that trigger a shop check afterward. */
     private val shopCheckGrades: List<RaceGrade> =
         try {
             val gradesString = SettingsHelper.getStringSetting("scenarioOverrides", "trackblazerShopCheckGrades", "[\"G1\",\"G2\",\"G3\"]")
@@ -562,7 +559,7 @@ class Trackblazer(game: Game) : Campaign(game) {
     }
 
     override fun shouldRecoverMood(sourceBitmap: Bitmap): Boolean {
-        // Recover mood if it is below Normal and we do not have any mood recovery items.
+        // Recover mood if it is below Normal, and we do not have any mood recovery items.
         if (trainee.mood < Mood.NORMAL) {
             val hasMoodItems =
                 currentInventory.any { (name, count) ->
@@ -685,7 +682,7 @@ class Trackblazer(game: Game) : Campaign(game) {
                 MessageLog.i(TAG, "[INFO] Current Shop Coins: $shopCoins (Raw OCR text: \"$coinText\")")
                 shopCoins
             }
-        } catch (e: NumberFormatException) {
+        } catch (_: NumberFormatException) {
             MessageLog.e(TAG, "[ERROR] updateShopCoins:: Failed to parse Shop Coins from OCR text: \"$coinText\".")
             shopCoins
         }
@@ -699,7 +696,7 @@ class Trackblazer(game: Game) : Campaign(game) {
      * @param bAfterRacePurchase If true, indicates this process was triggered by a post-race shop check.
      */
     fun buyItems(priorityList: List<String> = listOf(), bDryRun: Boolean = false, bAfterRacePurchase: Boolean = false) {
-        val finalPriorityList = if (priorityList.isEmpty()) getPriorityList() else priorityList
+        val finalPriorityList = priorityList.ifEmpty { getPriorityList() }
 
         if (bAfterRacePurchase) {
             MessageLog.i(TAG, "[TRACKBLAZER] Buying extra items after participating in a race...")
@@ -1016,7 +1013,7 @@ class Trackblazer(game: Game) : Campaign(game) {
 
         val useGlowSticks = grade == RaceGrade.G1 && fans >= 20000 && hasGlowSticks
         val glowSticksStatus =
-            if (!useGlowSticks && hasGlowSticks && grade == RaceGrade.G1 && fans < 20000) {
+            if (!useGlowSticks && hasGlowSticks && grade == RaceGrade.G1) {
                 "false (does not meet the fan amount requirement of 20000)"
             } else {
                 useGlowSticks.toString()

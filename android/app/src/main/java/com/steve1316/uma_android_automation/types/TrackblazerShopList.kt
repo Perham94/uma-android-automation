@@ -37,8 +37,6 @@ data class TrackblazerItemInfo(val price: Int, val effect: String, val isQuickUs
  * @property game Reference to the bot's [Game] instance.
  */
 class TrackblazerShopList(private val game: Game) {
-    private val TAG: String = "[${MainActivity.loggerTag}]TrackblazerShopList"
-
     /** List of names for items that grant stats. */
     val statItemNames get() = shopItems.filter { it.value.category == "Stats" }.keys.toList()
 
@@ -120,6 +118,10 @@ class TrackblazerShopList(private val game: Game) {
 
     /** Whether the "Do not show again" checkbox has been clicked during the purchase flow. */
     private var hasClickedDoNotShowAgain: Boolean = false
+
+    companion object {
+        private val TAG: String = "[${MainActivity.loggerTag}]TrackblazerShopList"
+    }
 
     // //////////////////////////////////////////////////////////////////////////////////////////////////
     // //////////////////////////////////////////////////////////////////////////////////////////////////

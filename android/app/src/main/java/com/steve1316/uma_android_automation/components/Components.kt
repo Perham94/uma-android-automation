@@ -10,6 +10,7 @@ import android.graphics.Bitmap
 import androidx.core.graphics.createBitmap
 import com.steve1316.automation_library.data.SharedData
 import com.steve1316.automation_library.utils.MyAccessibilityService
+import com.steve1316.uma_android_automation.bot.DialogHandler
 import com.steve1316.uma_android_automation.bot.DialogHandlerResult
 import com.steve1316.uma_android_automation.utils.CustomImageUtils
 import org.opencv.core.Point
@@ -34,7 +35,7 @@ object Region {
 /**
  * Defines a template image file and provides helpful functions.
  *
- * @property path The relative path to the template image file within the assets folder.
+ * @property path The relative path to the template image file within the /assets folder.
  * @property region The screen region to search within, formatted as [x, y, width, height]. Defaults to the full screen if not specified.
  * @property confidence The threshold (0.0, 1.0] required for a match. Defaults to 0.0 which uses the default confidence value.
  */
@@ -105,7 +106,7 @@ interface BaseComponentInterface {
      * The base implementation simply compares the luminance between the template and the detected bitmap on screen. If the luminance between the two is not within a small threshold, then we return
      * false.
      *
-     * NOTE: Not all components are just darkened when disabled. For example, in the shop, the Exchange button when disabled is not just a grayscale version of the enabled button. Thus we are unable
+     * NOTE: Not all components are just darkened when disabled. For example, in the shop, the Exchange button when disabled is not just a grayscale version of the enabled button. Thus, we are unable
      * to detect both states of this button with a single template.
      *
      * @param imageUtils A reference to a CustomImageUtils instance.
@@ -139,7 +140,6 @@ interface BaseComponentInterface {
      * @param sourceBitmap The source bitmap to search within for the component.
      * @param region The screen region to search in.
      * @param confidence The threshold (0.0, 1.0] to use when performing OCR.
-     * @param tries The number of attempts when searching for this image.
      * @return If the component was detected, returns the Point. Else returns null.
      */
     fun findImageWithBitmap(imageUtils: CustomImageUtils, sourceBitmap: Bitmap, region: IntArray? = null, confidence: Double? = null): Point?
@@ -277,10 +277,7 @@ interface ComponentInterface : BaseComponentInterface {
     override fun checkDisabled(imageUtils: CustomImageUtils, sourceBitmap: Bitmap?): Boolean? {
         val sourceBitmap: Bitmap = sourceBitmap ?: imageUtils.getSourceBitmap()
         val templateBitmap: Bitmap = template.getBitmap(imageUtils)!!
-        val point: Point? = findImageWithBitmap(imageUtils, sourceBitmap = sourceBitmap)
-        if (point == null) {
-            return null
-        }
+        val point: Point = findImageWithBitmap(imageUtils, sourceBitmap = sourceBitmap) ?: return null
 
         val bitmap: Bitmap? =
             imageUtils.createSafeBitmap(

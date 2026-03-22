@@ -25,8 +25,6 @@ import java.util.Collections
  * @property game A reference to the bot's [Game] instance.
  */
 class SkillDatabase(private val game: Game) {
-    private val TAG: String = "[${MainActivity.loggerTag}]SkillDatabase"
-
     /** A mapping of skill names to their associated [SkillData]. */
     private val skillData: Map<String, SkillData> = loadSkillData()
 
@@ -43,6 +41,8 @@ class SkillDatabase(private val game: Game) {
     val skillUpgradeChains: Map<String, List<String>> = skillStructure.mapValues { it.value.list.getValues() }
 
     companion object {
+        private val TAG: String = "[${MainActivity.loggerTag}]SkillDatabase"
+
         /** The name of the skills table in the database. */
         private const val TABLE_SKILLS = "skills"
 
@@ -85,7 +85,7 @@ class SkillDatabase(private val game: Game) {
         /** The name of the community tier column. */
         private const val SKILLS_COLUMN_COMMUNITY_TIER = "community_tier"
 
-        /** The name of the versions column. */
+        /** The name of the versions' column. */
         private const val SKILLS_COLUMN_VERSIONS = "versions"
 
         /** The name of the upgrade ID column. */
@@ -185,10 +185,7 @@ class SkillDatabase(private val game: Game) {
             val versionResults: MutableList<String> = mutableListOf()
 
             while (currentId != null) {
-                val name: String? = getSkillName(currentId)
-                if (name == null) {
-                    break
-                }
+                val name: String = getSkillName(currentId) ?: break
                 val tmpData: SkillData? = getSkillData(name)
                 if (tmpData == null) {
                     MessageLog.e(TAG, "[ERROR] loadSkillStructure::getVersionNames:: \"$name\" not in skillData.")
@@ -347,7 +344,7 @@ class SkillDatabase(private val game: Game) {
      * Retrieve a list of all skill versions that must be purchased before the specified skill becomes available.
      *
      * @param name The name of the target skill.
-     * @return A list of skill names in order from lowest version to the specified version.
+     * @return A list of skill names in order from the lowest version to the specified version.
      */
     fun getRequiredUpgrades(name: String): List<String> {
         if (checkSkillName(name) == null) {

@@ -51,9 +51,6 @@ import kotlin.math.pow
  * @property campaign The [Campaign] instance for accessing campaign-specific data.
  */
 class Training(private val game: Game, private val campaign: Campaign) {
-    /** The logging tag for this instance. */
-    private val TAG: String = "[${MainActivity.loggerTag}]Training"
-
     /** Map to store detected training options. */
     internal var trainingMap: MutableMap<StatName, TrainingOption> = mutableMapOf()
 
@@ -200,7 +197,7 @@ class Training(private val game: Game, private val campaign: Campaign) {
 
             if (failureChance != other.failureChance) return false
             if (name != other.name) return false
-            if (!statGains.equals(other.statGains)) return false
+            if (statGains != other.statGains) return false
             if (correctedStats != other.correctedStats) return false
             if (relationshipBars != other.relationshipBars) return false
             if (numRainbow != other.numRainbow) return false
@@ -266,9 +263,9 @@ class Training(private val game: Game, private val campaign: Campaign) {
 
             other as TrainingConfig
 
-            if (!currentStats.equals(other.currentStats)) return false
+            if (currentStats != other.currentStats) return false
             if (statPrioritization != other.statPrioritization) return false
-            if (!statTargets.equals(other.statTargets)) return false
+            if (statTargets != other.statTargets) return false
             if (currentDate != other.currentDate) return false
             if (scenario != other.scenario) return false
             if (enableRainbowTrainingBonus != other.enableRainbowTrainingBonus) return false
@@ -276,7 +273,7 @@ class Training(private val game: Game, private val campaign: Campaign) {
             if (blacklist != other.blacklist) return false
             if (disableTrainingOnMaxedStat != other.disableTrainingOnMaxedStat) return false
             if (trainingOptions != other.trainingOptions) return false
-            if (!skillHintsPerLocation.equals(other.skillHintsPerLocation)) return false
+            if (skillHintsPerLocation != other.skillHintsPerLocation) return false
             if (enablePrioritizeSkillHints != other.enablePrioritizeSkillHints) return false
             if (statsTrainedOverBuffer != other.statsTrainedOverBuffer) return false
 
@@ -401,7 +398,7 @@ class Training(private val game: Game, private val campaign: Campaign) {
                     StatName.STAMINA, StatName.POWER -> {
                         val currentStat = config.currentStats[training.name] ?: 0
                         val targetStat = config.statTargets[training.name] ?: 600
-                        // Can be bursted if lacking stats.
+                        // Can be exploded if lacking stats.
                         if (currentStat < targetStat * 0.8) {
                             score += 150.0
                         }
@@ -481,7 +478,7 @@ class Training(private val game: Game, private val campaign: Campaign) {
                     // Calculate completion percentage (how far along this stat is toward its target).
                     val completionPercent = (currentStat.toDouble() / targetStat) * 100.0
 
-                    // Ratio-based multiplier: Stats furthest behind get highest priority.
+                    // Ratio-based multiplier: Stats furthest behind get the highest priority.
                     val ratioMultiplier =
                         when {
                             completionPercent < 30.0 -> 5.0
@@ -548,12 +545,12 @@ class Training(private val game: Game, private val campaign: Campaign) {
                     val bonusNote = if (isMainStat && statGain >= 30) " [HIGH MAIN STAT]" else ""
                     val sparkNote = if (isSparkStat && canTriggerSpark) " [SPARK PRIORITY]" else ""
                     val completionString: String = String.format("%.2f", completionPercent)
-                    val ratioMultString: String = String.format("%.2f", ratioMultiplier)
-                    val priorityMultString: String = String.format("%.2f", priorityMultiplier)
+                    val ratioMultiplierString: String = String.format("%.2f", ratioMultiplier)
+                    val priorityMultiplierString: String = String.format("%.2f", priorityMultiplier)
                     Log.d(
                         TAG,
                         "$statName: gain=$statGain, completion=$completionString%, " +
-                            "ratioMult=$ratioMultString, priorityMult=${priorityMultString}$bonusNote$sparkNote",
+                            "ratioMultiplierString=$ratioMultiplierString, priorityMultiplierString=${priorityMultiplierString}$bonusNote$sparkNote",
                     )
 
                     // Calculate final score for this stat.
@@ -631,7 +628,7 @@ class Training(private val game: Game, private val campaign: Campaign) {
             val numSkillHints: Int = config.skillHintsPerLocation[training.name] ?: 0
             score += 10.0 * numSkillHints
 
-            // If skill hints are prioritized and we found some, return a massive score to override other factors.
+            // If skill hints are prioritized, and we found some, return a massive score to override other factors.
             // This handles the case where skill hints only become visible after a training is selected.
             if (config.enablePrioritizeSkillHints && numSkillHints > 0) {
                 return 10000.0 + score
@@ -735,8 +732,6 @@ class Training(private val game: Game, private val campaign: Campaign) {
      * Start a single training OCR test for debugging.
      *
      * This method performs OCR on a single training screen and prints the results to the log.
-     *
-     * @param trainingName The name of the training to test.
      */
     fun startSingleTrainingOCRTest() {
         MessageLog.i(TAG, "[TEST] Starting Single Training OCR Test.")
@@ -878,7 +873,7 @@ class Training(private val game: Game, private val campaign: Campaign) {
                 }
 
                 // If we got a match, then return it. Otherwise, continue the loop.
-                val match = matchMap.entries.firstOrNull { it.value == true }
+                val match = matchMap.entries.firstOrNull { it.value }
                 if (match != null) {
                     return match.key
                 }
@@ -933,7 +928,7 @@ class Training(private val game: Game, private val campaign: Campaign) {
             }
 
             // If we're already at the stat, return early.
-            // Otherwise we may accidentally click the button to train the stat.
+            // Otherwise, we may accidentally click the button to train the stat.
             if (activeStat == statName) {
                 return true
             }
@@ -1459,10 +1454,9 @@ class Training(private val game: Game, private val campaign: Campaign) {
             )
         val expectedSideEffects = affectedStatsMap[result.name] ?: emptyList()
 
-        // Check if any expected side-effect stat has a higher or equal gain than the main stat.
+        // Check if any expected side effect stat has a higher or equal gain than the main stat.
         // This check only runs if the main stat gain is greater than zero to avoid overlapping with other edge cases.
         if (mainStatGain > 0 && mainStatGain in 1..maxSideEffectGain) {
-            val originalGain = mainStatGain
             newStatGains[result.name] = maxSideEffectGain + 10
 
             val newCorrectedStats = result.correctedStats.toMutableList()
@@ -1473,12 +1467,12 @@ class Training(private val game: Game, private val campaign: Campaign) {
 
             MessageLog.d(
                 TAG,
-                "[DEBUG] applyContextualStatGainBoost:: Artificially increased ${result.name} stat gain from $originalGain to ${newStatGains[result.name]} due to possible OCR failure. Side-effect stats had higher or equal gains: $sideEffectStats",
+                "[DEBUG] applyContextualStatGainBoost:: Artificially increased ${result.name} stat gain from $mainStatGain to ${newStatGains[result.name]} due to possible OCR failure. Side-effect stats had higher or equal gains: $sideEffectStats",
             )
             boosted = true
         }
 
-        // If the expected side-effect stat gains were zeroes, boost them to half of the main stat gain.
+        // If the expected side effect stat gains were zeroes, boost them to half of the main stat gain.
         val boostedMainStatGain = newStatGains[result.name] ?: 0
         for (statName in expectedSideEffects) {
             if ((newStatGains[statName] ?: 0) == 0 && boostedMainStatGain > 0) {
@@ -1681,14 +1675,14 @@ class Training(private val game: Game, private val campaign: Campaign) {
         )
 
         // Compute completion percentages for each stat.
-        val completionPcts =
-            StatName.entries.associate { statName ->
+        val completionPercentages =
+            StatName.entries.associateWith { statName ->
                 val current = currentStats[statName] ?: 0
                 val target = targets[statName] ?: 600
                 val pct = if (target > 0) (current.toDouble() / target * 100.0) else 100.0
-                statName to String.format("%.0f%%", pct)
+                String.format("%.0f%%", pct)
             }
-        sb.appendLine("Completion: ${completionPcts.entries.joinToString(", ") { "${it.key}=${it.value}" }}")
+        sb.appendLine("Completion: ${completionPercentages.entries.joinToString(", ") { "${it.key}=${it.value}" }}")
         sb.appendLine("")
 
         // Print individual training details.
@@ -1868,7 +1862,7 @@ class Training(private val game: Game, private val campaign: Campaign) {
                 }
 
                 skipped != null -> {
-                    appendSingleTrainingDetails(sb, skipped, false, true)
+                    appendSingleTrainingDetails(sb, skipped, isSelected = false, isSkipped = true)
                 }
 
                 isBlacklisted -> {
@@ -1945,7 +1939,7 @@ class Training(private val game: Game, private val campaign: Campaign) {
             val sb = StringBuilder()
             sb.append("[$statName] Gains: ")
             val gains = training.statGains.entries.filter { it.value > 0 }.joinToString(", ") { "${it.key}=${it.value}" }
-            sb.append(if (gains.isNotEmpty()) gains else "None")
+            sb.append(gains.ifEmpty { "None" })
             sb.append(" | Fail: ${training.failureChance}%")
             sb.append(" | Rainbow: ${training.numRainbow}")
             if (game.scenario == "Unity Cup") {

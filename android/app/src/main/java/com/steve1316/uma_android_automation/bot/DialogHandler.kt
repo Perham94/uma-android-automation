@@ -45,7 +45,9 @@ sealed class DialogHandlerResult {
  * @property game Reference to the bot's [Game] instance for state access and utilities.
  */
 open class DialogHandler(val game: Game) {
-    private val TAG: String = "[${MainActivity.loggerTag}]${this::class.simpleName}"
+    companion object {
+        private val TAG: String = "[${MainActivity.loggerTag}]${this::class.simpleName}"
+    }
 
     /**
      * Detects and handles any dialog popups.
@@ -84,7 +86,7 @@ open class DialogHandler(val game: Game) {
         Log.d(TAG, "[DEBUG] handleDialogs:: Handle dialog: ${dialog.name}")
 
         val dialogNameToDefer: String? = args["dialogNameToDefer"] as? String ?: null
-        var dialogNamesToDefer: List<String> = args["dialogNamesToDefer"] as? List<String> ?: listOf()
+        val dialogNamesToDefer: List<String> = args["dialogNamesToDefer"] as? List<String> ?: listOf()
         var bShouldDefer = args["bShouldDefer"] as? Boolean ?: false
         if (dialogNamesToDefer.contains(dialog.name) || dialogNameToDefer == dialog.name) {
             bShouldDefer = true

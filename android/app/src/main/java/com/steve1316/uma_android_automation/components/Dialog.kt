@@ -13,10 +13,36 @@
  *
  * // Or pass arguments via the map. campaign.handleDialogs(args = mapOf("overrideIgnoreConsecutiveRaceWarning" to true))
  *
- * // Example of how logic is implemented within a DialogHandler: open fun handleDialogs(dialog: DialogInterface? = null, args: Map<String, Any> = mapOf()): DialogHandlerResult { val dialog = dialog
- * ?: DialogUtils.getDialog(game.imageUtils) ?: return DialogHandlerResult.NoDialogDetected when (dialog.name) { "open_soon" -> { game.notificationMessage = "open_soon" MessageLog.i(TAG, "\n[DIALOG]
- * Open Soon!") dialog.close(game.imageUtils) } "continue_career" -> { dialog.close(imageUtils=game.imageUtils) MessageLog.i(TAG, "\n[DIALOG] Continue Career") } else -> { MessageLog.i(TAG,
- * "\n[DIALOG] ${dialog.name}") dialog.close(imageUtils=game.imageUtils) return DialogHandlerResult.Unhandled(dialog) } } return DialogHandlerResult.Handled(dialog) }
+ * Example usage:
+ * ```
+ * // Call the centralized handler through the campaign or game.
+ * val result: DialogHandlerResult = campaign.handleDialogs()
+ *
+ * // Or pass arguments via the map.
+ * campaign.handleDialogs(args = mapOf("overrideIgnoreConsecutiveRaceWarning" to true))
+ *
+ * // Example of how logic is implemented within a DialogHandler:
+ * open fun handleDialogs(dialog: DialogInterface? = null, args: Map<String, Any> = mapOf()): DialogHandlerResult {
+ *     val dialog = dialog ?: DialogUtils.getDialog(game.imageUtils) ?: return DialogHandlerResult.NoDialogDetected
+ *     when (dialog.name) {
+ *         "open_soon" -> {
+ *             game.notificationMessage = "open_soon"
+ *             MessageLog.i(TAG, "\n[DIALOG] Open Soon!")
+ *             dialog.close(game.imageUtils)
+ *         }
+ *         "continue_career" -> {
+ *             dialog.close(imageUtils=game.imageUtils)
+ *             MessageLog.i(TAG, "\n[DIALOG] Continue Career")
+ *         }
+ *         else -> {
+ *             MessageLog.i(TAG, "\n[DIALOG] ${dialog.name}")
+ *             dialog.close(imageUtils=game.imageUtils)
+ *             return DialogHandlerResult.Unhandled(dialog)
+ *         }
+ *     }
+ *     return DialogHandlerResult.Handled(dialog)
+ * }
+ * ```
  */
 
 package com.steve1316.uma_android_automation.components
@@ -333,7 +359,7 @@ object DialogObjects {
         DialogOverwrite,                    // Career -> Agenda
         DialogPerks,                        // Career -> Career Profile dialog
         DialogPlacing,                      // Career -> DialogTryAgain
-        DialogPresents,                     // Main Screen (i think?)
+        DialogPresents,                     // Main Screen (I think?)
         DialogPurchaseAlarmClock,           // Career
         DialogPurchaseCarats,               // Anywhere (ALWAYS THROW ERROR)
         DialogPurchaseDailyRaceTicket,      // Daily Races

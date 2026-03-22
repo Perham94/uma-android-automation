@@ -30,8 +30,6 @@ import kotlin.intArrayOf
  * @property myContext The Android [Context] for the application.
  */
 class Game(val myContext: Context) {
-    private val TAG: String = "[${MainActivity.loggerTag}]Game"
-
     /** The current Android notification message to display. */
     var notificationMessage: String = ""
 
@@ -83,13 +81,17 @@ class Game(val myContext: Context) {
     /** The cooldown time between connection error retries. */
     internal val connectionErrorRetryCooldownTimeMs: Long = 10000 // 10 seconds
 
+    companion object {
+        private val TAG: String = "[${MainActivity.loggerTag}]Game"
+    }
+
     // Initialize Discord settings from SQLite.
     init {
         DiscordUtils.enableDiscordNotifications = SettingsHelper.getBooleanSetting("discord", "enableDiscordNotifications", false)
         if (DiscordUtils.enableDiscordNotifications) {
             try {
                 DiscordUtils.discordToken = SettingsHelper.getStringSetting("discord", "discordToken")
-                DiscordUtils.discordUserID = SettingsHelper.getStringSetting("discord", "discordUserID").toString()
+                DiscordUtils.discordUserID = SettingsHelper.getStringSetting("discord", "discordUserID")
             } catch (e: Exception) {
                 Log.w(TAG, "[WARN] Failed to read Discord settings: ${e.message}")
                 DiscordUtils.enableDiscordNotifications = false
@@ -157,7 +159,7 @@ class Game(val myContext: Context) {
      * @param tries Number of tries to find the specified button. Defaults to 3.
      * @param region Specify the region consisting of (x, y, width, height) of the source screenshot to template match. Defaults to (0, 0, 0, 0) which is equivalent to searching the full image.
      * @param taps Specify the number of taps on the specified image. Defaults to 1.
-     * @param suppressError Whether or not to suppress saving error messages to the log in failing to find the button. Defaults to false.
+     * @param suppressError Whether to suppress saving error messages to the log in failing to find the button. Defaults to false.
      * @return True if the button was found and clicked. False otherwise.
      */
     fun findAndTapImage(imageName: String, sourceBitmap: Bitmap? = null, tries: Int = 3, region: IntArray = intArrayOf(0, 0, 0, 0), taps: Int = 1, suppressError: Boolean = false): Boolean {
@@ -202,12 +204,12 @@ class Game(val myContext: Context) {
     }
 
     /**
-     * Checks if the bot is at a "Now Loading..." screen or if the game is awaiting for a server response.
+     * Checks if the bot is at a "Now Loading..." screen or if the game is awaiting a server response.
      *
      * This may cause significant delays in normal bot processes.
      *
-     * @param suppressLogging Whether or not to suppress logging for this function. Defaults to false.
-     * @return True if the game is still loading or is awaiting for a server response. Otherwise, false.
+     * @param suppressLogging Whether to suppress logging for this function. Defaults to false.
+     * @return True if the game is still loading or is awaiting a server response. Otherwise, false.
      */
     fun checkLoading(suppressLogging: Boolean = false): Boolean {
         if (!suppressLogging) MessageLog.i(TAG, "[LOADING] Now checking if the game is still loading...")
