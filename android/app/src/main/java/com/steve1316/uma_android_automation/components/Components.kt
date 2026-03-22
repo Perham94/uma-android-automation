@@ -84,8 +84,6 @@ data class Template(val path: String, val region: IntArray = intArrayOf(0, 0, 0,
  * Contains functions used by all types of components such as finding and clicking on the component.
  */
 interface BaseComponentInterface {
-    val TAG: String
-
     /**
      * Checks if the component is on screen.
      *

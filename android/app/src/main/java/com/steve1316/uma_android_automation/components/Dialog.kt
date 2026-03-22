@@ -247,9 +247,6 @@ object DialogUtils {
 
 /** Define the key components and functions for interacting with Dialogs. */
 interface DialogInterface {
-    /** Log tag used for this dialog. */
-    val TAG: String
-
     /** A unique name used to identify this dialog. */
     val name: String
 
@@ -412,7 +409,6 @@ object DialogObjects {
 
 /** This dialog also has an "Account Link" button, but we never want to allow the bot to click that, so we won't add it. */
 object DialogAccountLink : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogAccountLink"
     override val name: String = "account_link"
     override val title: String = "Account Link"
     override val closeButton = null
@@ -425,7 +421,6 @@ object DialogAccountLink : DialogInterface {
 
 /** This dialog has two different OK buttons: ButtonEnter and ButtonOk. However since we never want to handle those buttons, we won't even add them in here. */
 object DialogAgeConfirmation : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogAgeConfirmation"
     override val name: String = "age_confirmation"
     override val title: String = "Age Confirmation"
     override val closeButton = null
@@ -437,7 +432,6 @@ object DialogAgeConfirmation : DialogInterface {
 }
 
 object DialogAgendaDetails : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogAgendaDetails"
     override val name: String = "agenda_details"
     override val title: String = "Agenda Details"
     override val closeButton = null
@@ -449,7 +443,6 @@ object DialogAgendaDetails : DialogInterface {
 }
 
 object DialogAutoFill : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogAutoFill"
     override val name: String = "auto_fill"
     override val title: String = "Auto-Fill"
     override val closeButton = null
@@ -462,7 +455,6 @@ object DialogAutoFill : DialogInterface {
 }
 
 object DialogAutoSelect : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogAutoSelect"
     override val name: String = "auto_select"
     override val title: String = "Auto-Select"
     override val closeButton = null
@@ -476,7 +468,6 @@ object DialogAutoSelect : DialogInterface {
 }
 
 object DialogAllRewardsEarned : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogAllRewardsEarned"
     override val name: String = "all_rewards_earned"
     override val title: String = "ALL REWARDS EARNED!"
     override val closeButton = null
@@ -488,7 +479,6 @@ object DialogAllRewardsEarned : DialogInterface {
 }
 
 object DialogBonusUmamusumeDetails : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogBonusUmamusumeDetails"
     override val name: String = "bonus_umamusume_details"
     override val title: String = "Bonus Umamusume Details"
     override val closeButton = null
@@ -500,7 +490,6 @@ object DialogBonusUmamusumeDetails : DialogInterface {
 }
 
 object DialogBorrowCard : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogBorrowCard"
     override val name: String = "borrow_card"
     override val title: String = "Borrow Card"
     override val closeButton = null
@@ -512,7 +501,6 @@ object DialogBorrowCard : DialogInterface {
 }
 
 object DialogBorrowCardConfirmation : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogBorrowCardConfirmation"
     override val name: String = "borrow_card_confirmation"
     override val title: String = "Confirmation"
     override val closeButton = null
@@ -525,7 +513,6 @@ object DialogBorrowCardConfirmation : DialogInterface {
 }
 
 object DialogCareer : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogCareer"
     override val name: String = "career"
     override val title: String = "Career"
     override val closeButton = null
@@ -537,7 +524,6 @@ object DialogCareer : DialogInterface {
 }
 
 object DialogCareerComplete : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogCareerComplete"
     override val name: String = "career_complete"
     override val title: String = "Career Complete"
     override val closeButton = null
@@ -562,7 +548,6 @@ object DialogCareerComplete : DialogInterface {
 }
 
 object DialogChoices : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogChoices"
     override val name: String = "choices"
     override val title: String = "Choices"
     override val closeButton = null
@@ -574,7 +559,6 @@ object DialogChoices : DialogInterface {
 }
 
 object DialogCompleteCareer : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogCompleteCareer"
     override val name: String = "complete_career"
     override val title: String = "Complete Career"
     override val closeButton = null
@@ -587,7 +571,6 @@ object DialogCompleteCareer : DialogInterface {
 }
 
 object DialogConcertSkipConfirmation : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogConcertSkipConfirmation"
     override val name: String = "concert_skip_confirmation"
     override val title: String = "Confirmation"
     override val closeButton = null
@@ -601,7 +584,6 @@ object DialogConcertSkipConfirmation : DialogInterface {
 }
 
 object DialogConfirmAutoSelect : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogConfirmAutoSelect"
     override val name: String = "confirm_auto_select"
     override val title: String = "Confirm Auto-Select"
     override val closeButton = null
@@ -615,7 +597,6 @@ object DialogConfirmAutoSelect : DialogInterface {
 }
 
 object DialogConfirmExchange : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogConfirmExchange"
     override val name: String = "confirm_exchange"
     override val title: String = "Confirm Exchange"
     override val closeButton = null
@@ -627,7 +608,6 @@ object DialogConfirmExchange : DialogInterface {
 }
 
 object DialogConfirmUse : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogConfirmUse"
     override val name: String = "confirm_use"
     override val title: String = "Confirm Use"
     override val closeButton = null
@@ -640,7 +620,6 @@ object DialogConfirmUse : DialogInterface {
 }
 
 object DialogConnectionError : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogConnectionError"
     override val name: String = "connection_error"
     override val title: String = "Connection Error"
     override val closeButton = null
@@ -664,7 +643,6 @@ object DialogConnectionError : DialogInterface {
 }
 
 object DialogConsecutiveRaceWarning : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogConsecutiveRaceWarning"
     override val name: String = "consecutive_race_warning"
     override val title: String = "Warning"
     override val closeButton = null
@@ -677,7 +655,6 @@ object DialogConsecutiveRaceWarning : DialogInterface {
 }
 
 object DialogContinueCareer : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogContinueCareer"
     override val name: String = "continue_career"
     override val title: String = "Continue Career"
     override val closeButton = null
@@ -690,7 +667,6 @@ object DialogContinueCareer : DialogInterface {
 }
 
 object DialogConfirmRestoreRP : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogConfirmRestoreRP"
     override val name: String = "confirm_restore_rp"
     override val title: String = "Confirm"
     override val closeButton = null
@@ -703,7 +679,6 @@ object DialogConfirmRestoreRP : DialogInterface {
 }
 
 object DialogDailySale : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogDailySale"
     override val name: String = "daily_sale"
     override val title: String = "Daily Sale"
     override val closeButton = null
@@ -716,7 +691,6 @@ object DialogDailySale : DialogInterface {
 }
 
 object DialogDateChanged : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogDateChanged"
     override val name: String = "date_changed"
     override val title: String = "Date Changed"
     override val closeButton = null
@@ -728,7 +702,6 @@ object DialogDateChanged : DialogInterface {
 }
 
 object DialogDisplaySettings : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogDisplaySettings"
     override val name: String = "display_settings"
     override val title: String = "Display Settings"
     override val closeButton = null
@@ -741,7 +714,6 @@ object DialogDisplaySettings : DialogInterface {
 }
 
 object DialogDownloadError : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogDownloadError"
     override val name: String = "download_error"
     override val title: String = "Download Error"
     override val closeButton = null
@@ -754,7 +726,6 @@ object DialogDownloadError : DialogInterface {
 }
 
 object DialogEpithet : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogEpithet"
     override val name: String = "epithet"
     override val title: String = "Epithet"
     override val closeButton = null
@@ -768,7 +739,6 @@ object DialogEpithet : DialogInterface {
 
 // This is the dialog opened from the Epithets button in DialogMenu.
 object DialogEpithets : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogEpithets"
     override val name: String = "epithets"
     override val title: String = "Epithets"
     override val closeButton = null
@@ -780,7 +750,6 @@ object DialogEpithets : DialogInterface {
 }
 
 object DialogExchangeComplete : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogExchangeComplete"
     override val name: String = "exchange_complete"
     override val title: String = "Exchange Complete"
     override val closeButton: BaseComponentInterface = ButtonClose
@@ -793,7 +762,6 @@ object DialogExchangeComplete : DialogInterface {
 }
 
 object DialogExternalLink : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogExternalLink"
     override val name: String = "external_link"
     override val title: String = "External Link"
     override val closeButton = null
@@ -806,7 +774,6 @@ object DialogExternalLink : DialogInterface {
 }
 
 object DialogFans : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogFans"
     override val name: String = "fans"
     override val title: String = "Fans"
     override val closeButton = null
@@ -818,7 +785,6 @@ object DialogFans : DialogInterface {
 }
 
 object DialogFeaturedCards : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogFeaturedCards"
     override val name: String = "featured_cards"
     override val title: String = "Featured Cards"
     override val closeButton = null
@@ -830,7 +796,6 @@ object DialogFeaturedCards : DialogInterface {
 }
 
 object DialogFinalConfirmation : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogFinalConfirmation"
     override val name: String = "final_confirmation"
     override val title: String = "Final Confirmation"
     override val closeButton = null
@@ -843,7 +808,6 @@ object DialogFinalConfirmation : DialogInterface {
 }
 
 object DialogFollowTrainer : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogFollowTrainer"
     override val name: String = "follow_trainer"
     override val title: String = "Follow Trainer"
     override val closeButton = null
@@ -856,7 +820,6 @@ object DialogFollowTrainer : DialogInterface {
 }
 
 object DialogGiveUp : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogGiveUp"
     override val name: String = "give_up"
     override val title: String = "Give Up"
     override val closeButton = null
@@ -869,7 +832,6 @@ object DialogGiveUp : DialogInterface {
 }
 
 object DialogGoalNotReached : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogGoalNotReached"
     override val name: String = "goal_not_reached"
     override val title: String = "Goal Not Reached"
     override val closeButton = null
@@ -882,7 +844,6 @@ object DialogGoalNotReached : DialogInterface {
 }
 
 object DialogGoals : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogGoals"
     override val name: String = "goals"
     override val title: String = "Goals"
     override val closeButton = null
@@ -894,7 +855,6 @@ object DialogGoals : DialogInterface {
 }
 
 object DialogHelpAndGlossary : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogHelpAndGlossary"
     override val name: String = "help_and_glossary"
     override val title: String = "Help & Glossary"
     override val closeButton = null
@@ -906,7 +866,6 @@ object DialogHelpAndGlossary : DialogInterface {
 }
 
 object DialogInfirmary : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogInfirmary"
     override val name: String = "infirmary"
     override val title: String = "Infirmary"
     override val closeButton = null
@@ -920,7 +879,6 @@ object DialogInfirmary : DialogInterface {
 }
 
 object DialogInsufficientFans : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogInsufficientFans"
     override val name: String = "insufficient_fans"
     override val title: String = "Insufficient Fans"
     override val closeButton = null
@@ -933,7 +891,6 @@ object DialogInsufficientFans : DialogInterface {
 }
 
 object DialogItemsSelected : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogItemsSelected"
     override val name: String = "items_selected"
     override val title: String = "Items Selected"
     override val closeButton = null
@@ -946,7 +903,6 @@ object DialogItemsSelected : DialogInterface {
 }
 
 object DialogLog : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogLog"
     override val name: String = "log"
     override val title: String = "Log"
     override val closeButton = null
@@ -958,7 +914,6 @@ object DialogLog : DialogInterface {
 }
 
 object DialogMenu : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogMenu"
     override val name: String = "menu"
     override val title: String = "Menu"
     override val closeButton = null
@@ -973,7 +928,6 @@ object DialogMenu : DialogInterface {
 }
 
 object DialogMoodEffect : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogMoodEffect"
     override val name: String = "mood_effect"
     override val title: String = "Mood Effect"
     override val closeButton = null
@@ -985,7 +939,6 @@ object DialogMoodEffect : DialogInterface {
 }
 
 object DialogMyAgendas : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogMyAgendas"
     override val name: String = "my_agendas"
     override val title: String = "My Agendas"
     override val closeButton = null
@@ -997,7 +950,6 @@ object DialogMyAgendas : DialogInterface {
 }
 
 object DialogNoRetries : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogNoRetries"
     override val name: String = "no_retries"
     override val title: String = "No Retries"
     override val closeButton = null
@@ -1009,7 +961,6 @@ object DialogNoRetries : DialogInterface {
 }
 
 object DialogNotices : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogNotices"
     override val name: String = "notices"
     override val title: String = "Notices"
     override val closeButton = null
@@ -1021,7 +972,6 @@ object DialogNotices : DialogInterface {
 }
 
 object DialogOpenSoon : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogOpenSoon"
     override val name: String = "open_soon"
     override val title: String = "Open Soon!"
     override val closeButton = null
@@ -1033,7 +983,6 @@ object DialogOpenSoon : DialogInterface {
 }
 
 object DialogCareerEventDetails : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogCareerEventDetails"
     override val name: String = "career_event_details"
     override val title: String = "Career Event Details"
     override val closeButton = null
@@ -1045,7 +994,6 @@ object DialogCareerEventDetails : DialogInterface {
 }
 
 object DialogCareerProfile : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogCareerProfile"
     override val name: String = "career_profile"
     override val title: String = "Career Profile"
     override val closeButton = null
@@ -1057,7 +1005,6 @@ object DialogCareerProfile : DialogInterface {
 }
 
 object DialogOptions : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogOptions"
     override val name: String = "options"
     override val title: String = "Options"
     override val closeButton = null
@@ -1070,7 +1017,6 @@ object DialogOptions : DialogInterface {
 }
 
 object DialogOverwrite : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogOverwrite"
     override val name: String = "overwrite"
     override val title: String = "Overwrite"
     override val closeButton = null
@@ -1083,7 +1029,6 @@ object DialogOverwrite : DialogInterface {
 }
 
 object DialogPerks : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogPerks"
     override val name: String = "perks"
     override val title: String = "Perks"
     override val closeButton = null
@@ -1095,7 +1040,6 @@ object DialogPerks : DialogInterface {
 }
 
 object DialogPlacing : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogPlacing"
     override val name: String = "placing"
     override val title: String = "Placing"
     override val closeButton = null
@@ -1107,7 +1051,6 @@ object DialogPlacing : DialogInterface {
 }
 
 object DialogPresents : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogPresents"
     override val name: String = "presents"
     override val title: String = "Presents"
     override val closeButton = null
@@ -1126,7 +1069,6 @@ object DialogPresents : DialogInterface {
  * add that button in here.
  */
 object DialogPurchaseAlarmClock : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogPurchaseAlarmClock"
     override val name: String = "purchase_alarm_clock"
     override val title: String = "Purchase Alarm Clock"
     override val closeButton = null
@@ -1138,7 +1080,6 @@ object DialogPurchaseAlarmClock : DialogInterface {
 }
 
 object DialogPurchaseCarats : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogPurchaseCarats"
     override val name: String = "purchase_carats"
     override val title: String = "Purchase Carats"
     override val closeButton = null
@@ -1150,7 +1091,6 @@ object DialogPurchaseCarats : DialogInterface {
 }
 
 object DialogPurchaseDailyRaceTicket : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogPurchaseDailyRaceTicket"
     override val name: String = "purchase_daily_race_ticket"
     override val title: String = "Purchase Daily Race Ticket"
     override val closeButton = null
@@ -1163,7 +1103,6 @@ object DialogPurchaseDailyRaceTicket : DialogInterface {
 }
 
 object DialogRaceDetails : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogRaceDetails"
     override val name: String = "race_details"
     override val title: String = "Race Details"
     override val closeButton = null
@@ -1193,7 +1132,6 @@ object DialogRaceDetails : DialogInterface {
 }
 
 object DialogRacePlayback : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogRacePlayback"
     override val name: String = "race_playback"
     override val title: String = "Race Playback"
     override val closeButton = null
@@ -1209,7 +1147,6 @@ object DialogRacePlayback : DialogInterface {
 }
 
 object DialogRaceRecommendations : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogRaceRecommendations"
     override val name: String = "race_recommendations"
     override val title: String = "Race Recommendations"
     override val closeButton = null
@@ -1225,7 +1162,6 @@ object DialogRaceRecommendations : DialogInterface {
 }
 
 object DialogRecreation : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogRecreation"
     override val name: String = "recreation"
     override val title: String = "Recreation"
     override val closeButton = null
@@ -1239,7 +1175,6 @@ object DialogRecreation : DialogInterface {
 }
 
 object DialogRegistrationComplete : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogRegistrationComplete"
     override val name: String = "registration_complete"
     override val title: String = "Registration Complete"
     override val closeButton = null
@@ -1251,7 +1186,6 @@ object DialogRegistrationComplete : DialogInterface {
 }
 
 object DialogRequestFulfilled : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogRequestFulfilled"
     override val name: String = "request_fulfilled"
     override val title: String = "REQUEST FULFILLED"
     override val closeButton = null
@@ -1263,7 +1197,6 @@ object DialogRequestFulfilled : DialogInterface {
 }
 
 object DialogRest : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogRest"
     override val name: String = "rest"
     override val title: String = "Rest"
     override val closeButton = null
@@ -1278,7 +1211,6 @@ object DialogRest : DialogInterface {
 
 object DialogRestAndRecreation : DialogInterface {
     // This one doesn't have a checkbox to not ask again for some reason.
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogRestAndRecreation"
     override val name: String = "rest_and_recreation"
     override val title: String = "Rest & Recreation"
     override val closeButton = null
@@ -1291,7 +1223,6 @@ object DialogRestAndRecreation : DialogInterface {
 }
 
 object DialogRewardsCollected : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogRewardsCollected"
     override val name: String = "rewards_collected"
     override val title: String = "Rewards Collected"
     override val closeButton = null
@@ -1303,7 +1234,6 @@ object DialogRewardsCollected : DialogInterface {
 }
 
 object DialogRunners : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogRunners"
     override val name: String = "runners"
     override val title: String = "Runners"
     override val closeButton = null
@@ -1315,7 +1245,6 @@ object DialogRunners : DialogInterface {
 }
 
 object DialogScheduleRace : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogScheduleRace"
     override val name: String = "schedule_race"
     override val title: String = "Schedule Race"
     override val closeButton = null
@@ -1327,7 +1256,6 @@ object DialogScheduleRace : DialogInterface {
 }
 
 object DialogScheduleCancellation : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogScheduleCancellation"
     override val name: String = "schedule_cancellation"
     override val title: String = "Schedule Cancellation"
     override val closeButton = null
@@ -1339,7 +1267,6 @@ object DialogScheduleCancellation : DialogInterface {
 }
 
 object DialogScheduledRaceAvailable : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogScheduledRaceAvailable"
     override val name: String = "scheduled_race_available"
     override val title: String = "Scheduled Race Available"
     override val closeButton = null
@@ -1352,7 +1279,6 @@ object DialogScheduledRaceAvailable : DialogInterface {
 }
 
 object DialogScheduledRaces : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogScheduledRaces"
     override val name: String = "scheduled_races"
     override val title: String = "Scheduled Races"
     override val closeButton = null
@@ -1364,7 +1290,6 @@ object DialogScheduledRaces : DialogInterface {
 }
 
 object DialogScheduleSettings : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogScheduleSettings"
     override val name: String = "schedule_settings"
     override val title: String = "Schedule Settings"
     override val closeButton = null
@@ -1377,7 +1302,6 @@ object DialogScheduleSettings : DialogInterface {
 }
 
 object DialogSessionError : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogSessionError"
     override val name: String = "session_error"
     override val title: String = "Session Error"
     override val closeButton = null
@@ -1389,7 +1313,6 @@ object DialogSessionError : DialogInterface {
 }
 
 object DialogShop : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogShop"
     override val name: String = "shop"
     override val title: String = "Shop"
     override val closeButton = null
@@ -1402,7 +1325,6 @@ object DialogShop : DialogInterface {
 }
 
 object DialogSkillDetails : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogSkillDetails"
     override val name: String = "skill_details"
     override val title: String = "Skill Details"
     override val closeButton = null
@@ -1414,7 +1336,6 @@ object DialogSkillDetails : DialogInterface {
 }
 
 object DialogSkillListConfirmation : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogSkillListConfirmation"
     override val name: String = "skill_list_confirmation"
     override val title: String = "Confirmation"
     override val closeButton = null
@@ -1427,7 +1348,6 @@ object DialogSkillListConfirmation : DialogInterface {
 }
 
 object DialogSkillListConfirmExit : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogSkillListConfirmExit"
     override val name: String = "skill_list_confirm_exit"
     override val title: String = "Confirm"
     override val closeButton = null
@@ -1440,7 +1360,6 @@ object DialogSkillListConfirmExit : DialogInterface {
 }
 
 object DialogSkillsLearned : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogSkillsLearned"
     override val name: String = "skills_learned"
     override val title: String = "Skills Learned"
     override val closeButton = null
@@ -1452,7 +1371,6 @@ object DialogSkillsLearned : DialogInterface {
 }
 
 object DialogSongAcquired : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogSongAcquired"
     override val name: String = "song_acquired"
     override val title: String = "Song Acquired"
     override val closeButton = null
@@ -1464,7 +1382,6 @@ object DialogSongAcquired : DialogInterface {
 }
 
 object DialogSparkDetails : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogSparkDetails"
     override val name: String = "spark_details"
     override val title: String = "Spark Details"
     override val closeButton = null
@@ -1476,7 +1393,6 @@ object DialogSparkDetails : DialogInterface {
 }
 
 object DialogSparks : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogSparks"
     override val name: String = "sparks"
     override val title: String = "Sparks"
     override val closeButton = null
@@ -1488,7 +1404,6 @@ object DialogSparks : DialogInterface {
 }
 
 object DialogSpecialMissions : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogSpecialMissions"
     override val name: String = "special_missions"
     override val title: String = "Special Missions"
     override val closeButton = null
@@ -1501,7 +1416,6 @@ object DialogSpecialMissions : DialogInterface {
 }
 
 object DialogStrategy : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogStrategy"
     override val name: String = "strategy"
     override val title: String = "Strategy"
     override val closeButton = null
@@ -1518,7 +1432,6 @@ object DialogStrategy : DialogInterface {
 }
 
 object DialogStoryUnlocked : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogStoryUnlocked"
     override val name: String = "story_unlocked"
     override val title: String = "Story Unlocked"
     override val closeButton = null
@@ -1530,7 +1443,6 @@ object DialogStoryUnlocked : DialogInterface {
 }
 
 object DialogTeamInfo : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogTeamInfo"
     override val name: String = "team_info"
     override val title: String = "Team Info"
     override val closeButton = null
@@ -1543,7 +1455,6 @@ object DialogTeamInfo : DialogInterface {
 }
 
 object DialogTrophyWon : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogTrophyWon"
     override val name: String = "trophy_won"
     override val title: String = "TROPHY WON!"
     override val closeButton = null
@@ -1555,7 +1466,6 @@ object DialogTrophyWon : DialogInterface {
 }
 
 object DialogTryAgain : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogTryAgain"
     override val name: String = "try_again"
     override val title: String = "Try Again"
     override val closeButton = null
@@ -1568,7 +1478,6 @@ object DialogTryAgain : DialogInterface {
 }
 
 object DialogUmamusumeClass : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogUmamusumeClass"
     override val name: String = "umamusume_class"
     override val title: String = "Umamusume Class"
     override val closeButton = null
@@ -1580,7 +1489,6 @@ object DialogUmamusumeClass : DialogInterface {
 }
 
 object DialogUmamusumeDetails : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogUmamusumeDetails"
     override val name: String = "umamusume_details"
     override val title: String = "Umamusume Details"
     override val closeButton = null
@@ -1592,7 +1500,6 @@ object DialogUmamusumeDetails : DialogInterface {
 }
 
 object DialogUnityCupAvailable : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogUnityCupAvailable"
     override val name: String = "unity_cup_available"
     override val title: String = "Unity Cup Available"
     override val closeButton = null
@@ -1604,7 +1511,6 @@ object DialogUnityCupAvailable : DialogInterface {
 }
 
 object DialogUnityCupConfirmation : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogUnityCupConfirmation"
     override val name: String = "unity_cup_confirmation"
     override val title: String = "Confirmation"
     override val closeButton = null
@@ -1617,7 +1523,6 @@ object DialogUnityCupConfirmation : DialogInterface {
 }
 
 object DialogUnlockRequirements : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogUnlockRequirements"
     override val name: String = "unlock_requirements"
     override val title: String = "Unlock Requirements"
     override val closeButton = null
@@ -1629,7 +1534,6 @@ object DialogUnlockRequirements : DialogInterface {
 }
 
 object DialogUnmetRequirements : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogUnmetRequirements"
     override val name: String = "unmet_requirements"
     override val title: String = "Unmet Requirements"
     override val closeButton = null
@@ -1642,7 +1546,6 @@ object DialogUnmetRequirements : DialogInterface {
 }
 
 object DialogViewStory : DialogInterface {
-    override val TAG: String = "[${MainActivity.loggerTag}]DialogViewStory"
     override val name: String = "view_story"
     override val title: String = "View Story"
     override val closeButton = null
