@@ -906,6 +906,7 @@ class Trainee {
         MessageLog.v(TAG, "[TRAINEE] Stats: $stats")
         MessageLog.v(TAG, "[TRAINEE] Energy: $energy%")
         MessageLog.v(TAG, "[TRAINEE] Fans: $fans")
+        MessageLog.v(TAG, "[TRAINEE] Skill Points: $skillPoints")
         val trackString = "Turf=${trackSurfaceAptitudes[TrackSurface.TURF]}, Dirt=${trackSurfaceAptitudes[TrackSurface.DIRT]}"
         val distanceString =
             "Sprint=${trackDistanceAptitudes[TrackDistance.SPRINT]}, Mile=${trackDistanceAptitudes[TrackDistance.MILE]}, Medium=${trackDistanceAptitudes[TrackDistance.MEDIUM]}, Long=${trackDistanceAptitudes[TrackDistance.LONG]}"
