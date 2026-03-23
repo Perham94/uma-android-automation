@@ -1228,6 +1228,10 @@
                         <div class="dashboard-label">Fans</div>
                         <div id="dashboardFans" class="dashboard-value">-</div>
                     </div>
+                    <div class="dashboard-item">
+                        <div class="dashboard-label">Skill Points</div>
+                        <div id="dashboardSkillPoints" class="dashboard-value">-</div>
+                    </div>
                 </div>
                 <div class="dashboard-row">
                     <div class="dashboard-item">
@@ -1632,6 +1636,7 @@
                     name: null,
                     energy: null,
                     fans: null,
+                    skillPoints: null,
                     date: null,
                     turn: null,
                     stats: {},
@@ -1690,6 +1695,7 @@
                     name: null,
                     energy: null,
                     fans: null,
+                    skillPoints: null,
                     date: null,
                     turn: null,
                     stats: {},
@@ -1908,7 +1914,8 @@
                 document.getElementById("dashboardName").textContent = "-"
                 document.getElementById("dashboardEnergy").textContent = "-"
                 document.getElementById("dashboardFans").textContent = "-"
-
+                document.getElementById("dashboardSkillPoints").textContent = "-"
+                
                 // Reset conditions.
                 document.getElementById("positiveConditions").innerHTML = '<span class="condition-empty">None</span>'
                 document.getElementById("negativeConditions").innerHTML = '<span class="condition-empty">None</span>'
@@ -2100,6 +2107,8 @@
                         stateTarget.energy = data.trim()
                     } else if (category === "Fans") {
                         stateTarget.fans = data.trim()
+                    } else if (category === "Skill Points") {
+                        stateTarget.skillPoints = data.trim()
                     } else if (category === "Stats") {
                         const stats = data.split(", ")
                         stats.forEach((s) => {
@@ -2163,6 +2172,9 @@
                 }
                 if (state.fans) {
                     document.getElementById("dashboardFans").textContent = formatNumberWithCommas(state.fans)
+                }
+                if (state.skillPoints) {
+                    document.getElementById("dashboardSkillPoints").textContent = formatNumberWithCommas(state.skillPoints)
                 }
                 if (state.positiveStatuses) {
                     updateConditionBadges(document.getElementById("positiveConditions"), state.positiveStatuses, "condition-positive")
@@ -2281,6 +2293,12 @@
                         stateTarget.fans = data.trim()
                     } else {
                         document.getElementById("dashboardFans").textContent = formatNumberWithCommas(data.trim())
+                    }
+                } else if (category === "Skill Points") {
+                    if (stateTarget) {
+                        stateTarget.skillPoints = data.trim()
+                    } else {
+                        document.getElementById("dashboardSkillPoints").textContent = formatNumberWithCommas(data.trim())
                     }
                 } else if (category === "Stats") {
                     const stats = data.split(", ")
