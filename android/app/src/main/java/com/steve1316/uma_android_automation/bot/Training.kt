@@ -2,7 +2,6 @@ package com.steve1316.uma_android_automation.bot
 
 import android.graphics.Bitmap
 import android.util.Log
-import com.steve1316.automation_library.data.SharedData
 import com.steve1316.automation_library.utils.BotService
 import com.steve1316.automation_library.utils.MessageLog
 import com.steve1316.automation_library.utils.SettingsHelper
@@ -26,22 +25,15 @@ import com.steve1316.uma_android_automation.components.IconTrainingHeaderWit
 import com.steve1316.uma_android_automation.components.LabelStatTableHeaderSkillPoints
 import com.steve1316.uma_android_automation.components.LabelTrainingCannotPerform
 import com.steve1316.uma_android_automation.components.LabelTrainingFailureChance
-import com.steve1316.uma_android_automation.types.Aptitude
 import com.steve1316.uma_android_automation.types.DateYear
 import com.steve1316.uma_android_automation.types.GameDate
-import com.steve1316.uma_android_automation.types.Mood
-import com.steve1316.uma_android_automation.types.RunningStyle
 import com.steve1316.uma_android_automation.types.StatName
-import com.steve1316.uma_android_automation.types.TrackDistance
-import com.steve1316.uma_android_automation.types.TrackSurface
 import com.steve1316.uma_android_automation.utils.CustomImageUtils
 import org.opencv.core.Point
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.intArrayOf
 import kotlin.math.pow
 
 /**

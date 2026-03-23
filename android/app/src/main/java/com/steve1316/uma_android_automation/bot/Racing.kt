@@ -8,7 +8,38 @@ import com.steve1316.automation_library.utils.SettingsHelper
 import com.steve1316.uma_android_automation.MainActivity
 import com.steve1316.uma_android_automation.bot.Campaign
 import com.steve1316.uma_android_automation.bot.DialogHandlerResult
-import com.steve1316.uma_android_automation.components.*
+import com.steve1316.uma_android_automation.components.ButtonAgenda
+import com.steve1316.uma_android_automation.components.ButtonBack
+import com.steve1316.uma_android_automation.components.ButtonChangeRunningStyle
+import com.steve1316.uma_android_automation.components.ButtonClose
+import com.steve1316.uma_android_automation.components.ButtonMyAgendas
+import com.steve1316.uma_android_automation.components.ButtonNext
+import com.steve1316.uma_android_automation.components.ButtonNextRaceEnd
+import com.steve1316.uma_android_automation.components.ButtonOk
+import com.steve1316.uma_android_automation.components.ButtonRace
+import com.steve1316.uma_android_automation.components.ButtonRaceAgendaLoadList
+import com.steve1316.uma_android_automation.components.ButtonRaceExclamation
+import com.steve1316.uma_android_automation.components.ButtonRaceListFullStats
+import com.steve1316.uma_android_automation.components.ButtonRaceManual
+import com.steve1316.uma_android_automation.components.ButtonRaces
+import com.steve1316.uma_android_automation.components.ButtonSkip
+import com.steve1316.uma_android_automation.components.ButtonTryAgainAlt
+import com.steve1316.uma_android_automation.components.ButtonViewResults
+import com.steve1316.uma_android_automation.components.IconRaceAgendaEmpty
+import com.steve1316.uma_android_automation.components.IconRaceDayRibbon
+import com.steve1316.uma_android_automation.components.IconRaceListMaidenPill
+import com.steve1316.uma_android_automation.components.IconRaceListPredictionDoubleStar
+import com.steve1316.uma_android_automation.components.IconRaceListSelectionBracketBottomRight
+import com.steve1316.uma_android_automation.components.IconScrollListBottomRight
+import com.steve1316.uma_android_automation.components.IconScrollListTopLeft
+import com.steve1316.uma_android_automation.components.LabelRaceCriteriaFans
+import com.steve1316.uma_android_automation.components.LabelRaceCriteriaG3OrAbove
+import com.steve1316.uma_android_automation.components.LabelRaceCriteriaMaiden
+import com.steve1316.uma_android_automation.components.LabelRaceCriteriaPreOpOrAbove
+import com.steve1316.uma_android_automation.components.LabelRaceCriteriaTrophies
+import com.steve1316.uma_android_automation.components.LabelRaceSelectionFans
+import com.steve1316.uma_android_automation.components.LabelRivalRacer
+import com.steve1316.uma_android_automation.components.LabelThereAreNoRacesToCompeteIn
 import com.steve1316.uma_android_automation.types.Aptitude
 import com.steve1316.uma_android_automation.types.BoundingBox
 import com.steve1316.uma_android_automation.types.DateYear
@@ -18,7 +49,6 @@ import com.steve1316.uma_android_automation.types.TrackDistance
 import com.steve1316.uma_android_automation.types.TrackSurface
 import com.steve1316.uma_android_automation.utils.CustomImageUtils.RaceDetails
 import com.steve1316.uma_android_automation.utils.ScrollList
-import com.steve1316.uma_android_automation.utils.ScrollListEntry
 import net.ricecode.similarity.JaroWinklerStrategy
 import net.ricecode.similarity.StringSimilarityServiceImpl
 import org.json.JSONArray
@@ -1237,10 +1267,14 @@ class Racing(private val game: Game, private val campaign: Campaign) {
                     }
                 }
 
-                game.scenario == "Trackblazer" && lastRaceGrade == RaceGrade.G1 && raceRetries > 0 && retriesThisRace < maxRetriesPerRace && ButtonTryAgainAlt.checkDisabled(
-                    game.imageUtils,
-                    sourceBitmap = bitmap,
-                ) == false -> {
+                game.scenario == "Trackblazer" &&
+                    lastRaceGrade == RaceGrade.G1 &&
+                    raceRetries > 0 &&
+                    retriesThisRace < maxRetriesPerRace &&
+                    ButtonTryAgainAlt.checkDisabled(
+                        game.imageUtils,
+                        sourceBitmap = bitmap,
+                    ) == false -> {
                     // Check if we can retry a G1 race even if no popup appeared.
                     MessageLog.i(TAG, "[TRACKBLAZER] G1 race detected and retry button is available. Retrying...")
                     if (ButtonTryAgainAlt.click(game.imageUtils, sourceBitmap = bitmap)) {
@@ -1250,10 +1284,15 @@ class Racing(private val game: Game, private val campaign: Campaign) {
                     }
                 }
 
-                game.scenario == "Trackblazer" && lastRaceIsRival && !bRetriedCurrentRace && raceRetries > 0 && retriesThisRace < maxRetriesPerRace && ButtonTryAgainAlt.checkDisabled(
-                    game.imageUtils,
-                    sourceBitmap = bitmap,
-                ) == false -> {
+                game.scenario == "Trackblazer" &&
+                    lastRaceIsRival &&
+                    !bRetriedCurrentRace &&
+                    raceRetries > 0 &&
+                    retriesThisRace < maxRetriesPerRace &&
+                    ButtonTryAgainAlt.checkDisabled(
+                        game.imageUtils,
+                        sourceBitmap = bitmap,
+                    ) == false -> {
                     // Trackblazer Rival Race retry logic even if no popup appeared.
                     MessageLog.i(TAG, "[TRACKBLAZER] Rival Race retry button is available. Retrying once...")
                     bRetriedCurrentRace = true

@@ -1,15 +1,17 @@
 package com.steve1316.uma_android_automation.bot
 
-import android.graphics.Bitmap
 import android.util.Log
 import com.steve1316.automation_library.utils.DiscordUtils
 import com.steve1316.automation_library.utils.MessageLog
-import com.steve1316.automation_library.utils.SettingsHelper
 import com.steve1316.uma_android_automation.MainActivity
-import com.steve1316.uma_android_automation.components.*
+import com.steve1316.uma_android_automation.components.ButtonRaceRecommendationsCenterStage
+import com.steve1316.uma_android_automation.components.Checkbox
+import com.steve1316.uma_android_automation.components.DialogInterface
+import com.steve1316.uma_android_automation.components.DialogUtils
+import com.steve1316.uma_android_automation.components.IconHorseshoe
+import com.steve1316.uma_android_automation.components.RadioCareerQuickShortenAllEvents
+import com.steve1316.uma_android_automation.components.RadioPortrait
 import com.steve1316.uma_android_automation.types.BoundingBox
-import com.steve1316.uma_android_automation.types.DateYear
-import com.steve1316.uma_android_automation.types.RunningStyle
 import org.opencv.core.Point
 
 /** Represents the result of a dialog handling operation. */

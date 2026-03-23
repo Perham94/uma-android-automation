@@ -5,7 +5,6 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
-import android.media.projection.MediaProjectionManager
 import android.provider.Settings
 import android.util.Log
 import android.view.accessibility.AccessibilityManager

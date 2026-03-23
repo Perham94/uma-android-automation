@@ -1093,8 +1093,11 @@ class Trackblazer(game: Game) : Campaign(game) {
 
                         // Determine if this item is actually useful right now.
                         val isUseful =
-                            isStat || isBad || isQuick ||
-                                (isEnergy && trainee != null && trainee.energy <= 100) || // We might want any energy item if not full.
+                            isStat ||
+                                isBad ||
+                                isQuick ||
+                                (isEnergy && trainee != null && trainee.energy <= 100) ||
+                                // We might want any energy item if not full.
                                 (isMood && trainee != null && trainee.mood < Mood.GREAT) ||
                                 (isMegaphone && trainee != null && trainingSelected != null && trainee.megaphoneTurnCounter == 0) ||
                                 (isAnkleWeight && trainee != null && trainingSelected != null) ||
@@ -1361,32 +1364,37 @@ class Trackblazer(game: Game) : Campaign(game) {
 
         val needSync = !bInventorySynced
         val hasEnergyItems =
-            currentInventory.any { (name, count) -> count > 0 && shopList.energyItemNames.contains(name) && !disabledItems.contains(name) } || (
+            currentInventory.any { (name, count) -> count > 0 && shopList.energyItemNames.contains(name) && !disabledItems.contains(name) } ||
                 (
-                    currentInventory["Royal Kale Juice"]
-                        ?: 0
-                ) > 0 && !disabledItems.contains("Royal Kale Juice")
-            )
+                    (
+                        currentInventory["Royal Kale Juice"]
+                            ?: 0
+                    ) > 0 &&
+                        !disabledItems.contains("Royal Kale Juice")
+                )
         val hasMoodItems = currentInventory.any { (name, count) -> count > 0 && (name == "Berry Sweet Cupcake" || name == "Plain Cupcake") && !disabledItems.contains(name) }
         val hasBadConditionItems = currentInventory.any { (name, count) -> count > 0 && shopList.badConditionHealItemNames.contains(name) && !disabledItems.contains(name) }
         val hasStatItems = currentInventory.any { (name, count) -> count > 0 && shopList.statItemNames.contains(name) && !disabledItems.contains(name) }
 
         val hasMegaphones =
-            trainingSelected != null && trainee.megaphoneTurnCounter == 0 &&
+            trainingSelected != null &&
+                trainee.megaphoneTurnCounter == 0 &&
                 currentInventory.any { (name, count) ->
                     count > 0 && (name == "Empowering Megaphone" || name == "Motivating Megaphone" || name == "Coaching Megaphone") && !disabledItems.contains(name)
                 }
         val hasAnkleWeights =
             trainingSelected != null &&
                 currentInventory.any { (name, count) ->
-                    count > 0 && name ==
+                    count > 0 &&
+                        name ==
                         when (trainingSelected) {
                             StatName.SPEED -> "Speed Ankle Weights"
                             StatName.STAMINA -> "Stamina Ankle Weights"
                             StatName.POWER -> "Power Ankle Weights"
                             StatName.GUTS -> "Guts Ankle Weights"
                             else -> ""
-                        } && !disabledItems.contains(name)
+                        } &&
+                        !disabledItems.contains(name)
                 }
         val failureChance = if (trainingSelected != null) training.trainingMap[trainingSelected]?.failureChance ?: 0 else 0
         val hasCharm = trainingSelected != null && !bUsedCharmToday && failureChance >= 20 && (currentInventory["Good-Luck Charm"] ?: 0) > 0 && !disabledItems.contains("Good-Luck Charm")
@@ -1395,7 +1403,10 @@ class Trackblazer(game: Game) : Campaign(game) {
             (trainee.energy <= energyThresholdToUseEnergyItems && hasEnergyItems) ||
                 (trainee.mood.ordinal <= Mood.BAD.ordinal && hasMoodItems) ||
                 (trainee.currentNegativeStatuses.isNotEmpty() && hasBadConditionItems) ||
-                hasStatItems || hasMegaphones || hasAnkleWeights || hasCharm
+                hasStatItems ||
+                hasMegaphones ||
+                hasAnkleWeights ||
+                hasCharm
 
         if (needSync || potentialUse) {
             val reasons = mutableListOf<String>()

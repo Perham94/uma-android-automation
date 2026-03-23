@@ -5,14 +5,12 @@ import com.steve1316.automation_library.utils.MessageLog
 import com.steve1316.automation_library.utils.SettingsHelper
 import com.steve1316.uma_android_automation.MainActivity
 import com.steve1316.uma_android_automation.bot.Campaign
-import com.steve1316.uma_android_automation.types.Aptitude
 import com.steve1316.uma_android_automation.types.RunningStyle
 import com.steve1316.uma_android_automation.types.SkillCommunityTier
 import com.steve1316.uma_android_automation.types.SkillList
 import com.steve1316.uma_android_automation.types.SkillListEntry
 import com.steve1316.uma_android_automation.types.TrackDistance
 import com.steve1316.uma_android_automation.types.TrackSurface
-import org.json.JSONArray
 import org.json.JSONObject
 import org.opencv.core.Point
 

@@ -1204,7 +1204,8 @@ abstract class Campaign(game: Game) : Task(game) {
                 "[MOOD] Current mood is Normal. Not recovering mood due to firstTrainingCheck flag being active. Will need to complete a training first before being allowed to recover mood.",
             )
             false
-        } else if ((trainee.mood < Mood.GOOD) && (
+        } else if ((trainee.mood < Mood.GOOD) &&
+            (
                 ButtonRecreation.check(game.imageUtils, sourceBitmap = sourceBitmap) ||
                     ButtonRestAndRecreation.check(
                         game.imageUtils,

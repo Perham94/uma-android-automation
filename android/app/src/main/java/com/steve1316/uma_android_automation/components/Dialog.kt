@@ -49,7 +49,6 @@ package com.steve1316.uma_android_automation.components
 
 import android.graphics.Bitmap
 import com.steve1316.automation_library.data.SharedData
-import com.steve1316.automation_library.utils.ImageUtils
 import com.steve1316.automation_library.utils.MessageLog
 import com.steve1316.automation_library.utils.TextUtils
 import com.steve1316.uma_android_automation.MainActivity
@@ -301,103 +300,104 @@ interface DialogInterface {
 
 /** Store the list of all dialog objects and a mapping of them for easy access. */
 object DialogObjects {
-	/** List of all [DialogInterface] objects. */
-    val items: List<DialogInterface> = listOf(
-        DialogAccountLink,                  // Title Screen
-        DialogAgeConfirmation,              // Anywhere (ALWAYS THROW ERROR)
-        DialogAgendaDetails,                // Career
-        DialogAutoFill,                     // Career (Unity Cup)
-        DialogAutoSelect,                   // Career Selection
-        DialogAllRewardsEarned,             // Career (event only)
-        DialogBonusUmamusumeDetails,        // Career -> Career Profile dialog
-        DialogBorrowCard,                   // Career Selection
-        DialogBorrowCardConfirmation,       // Career Selection
-        DialogCareer,                       // Career
-        DialogCareerComplete,               // Career
-        DialogCareerEventDetails,           // Card details
-        DialogCareerProfile,                // Career
-        DialogChoices,                      // Career (training event effects)
-        DialogCompleteCareer,               // Career (yes this is different from above...)
-        DialogConcertSkipConfirmation,      // Career
-        DialogConfirmAutoSelect,            // Career Selection
-        DialogConfirmExchange,              // Main Screen
-        DialogConfirmRestoreRP,             // Team Trials
-        DialogConfirmUse,                   // Career (Trackblazer)
-        DialogConnectionError,              // Anywhere
-        DialogConsecutiveRaceWarning,       // Career
-        DialogContinueCareer,               // Main Screen
-        DialogDailySale,                    // Team Trials, Special Events, Daily Races
-        DialogDateChanged,                  // Anywhere
-        DialogDisplaySettings,              // Anywhere
-        DialogDownloadError,                // Title Screen (only?)
-        DialogEpithet,                      // Career End
-        DialogEpithets,                     // Career DialogMenu -> Epithets button
-        DialogExchangeComplete,             // Career (Trackblazer)
-        DialogExternalLink,                 // Main Screen
-        DialogFans,                         // Career DialogGoals
-        DialogFeaturedCards,                // Career
-        DialogFinalConfirmation,            // Career Selection
-        DialogFollowTrainer,                // Career
-        DialogGiveUp,                       // Career
-        DialogGoalNotReached,               // Career
-        DialogGoals,                        // Career
-        DialogHelpAndGlossary,              // Anywhere (from options dialog)
-        DialogInfirmary,                    // Career
-        DialogInsufficientFans,             // Career
-        DialogItemsSelected,                // Team Trials, Special Events, Daily Races
-        DialogLog,                          // Career
-        DialogMenu,                         // Career
-        DialogMoodEffect,                   // Career
-        DialogMyAgendas,                    // Career
-        DialogNoRetries,                    // Career
-        DialogNotices,                      // Main Screen
-        DialogOpenSoon,                     // Shop (only when clicking inactive daily sales button)
-        DialogOptions,                      // Anywhere
-        DialogOverwrite,                    // Career -> Agenda
-        DialogPerks,                        // Career -> Career Profile dialog
-        DialogPlacing,                      // Career -> DialogTryAgain
-        DialogPresents,                     // Main Screen (I think?)
-        DialogPurchaseAlarmClock,           // Career
-        DialogPurchaseCarats,               // Anywhere (ALWAYS THROW ERROR)
-        DialogPurchaseDailyRaceTicket,      // Daily Races
-        DialogRaceDetails,                  // Daily Races, Special Events, and Career
-        DialogRacePlayback,                 // Career
-        DialogRaceRecommendations,          // Career
-        DialogRecreation,                   // Career
-        DialogRegistrationComplete,         // Anywhere
-        DialogRequestFulfilled,             // Transfer Requests
-        DialogRest,                         // Career
-        DialogRestAndRecreation,            // Career
-        DialogRewardsCollected,             // Main Screen, Special Events
-        DialogRunners,                      // Career -> Race screens
-        DialogScheduleRace,                 // Career -> Agenda
-        DialogScheduleCancellation,         // Career -> Agenda
-        DialogScheduledRaceAvailable,       // Career
-        DialogScheduledRaces,               // Career
-        DialogScheduleSettings,             // Career
-        DialogSessionError,                 // Anywhere
-        DialogShop,                         // Career (Trackblazer)
-        DialogSkillDetails,                 // Anywhere
-        DialogSkillListConfirmation,        // Career
-        DialogSkillListConfirmExit,         // Career
-        DialogSkillsLearned,                // Career
-        DialogSongAcquired,                 // Career
-        DialogSparkDetails,                 // Career (legacy uma details)
-        DialogSparks,                       // Career -> Career Profile dialog
-        DialogSpecialMissions,              // Main Screen, Special Events
-        DialogStrategy,                     // Race Screen
-        DialogStoryUnlocked,                // Main Screen, end of career
-        DialogTeamInfo,                     // Career (Unity Cup)
-        DialogTrophyWon,                    // Career
-        DialogTryAgain,                     // Career
-        DialogUmamusumeClass,               // Career
-        DialogUmamusumeDetails,             // Career
-        DialogUnityCupAvailable,            // Career (Unity Cup)
-        DialogUnityCupConfirmation,         // Career (Unity Cup)
-        DialogUnlockRequirements,           // Race Screen
-        DialogUnmetRequirements,
-        DialogViewStory,                    // Main Screen, end of career
-    )
+    /** List of all [DialogInterface] objects. */
+    val items: List<DialogInterface> =
+        listOf(
+            DialogAccountLink, // Title Screen
+            DialogAgeConfirmation, // Anywhere (ALWAYS THROW ERROR)
+            DialogAgendaDetails, // Career
+            DialogAutoFill, // Career (Unity Cup)
+            DialogAutoSelect, // Career Selection
+            DialogAllRewardsEarned, // Career (event only)
+            DialogBonusUmamusumeDetails, // Career -> Career Profile dialog
+            DialogBorrowCard, // Career Selection
+            DialogBorrowCardConfirmation, // Career Selection
+            DialogCareer, // Career
+            DialogCareerComplete, // Career
+            DialogCareerEventDetails, // Card details
+            DialogCareerProfile, // Career
+            DialogChoices, // Career (training event effects)
+            DialogCompleteCareer, // Career (yes this is different from above...)
+            DialogConcertSkipConfirmation, // Career
+            DialogConfirmAutoSelect, // Career Selection
+            DialogConfirmExchange, // Main Screen
+            DialogConfirmRestoreRP, // Team Trials
+            DialogConfirmUse, // Career (Trackblazer)
+            DialogConnectionError, // Anywhere
+            DialogConsecutiveRaceWarning, // Career
+            DialogContinueCareer, // Main Screen
+            DialogDailySale, // Team Trials, Special Events, Daily Races
+            DialogDateChanged, // Anywhere
+            DialogDisplaySettings, // Anywhere
+            DialogDownloadError, // Title Screen (only?)
+            DialogEpithet, // Career End
+            DialogEpithets, // Career DialogMenu -> Epithets button
+            DialogExchangeComplete, // Career (Trackblazer)
+            DialogExternalLink, // Main Screen
+            DialogFans, // Career DialogGoals
+            DialogFeaturedCards, // Career
+            DialogFinalConfirmation, // Career Selection
+            DialogFollowTrainer, // Career
+            DialogGiveUp, // Career
+            DialogGoalNotReached, // Career
+            DialogGoals, // Career
+            DialogHelpAndGlossary, // Anywhere (from options dialog)
+            DialogInfirmary, // Career
+            DialogInsufficientFans, // Career
+            DialogItemsSelected, // Team Trials, Special Events, Daily Races
+            DialogLog, // Career
+            DialogMenu, // Career
+            DialogMoodEffect, // Career
+            DialogMyAgendas, // Career
+            DialogNoRetries, // Career
+            DialogNotices, // Main Screen
+            DialogOpenSoon, // Shop (only when clicking inactive daily sales button)
+            DialogOptions, // Anywhere
+            DialogOverwrite, // Career -> Agenda
+            DialogPerks, // Career -> Career Profile dialog
+            DialogPlacing, // Career -> DialogTryAgain
+            DialogPresents, // Main Screen (I think?)
+            DialogPurchaseAlarmClock, // Career
+            DialogPurchaseCarats, // Anywhere (ALWAYS THROW ERROR)
+            DialogPurchaseDailyRaceTicket, // Daily Races
+            DialogRaceDetails, // Daily Races, Special Events, and Career
+            DialogRacePlayback, // Career
+            DialogRaceRecommendations, // Career
+            DialogRecreation, // Career
+            DialogRegistrationComplete, // Anywhere
+            DialogRequestFulfilled, // Transfer Requests
+            DialogRest, // Career
+            DialogRestAndRecreation, // Career
+            DialogRewardsCollected, // Main Screen, Special Events
+            DialogRunners, // Career -> Race screens
+            DialogScheduleRace, // Career -> Agenda
+            DialogScheduleCancellation, // Career -> Agenda
+            DialogScheduledRaceAvailable, // Career
+            DialogScheduledRaces, // Career
+            DialogScheduleSettings, // Career
+            DialogSessionError, // Anywhere
+            DialogShop, // Career (Trackblazer)
+            DialogSkillDetails, // Anywhere
+            DialogSkillListConfirmation, // Career
+            DialogSkillListConfirmExit, // Career
+            DialogSkillsLearned, // Career
+            DialogSongAcquired, // Career
+            DialogSparkDetails, // Career (legacy uma details)
+            DialogSparks, // Career -> Career Profile dialog
+            DialogSpecialMissions, // Main Screen, Special Events
+            DialogStrategy, // Race Screen
+            DialogStoryUnlocked, // Main Screen, end of career
+            DialogTeamInfo, // Career (Unity Cup)
+            DialogTrophyWon, // Career
+            DialogTryAgain, // Career
+            DialogUmamusumeClass, // Career
+            DialogUmamusumeDetails, // Career
+            DialogUnityCupAvailable, // Career (Unity Cup)
+            DialogUnityCupConfirmation, // Career (Unity Cup)
+            DialogUnlockRequirements, // Race Screen
+            DialogUnmetRequirements,
+            DialogViewStory, // Main Screen, end of career
+        )
 
     /** Mapping of each [DialogInterface]'s name to the interface object. */
     val map: Map<String, DialogInterface> = items.associateBy { it.name }

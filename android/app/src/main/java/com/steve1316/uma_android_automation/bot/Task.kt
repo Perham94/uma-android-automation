@@ -6,8 +6,6 @@ import com.steve1316.uma_android_automation.MainActivity
 import com.steve1316.uma_android_automation.bot.DialogHandler
 import com.steve1316.uma_android_automation.bot.DialogHandlerResult
 import com.steve1316.uma_android_automation.bot.Game
-import kotlinx.coroutines.*
-import java.util.concurrent.TimeUnit
 
 /** The possible result codes for a task's execution. */
 enum class TaskResultCode {

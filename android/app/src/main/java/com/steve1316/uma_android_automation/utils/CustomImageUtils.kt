@@ -17,9 +17,7 @@ import com.steve1316.uma_android_automation.MainActivity
 import com.steve1316.uma_android_automation.bot.Game
 import com.steve1316.uma_android_automation.components.*
 import com.steve1316.uma_android_automation.components.Region
-import com.steve1316.uma_android_automation.types.Aptitude
 import com.steve1316.uma_android_automation.types.BoundingBox
-import com.steve1316.uma_android_automation.types.SkillData
 import com.steve1316.uma_android_automation.types.StatName
 import org.opencv.android.Utils
 import org.opencv.core.*
