@@ -1752,6 +1752,18 @@
             }
 
             /**
+             * Formats a number with commas as thousand separators.
+             * @param {string|number} num - The number to format.
+             * @returns {string} The formatted string.
+             */
+            function formatNumberWithCommas(num) {
+                if (num === null || num === undefined || num === "-") return "-"
+                const parts = num.toString().split(".")
+                parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                return parts.join(".")
+            }
+
+            /**
              * Escapes HTML special characters to prevent Cross-Site Scripting (XSS) attacks.
              * @param {string} text - The input text to be escaped.
              * @returns {string} The HTML-safe escaped string.
@@ -2150,7 +2162,7 @@
                     document.getElementById("dashboardEnergy").textContent = state.energy
                 }
                 if (state.fans) {
-                    document.getElementById("dashboardFans").textContent = state.fans
+                    document.getElementById("dashboardFans").textContent = formatNumberWithCommas(state.fans)
                 }
                 if (state.positiveStatuses) {
                     updateConditionBadges(document.getElementById("positiveConditions"), state.positiveStatuses, "condition-positive")
@@ -2268,7 +2280,7 @@
                     if (stateTarget) {
                         stateTarget.fans = data.trim()
                     } else {
-                        document.getElementById("dashboardFans").textContent = data.trim()
+                        document.getElementById("dashboardFans").textContent = formatNumberWithCommas(data.trim())
                     }
                 } else if (category === "Stats") {
                     const stats = data.split(", ")
