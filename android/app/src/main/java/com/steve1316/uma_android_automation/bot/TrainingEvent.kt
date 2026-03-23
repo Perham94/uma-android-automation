@@ -26,7 +26,7 @@ class TrainingEvent(private val game: Game, private val campaign: Campaign) {
     private val enablePrioritizeEnergyOptions: Boolean = SettingsHelper.getBooleanSetting("trainingEvent", "enablePrioritizeEnergyOptions")
 
     /** List of positive status effects to look for in event rewards. */
-    private val positiveStatuses = listOf("Charming", "Fast Learner", "Practice Practice")
+    private val positiveStatuses = listOf("Charming", "Fast Learner", "Practice Perfect")
 
     /** List of negative status effects to look for in event rewards. */
     private val negativeStatuses = listOf("Practice Poor", "Migraine", "Night Owl", "Slow Metabolism", "Slacker")

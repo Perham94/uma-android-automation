@@ -162,7 +162,7 @@ class Trainee {
     var statTrackLocation: Point? = null
 
     /** List of all positive status names that can be detected. */
-    private val positiveStatusList = listOf("Charming", "Fast Learner", "Practice Practice")
+    private val positiveStatusList = listOf("Charming", "Fast Learner", "Practice Perfect")
 
     /** List of all negative status names that can be detected. */
     private val negativeStatusList = listOf("Practice Poor", "Migraine", "Night Owl", "Slow Metabolism", "Slacker")
