@@ -651,8 +651,6 @@ class TrainingEvent(private val game: Game, private val campaign: Campaign) {
             if (!specialEventHandled) {
                 MessageLog.w(TAG, "[WARN] handleTrainingEvent:: First option will be selected since OCR failed to match the event title and no event rewards were found.")
                 optionSelected = 0
-            } else {
-                MessageLog.w(TAG, "[WARN] handleTrainingEvent:: No event rewards were found, but special event override was applied.")
             }
         }
 

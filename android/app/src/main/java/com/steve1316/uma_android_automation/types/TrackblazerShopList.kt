@@ -702,14 +702,12 @@ class TrackblazerShopList(private val game: Game) {
 
         // Log the summary of proposed purchases.
         MessageLog.v(TAG, "============== Shop Evaluation Summary ==============")
-        if (availableInShop.isEmpty()) {
-            MessageLog.v(TAG, "No items were successfully identified in the shop scan. Check OCR and bounding boxes.")
-        } else {
+        if (availableInShop.isNotEmpty()) {
             MessageLog.v(TAG, "Identified ${availableInShop.size} items in shop.")
         }
 
         if (itemsToBuy.isEmpty()) {
-            MessageLog.v(TAG, "No items from the priority list will be bought. Current coins: $currentCoins.")
+            MessageLog.v(TAG, "No items from the filtered priority list will be bought. Current coins: $currentCoins.")
             if (skippedItemsReasons.isNotEmpty()) {
                 MessageLog.v(TAG, "Evaluation reasons for first 10 priority items:")
                 priorityList.take(10).forEach { item ->
