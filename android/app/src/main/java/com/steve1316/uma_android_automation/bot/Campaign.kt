@@ -1103,7 +1103,7 @@ abstract class Campaign(game: Game) : Task(game) {
             Log.d(TAG, "[DEBUG] updateDate:: Date did not change.")
             return false
         } else {
-            MessageLog.i(TAG, "[DATE] New date: $date")
+            MessageLog.v(TAG, "[DATE] New date: $date")
             return true
         }
     }

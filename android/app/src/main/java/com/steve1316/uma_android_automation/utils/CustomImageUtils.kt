@@ -1661,7 +1661,7 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
                         debugName = "dateString",
                     )
                 if (result != "") {
-                    MessageLog.i(TAG, "[INFO] Detected date: $result")
+                    MessageLog.v(TAG, "[INFO] Detected date: $result")
 
                     if (debugMode) {
                         MessageLog.d(TAG, "[DEBUG] determineDayString:: Date string detected to be at \"$result\".")
@@ -1702,7 +1702,7 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
         }
 
         if (result != "") {
-            MessageLog.i(TAG, "[INFO] Detected date: $result")
+            MessageLog.v(TAG, "[INFO] Detected date: $result")
 
             if (debugMode) {
                 MessageLog.d(TAG, "[DEBUG] determineDayString:: Date string detected to be at \"$result\".")
