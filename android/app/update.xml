@@ -1,55 +1,16 @@
 <AppUpdater>
   <update>
-    <latestVersion>5.3.0</latestVersion>
+    <latestVersion>5.3.1</latestVersion>
     <url>https://github.com/steve1316/uma-android-automation/releases</url>
     <releaseNotes>
-v5.3.0 - Changelog
+v5.3.1 - Changelog
 
 > Trackblazer support is still fresh off the oven so expect some bugs. Regarding completion times on strong hardware, URA Finale averages 25 minutes, Unity Cup averages 35 minutes and Trackblazer averages 1 hour 20 minutes.
 
-New
----
-- Add support for the new `Trackblazer` scenario. Priority is put on racing as much as it can with training restricted to Junior Year, Summers and the Finale. Energy and mood recovery actions are restricted in favor of the relevant Shop items. The day interval and smart racing plan settings are ignored although user in-game racing plan should be respected.
-- Implemented `YOLOv8` and a custom trained model on the game's digits for stat gains to replace the previous template matching method of reading each individual digit. This is enabled on by default moving forward. You can turn it off and revert back to the old behavior in the `Training Settings` page.
-- Add a `Accessibility Service` health check to the `Debug Settings` page and provides a button to head to the Android Accessibility Settings in order to restart it. This also implements a guard for the Start button in the Home page to do the same check and navigate the user to the new option if needed.
-- Add a new option to the `Training Settings` page called `Enable Training Analysis Validation` for much slower operations in exchange for double checking the selected training before executing.
-- Start tracking the Uma's approximate energy level.
-- Add options to the `Debug Settings` page to enable several new Debug Tests for Trackblazer.
-- Add a new option to the `Debug Settings` page to start a Scrollbar Detection test.
-- Add option in the `Debug Settings` page to start a test for skill buying.
-- Add a new page called `Scenario Overrides` to the frontend. Only holds some overrides for `Trackblazer`.
-
 Adjustments
 ---
-- Update `Automation Library` to `2.5.4` for faster Android Toast dismissal and better debug log handling.
-- Update game data up to Satono Diamond `2026-03-21`.
-- Readjust starting delay when the app starts.
-- Change the `yarn android` command to not stop the Gradle Daemon to make this command finish faster and remove `--stacktrace` from the build and clean commands.
-- Update the `Remote Log Viewer` to have two tabs including being able to view all debugging images sent from the server.
-- Update the `Remote Log Viewer` to display the Uma's positive/negative conditions, approximate energy level, fan count and skill points.
-- Update the date parsing to handle Trackblazer's Finals date format.
-- Log the reason why a Training option is skipped.
-- Consolidate the logging of the Uma's stats and statuses.
-- Update the `Remote Log Viewer` to count `Trackblazer` races for the action counter.
-- The first 3 conditions of the Uma will be read while doing the aptitude check.
-- Adjust Pre-Debut date parsing for the `Remote Log Viewer`.
-- Have "Default" explicitly use option 1 for special event overrides instead of logging a warning message.
-- Perform a final aptitude and fan count update at the end of the Career for logging purposes.
-- Ensure that skill points are updated after skill plan purchase for logging purposes.
-- Clean event title names by removing the progression symbols (❯), (❯❯) and (❯❯❯).
-- Remove some unneeded logs and reworked a lot of them.
-- Comprehensive documentation review, standardization and code refactoring and set up `Ktlint` for Kotlin code formatting in conjunction with `Prettier` for TypeScript code formatting.
-
-Fixed
----
-- Fix styling of the `Home` page button.
-- Fix bug where stat gain OCR would mistakenly see a number in front of the plus sign.
-- Fix bug where the skill point check flag was not reset when below the threshold so the skill plan would not trigger again for the rest of the run.
-- Fix bug where the racing cleanup process gets skipped due to the loop ending after retries are all used up.
-- Fix rare edge case where Pre-Finals Skill Plan was executed twice.
-- Fix bug where redundant logic flow caused Uma info to be printed twice.
-- Fix typo in "Practice Perfect" condition.
-- Fix rare bug with Bitmaps being created out of bounds.
+- Update `Automation Library` to `2.5.5` to add a short delay before cleanup so the Discord DM can be sent properly when an Exception happens.
+- Add basic handling for the Insufficient Goal Points dialog for Trackblazer for when you are short on Goal Points to be able to clear the next checkpoint.
     </releaseNotes>
   </update>
 </AppUpdater>
