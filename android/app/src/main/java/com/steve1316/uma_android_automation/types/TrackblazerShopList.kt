@@ -739,6 +739,9 @@ class TrackblazerShopList(private val game: Game) {
         MessageLog.v(TAG, "============== Shop Evaluation Summary ==============")
         if (availableInShop.isNotEmpty()) {
             MessageLog.v(TAG, "Identified ${availableInShop.size} items in shop.")
+            // Log the names of all identified items in the shop.
+            val identifiedItemsString = availableInShop.joinToString(", ") { it.first }
+            MessageLog.v(TAG, "Items found: $identifiedItemsString")
         }
         if (bForcePurchase) {
             MessageLog.v(TAG, "Force purchase mode enabled. Temporarily setting Shop Coin balance to 9999.")
@@ -762,7 +765,7 @@ class TrackblazerShopList(private val game: Game) {
 
         // Log each item planned to be bought.
         for (boughtItem in itemsToBuy) {
-            MessageLog.v(TAG, "\t${boughtItem.first}: ${boughtItem.second} coins")
+            MessageLog.v(TAG, "\t${boughtItem.first}: ${boughtItem.second} coins (Reason: ${shopItems[boughtItem.first]?.effect})")
         }
         val totalCost = effectiveCoins - remainingCoinsAfterProposed
         MessageLog.v(TAG, "\n\tTOTAL: $totalCost / $effectiveCoins coins with $remainingCoinsAfterProposed left over coins")
@@ -799,7 +802,7 @@ class TrackblazerShopList(private val game: Game) {
                 val targetIndex = itemsRemainingToClick.indexOfFirst { it.first == itemName }
                 if (targetIndex != -1) {
                     val targetItem = itemsRemainingToClick[targetIndex]
-                    MessageLog.i(TAG, "[INFO] Selecting \"$itemName\" for ${targetItem.second} coins at index ${entry.index}.")
+                    MessageLog.i(TAG, "[INFO] Selecting \"$itemName\" for ${targetItem.second} coins at index ${entry.index}. (Reason: ${shopItems[itemName]?.effect})")
                     // Tap the item's entry to select it.
                     game.tap(entry.bbox.cx.toDouble(), entry.bbox.cy.toDouble())
                     itemsBought.add(itemName)
@@ -812,7 +815,7 @@ class TrackblazerShopList(private val game: Game) {
 
         if (itemsBought.isNotEmpty()) {
             // Click the confirm button to finalize the selection.
-            MessageLog.i(TAG, "[INFO] Confirming purchase of ${itemsBought.size} items.")
+            MessageLog.i(TAG, "[INFO] Successfully selected and purchased ${itemsBought.size} item(s).")
             ButtonConfirm.click(game.imageUtils)
             game.wait(game.dialogWaitDelay, skipWaitingForLoading = true)
 
