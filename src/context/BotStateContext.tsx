@@ -82,6 +82,7 @@ export interface Settings {
         specialEventOverrides: Record<string, { selectedOption: string; requiresConfirmation: boolean }>
         characterEventOverrides: Record<string, number>
         supportEventOverrides: Record<string, number>
+        scenarioEventOverrides: Record<string, number>
     }
 
     // Misc settings
@@ -311,6 +312,7 @@ export const defaultSettings: Settings = {
         },
         characterEventOverrides: {},
         supportEventOverrides: {},
+        scenarioEventOverrides: {},
     },
     misc: {
         enableSettingsDisplay: false,
