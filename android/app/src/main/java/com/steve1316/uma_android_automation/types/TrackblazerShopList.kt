@@ -1,6 +1,7 @@
 package com.steve1316.uma_android_automation.types
 
 import android.graphics.Bitmap
+import com.steve1316.automation_library.data.SharedData
 import com.steve1316.automation_library.utils.MessageLog
 import com.steve1316.automation_library.utils.TextUtils
 import com.steve1316.uma_android_automation.MainActivity
@@ -673,6 +674,14 @@ class TrackblazerShopList(private val game: Game) {
                 availableInShop.add(Triple(itemName, price, entry))
             }
             false
+        }
+
+        // Log a warning if the scan failed to read any item names due to OCR failure.
+        if (availableInShop.isEmpty()) {
+            MessageLog.w(
+                TAG,
+                "[WARN] scanned the list of items in the Shop but could not read any of the names. OCR is dependent on correct display setup configuration. User's current display setup: ${SharedData.displayWidth}x${SharedData.displayHeight}, DPI ${SharedData.displayDPI}",
+            )
         }
 
         // Step 2: Calculation & Summary Phase.
