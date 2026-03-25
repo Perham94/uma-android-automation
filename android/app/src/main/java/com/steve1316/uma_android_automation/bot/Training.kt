@@ -963,17 +963,17 @@ class Training(private val game: Game, private val campaign: Campaign) {
         val isFinals = campaign.checkFinals()
         if (test || isWithinRegularThreshold || isWithinRiskyThreshold || isFinals || ignoreFailureChance) {
             if (!test) {
-                if (ignoreFailureChance) {
-                    MessageLog.i(TAG, "[TRAINING] $failureChance% exceeds thresholds but ignoring failure chance check. Proceeding to acquire all other percentages and total stat increases...")
-                } else if (isFinals) {
-                    MessageLog.i(TAG, "[TRAINING] $failureChance% exceeds thresholds but it is the Finals. Ignoring and proceeding to acquire all other percentages and total stat increases...")
-                } else if (isWithinRegularThreshold) {
+                if (isWithinRegularThreshold) {
                     MessageLog.i(TAG, "[TRAINING] $failureChance% within acceptable range of $maximumFailureChance%. Proceeding to acquire all other percentages and total stat increases...")
                 } else if (isWithinRiskyThreshold) {
                     MessageLog.i(
                         TAG,
                         "[TRAINING] $failureChance% exceeds regular threshold ($maximumFailureChance%) but is within risky training threshold ($riskyTrainingMaxFailureChance%). Proceeding to acquire all other percentages and total stat increases...",
                     )
+                } else if (ignoreFailureChance) {
+                    MessageLog.i(TAG, "[TRAINING] Flag set to ignore failure chance. Proceeding to acquire all other percentages and total stat increases...")
+                } else if (isFinals) {
+                    MessageLog.i(TAG, "[TRAINING] $failureChance% exceeds thresholds but it is the Finals. Ignoring and proceeding to acquire all other percentages and total stat increases...")
                 }
             }
 
