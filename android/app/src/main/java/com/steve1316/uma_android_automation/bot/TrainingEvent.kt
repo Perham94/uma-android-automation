@@ -93,6 +93,25 @@ class TrainingEvent(private val game: Game, private val campaign: Campaign) {
             emptyMap()
         }
 
+    /** Scenario event overrides loaded from SQLite settings. */
+    private val scenarioEventOverrides: Map<String, Int> =
+        try {
+            val overridesString = SettingsHelper.getStringSetting("trainingEvent", "scenarioEventOverrides")
+            if (overridesString.isNotEmpty()) {
+                val jsonObject = JSONObject(overridesString)
+                val overridesMap = mutableMapOf<String, Int>()
+                jsonObject.keys().forEach { eventKey ->
+                    overridesMap[eventKey] = jsonObject.getInt(eventKey)
+                }
+                overridesMap
+            } else {
+                emptyMap()
+            }
+        } catch (e: Exception) {
+            MessageLog.w(TAG, "[WARN] scenarioEventOverrides:: Could not parse scenario event overrides: ${e.message}")
+            emptyMap()
+        }
+
     /**
      * Store the override settings for a special Training Event.
      *
@@ -182,6 +201,26 @@ class TrainingEvent(private val game: Game, private val campaign: Campaign) {
         val override = supportEventOverrides[eventKey]
         if (override != null) {
             MessageLog.i(TAG, "[TRAINING_EVENT] Detected support event override: $eventKey -> Option ${override + 1}")
+            return override
+        }
+
+        return null
+    }
+
+    /**
+     * Check if the given scenario event matches any scenario event overrides.
+     *
+     * @param scenarioName The detected scenario name.
+     * @param eventTitle The detected event title from OCR.
+     * @return The 0-based option index if an override is found, otherwise null.
+     */
+    private fun checkScenarioEventOverride(scenarioName: String, eventTitle: String): Int? {
+        if (scenarioName.isEmpty()) return null
+
+        val eventKey = "$scenarioName|$eventTitle"
+        val override = scenarioEventOverrides[eventKey]
+        if (override != null) {
+            MessageLog.i(TAG, "[TRAINING_EVENT] Detected scenario event override: $eventKey -> Option ${override + 1}")
             return override
         }
 
@@ -420,9 +459,10 @@ class TrainingEvent(private val game: Game, private val campaign: Campaign) {
 
         if (eventRewards.isNotEmpty() && eventRewards[0] != "") {
             if (!specialEventHandled) {
-                // Check for character or support event overrides.
+                // Check for character, support, or scenario event overrides.
                 val characterOverride = checkCharacterEventOverride(characterOrSupportName, eventTitle)
                 val supportOverride = checkSupportEventOverride(characterOrSupportName, eventTitle)
+                val scenarioOverride = checkScenarioEventOverride(characterOrSupportName, eventTitle)
 
                 if (characterOverride != null) {
                     optionSelected = characterOverride
@@ -445,6 +485,17 @@ class TrainingEvent(private val game: Game, private val campaign: Campaign) {
                     }
 
                     MessageLog.i(TAG, "[TRAINING_EVENT] Support event override applied.")
+                    printEventSummary(eventTitle, characterOrSupportName, eventRewards, null, optionSelected, confidence)
+                } else if (scenarioOverride != null) {
+                    optionSelected = scenarioOverride
+
+                    // Ensure the selected option is within bounds.
+                    if (optionSelected >= eventRewards.size) {
+                        MessageLog.w(TAG, "[WARN] handleTrainingEvent:: Selected scenario event option $optionSelected is out of bounds. Using last option.")
+                        optionSelected = eventRewards.size - 1
+                    }
+
+                    MessageLog.i(TAG, "[TRAINING_EVENT] Scenario event override applied.")
                     printEventSummary(eventTitle, characterOrSupportName, eventRewards, null, optionSelected, confidence)
                 } else {
                     // Initialize the List for normal event processing.
