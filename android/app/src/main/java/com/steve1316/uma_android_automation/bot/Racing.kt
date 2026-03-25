@@ -2196,7 +2196,7 @@ class Racing(private val game: Game, private val campaign: Campaign) {
             return handleMaidenRace()
         } else if ((!campaign.date.bIsPreDebut && ButtonRaces.click(game.imageUtils)) || isScheduledRace) {
             var overrideIgnore = false
-            if (hasFanRequirement || hasTrophyRequirement) {
+            if (isScheduledRace || hasFanRequirement || hasTrophyRequirement || hasInsufficientGoalRacePtsRequirement) {
                 MessageLog.i(TAG, "[RACE] Racing requirement is active. Ignoring consecutive race warning.")
                 overrideIgnore = true
             }
@@ -2555,7 +2555,7 @@ class Racing(private val game: Game, private val campaign: Campaign) {
             }
 
             // Check for the consecutive race dialog before proceeding.
-            val overrideIgnore: Boolean = enableForceRacing || enableMandatoryRacingPlan || hasInsufficientGoalRacePtsRequirement
+            val overrideIgnore: Boolean = isScheduledRace || enableForceRacing || enableMandatoryRacingPlan || hasInsufficientGoalRacePtsRequirement
             val result: DialogHandlerResult = campaign.handleDialogs(args = mapOf("overrideIgnoreConsecutiveRaceWarning" to overrideIgnore))
             if (result is DialogHandlerResult.Handled &&
                 result.dialog.name == "consecutive_race_warning" &&
