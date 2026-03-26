@@ -727,13 +727,60 @@ class Trackblazer(game: Game) : Campaign(game) {
         }
 
         // Buy items from the shop.
-        // Rule: Each item is limited to 5 in the inventory.
-        // Bad Condition items except Rich Hand Cream and Miracle Cure will be limited to 1 in our current inventory.
-        val nonPriorityBadConditions = listOf("Fluffy Pillow", "Pocket Planner", "Smart Scale", "Aroma Diffuser", "Practice Drills DVD")
+        // Bad Condition items will be limited to 1 in our current inventory and only bought if the condition is active.
+        val badConditionMap =
+            mapOf(
+                "Fluffy Pillow" to "Night Owl",
+                "Pocket Planner" to "Slacker",
+                "Rich Hand Cream" to "Skin Outbreak",
+                "Smart Scale" to "Slow Metabolism",
+                "Aroma Diffuser" to "Migraine",
+                "Practice Drills DVD" to "Practice Poor",
+            )
+        val goodConditionMap =
+            mapOf(
+                "Pretty Mirror" to "Charming",
+                "Reporter's Binoculars" to "Hot Topic",
+                "Master Practice Guide" to "Practice Perfect",
+                "Scholar's Hat" to "Fast Learner",
+            )
+
         val inventoryLimits =
             finalPriorityList.associateWith { itemName ->
                 val itemCount = currentInventory[itemName] ?: 0
-                val maxLimit = if (nonPriorityBadConditions.contains(itemName)) 1 else 5
+                val isBadConditionItem = badConditionMap.containsKey(itemName) || itemName == "Miracle Cure"
+                val isGoodConditionItem = goodConditionMap.containsKey(itemName)
+
+                val maxLimit =
+                    if (isBadConditionItem || isGoodConditionItem) {
+                        // Check if we already have the item in inventory.
+                        if (itemCount >= 1) {
+                            0
+                        } else {
+                            // Check if the condition is active/inactive.
+                            if (isBadConditionItem) {
+                                val condition = badConditionMap[itemName]
+                                if (itemName == "Miracle Cure" || itemName == "Rich Hand Cream") {
+                                    // We want to buy as many of these when possible as we will be racing above the consecutive race limit often.
+                                    5
+                                } else if (condition != null && trainee.currentNegativeStatuses.contains(condition)) {
+                                    1
+                                } else {
+                                    0
+                                }
+                            } else {
+                                val condition = goodConditionMap[itemName]
+                                if (condition != null && !trainee.currentPositiveStatuses.contains(condition)) {
+                                    1
+                                } else {
+                                    0
+                                }
+                            }
+                        }
+                    } else {
+                        5
+                    }
+
                 (maxLimit - itemCount).coerceAtLeast(0)
             }
 
