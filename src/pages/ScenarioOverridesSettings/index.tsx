@@ -186,6 +186,48 @@ const ScenarioOverridesSettings = () => {
                                 ))}
                             </View>
                         </View>
+
+                        <View style={styles.section}>
+                            <Text style={{ fontSize: 16, color: colors.foreground, marginBottom: 8 }}>Race Grades to use Race Retries on</Text>
+                            <Text style={{ fontSize: 14, color: colors.foreground, opacity: 0.7, marginBottom: 12 }}>
+                                Select which race grades should allow using a Race Retry in the Trackblazer scenario.
+                            </Text>
+                            <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
+                                {["G1", "G2", "G3"].map((grade) => (
+                                    <View
+                                        key={grade}
+                                        style={{
+                                            padding: 10,
+                                            borderRadius: 8,
+                                            marginRight: 8,
+                                            marginBottom: 8,
+                                            backgroundColor: scenarioOverrides.trackblazerRetryRacesBeforeFinalGrades.includes(grade) ? colors.primary : colors.card,
+                                        }}
+                                        onTouchEnd={() => {
+                                            const currentGrades = scenarioOverrides.trackblazerRetryRacesBeforeFinalGrades
+                                            if (currentGrades.includes(grade)) {
+                                                updateOverrideSetting(
+                                                    "trackblazerRetryRacesBeforeFinalGrades",
+                                                    currentGrades.filter((g) => g !== grade)
+                                                )
+                                            } else {
+                                                updateOverrideSetting("trackblazerRetryRacesBeforeFinalGrades", [...currentGrades, grade])
+                                            }
+                                        }}
+                                    >
+                                        <Text
+                                            style={{
+                                                fontSize: 14,
+                                                fontWeight: "600",
+                                                color: scenarioOverrides.trackblazerRetryRacesBeforeFinalGrades.includes(grade) ? colors.background : colors.foreground,
+                                            }}
+                                        >
+                                            {grade}
+                                        </Text>
+                                    </View>
+                                ))}
+                            </View>
+                        </View>
                     </View>
                 </ScrollView>
             </SearchPageProvider>

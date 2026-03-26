@@ -546,6 +546,12 @@ const searchConfig: SearchOption[] = [
             "Whether or not using a Reset Whistle means it can ignore the failure chance thresholds in the Training Settings page. If enabled, the bot will pick the best available training after usage even if it's risky.",
         page: "ScenarioOverridesSettings",
     },
+    {
+        id: "trackblazer-retry-races-before-final-grades",
+        title: "Trackblazer Race Grades to use Race Retries on",
+        description: "Select which race grades should allow using a Race Retry in the Trackblazer scenario.",
+        page: "ScenarioOverridesSettings",
+    },
 
     // ============================================================
     // Debug Settings

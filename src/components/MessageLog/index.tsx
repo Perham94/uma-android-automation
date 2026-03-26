@@ -361,6 +361,7 @@ ${longTargetsString}
 ✨ Trackblazer Min Stat Gain for Charm: ${settings.scenarioOverrides?.trackblazerMinStatGainForCharm}
 🔄 Trackblazer Max Retries per Race: ${settings.scenarioOverrides?.trackblazerMaxRetriesPerRace}
 🔄 Trackblazer Whistle Forces Training: ${settings.scenarioOverrides?.trackblazerWhistleForcesTraining ? "✅" : "❌"}
+🔄 Trackblazer Retry Grades: ${settings.scenarioOverrides?.trackblazerRetryRacesBeforeFinalGrades?.join(", ")}
 
 ---------- Misc Options ----------
 🔍 Popup Check: ${settings.general.enablePopupCheck ? "✅" : "❌"}
