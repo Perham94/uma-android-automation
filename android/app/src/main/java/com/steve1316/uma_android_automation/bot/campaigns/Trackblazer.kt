@@ -1299,6 +1299,7 @@ class Trackblazer(game: Game) : Campaign(game) {
             val failureChance = training.trainingMap[trainingSelected]?.failureChance ?: 0
             sb.appendLine("Selected Training: $trainingSelected (Fail: $failureChance%)")
         }
+        sb.appendLine("")
 
         if (itemsUsedWithReasons.isEmpty()) {
             sb.appendLine("No items were used this pass.")
@@ -1364,6 +1365,8 @@ class Trackblazer(game: Game) : Campaign(game) {
         } else if (grade == RaceGrade.G1 && glowSticksCount > 0) {
             sb.appendLine("- Skipping Glow Sticks: Fan count $fans is below 20000 threshold.")
         }
+
+        sb.appendLine("")
 
         if (hammerToUse == null && !useGlowSticks) {
             sb.appendLine("- No items will be used.")

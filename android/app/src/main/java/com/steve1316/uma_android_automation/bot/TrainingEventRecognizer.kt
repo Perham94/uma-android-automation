@@ -402,7 +402,6 @@ class TrainingEventRecognizer(private val game: Game, private val imageUtils: Cu
 
         val endTime: Long = System.currentTimeMillis()
         Log.d(TAG, "[DEBUG] recognizeTrainingEvent:: Total Runtime for recognizing training event: ${endTime - startTime}ms")
-        MessageLog.i(TAG, "********************")
 
         // Determine the name of the character or support card associated with the best result.
         val characterOrSupportName =
