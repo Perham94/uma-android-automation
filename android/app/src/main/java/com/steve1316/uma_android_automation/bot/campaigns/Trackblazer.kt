@@ -391,9 +391,14 @@ class Trackblazer(game: Game) : Campaign(game) {
                 val onlyOneTurnLeft = turnsRemaining == 1
 
                 if (forceRace) {
-                    MessageLog.i(TAG, "[TRACKBLAZER] Consecutive race warning! Forced racing enabled. Continuing.")
-                    detectedDialog.ok(game.imageUtils)
-                    game.wait(1.0, skipWaitingForLoading = true)
+                    if (!bHasCheckedDateThisTurn) {
+                        MessageLog.i(TAG, "[TRACKBLAZER] Consecutive race warning detected before turn-start updates. Closing it to perform checks first.")
+                        detectedDialog.close(game.imageUtils)
+                    } else {
+                        MessageLog.i(TAG, "[TRACKBLAZER] Consecutive race warning! Forced racing enabled. Continuing.")
+                        detectedDialog.ok(game.imageUtils)
+                        game.wait(2.0)
+                    }
                 } else {
                     // A -30 stat penalty can apply starting from 3 consecutive races.
                     if (consecutiveRaceCount >= 3) {
@@ -409,8 +414,14 @@ class Trackblazer(game: Game) : Campaign(game) {
                         } else {
                             MessageLog.i(TAG, "[TRACKBLAZER] Consecutive race count $consecutiveRaceCount < ${consecutiveRacesLimit + 1}. Continuing.")
                         }
-                        detectedDialog.ok(game.imageUtils)
-                        game.wait(1.0, skipWaitingForLoading = true)
+
+                        if (!bHasCheckedDateThisTurn) {
+                            MessageLog.i(TAG, "[TRACKBLAZER] Deferring race acknowledgment until turn-start updates are performed.")
+                            detectedDialog.close(game.imageUtils)
+                        } else {
+                            detectedDialog.ok(game.imageUtils)
+                            game.wait(2.0)
+                        }
                     } else {
                         MessageLog.w(TAG, "[WARN] handleDialogs:: Consecutive race count $consecutiveRaceCount >= ${consecutiveRacesLimit + 1}. Aborting racing.")
                         racing.encounteredRacingPopup = false
@@ -556,9 +567,13 @@ class Trackblazer(game: Game) : Campaign(game) {
             }
 
             // Check if we should perform a shop check after this race.
-            // Any graded race defined in the settings should trigger a shop check.
-            if (shopCheckGrades.contains(racing.lastRaceGrade)) {
-                MessageLog.i(TAG, "[TRACKBLAZER] Graded race detected (${racing.lastRaceGrade}). Shop check will be performed on main screen.")
+            // Any graded race defined in the settings or any scheduled race should trigger a shop check.
+            if (isScheduledRace || shopCheckGrades.contains(racing.lastRaceGrade)) {
+                if (isScheduledRace) {
+                    MessageLog.i(TAG, "[TRACKBLAZER] Scheduled race completed. Shop check will be performed on main screen.")
+                } else {
+                    MessageLog.i(TAG, "[TRACKBLAZER] Graded race detected (${racing.lastRaceGrade}). Shop check will be performed on main screen.")
+                }
                 bShouldCheckShop = true
             }
         }

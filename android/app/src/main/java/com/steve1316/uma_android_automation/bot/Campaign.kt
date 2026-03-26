@@ -535,10 +535,14 @@ abstract class Campaign(game: Game) : Task(game) {
                 val overrideIgnoreConsecutiveRaceWarning = args["overrideIgnoreConsecutiveRaceWarning"] as? Boolean ?: false
                 racing.raceRepeatWarningCheck = true
                 if (overrideIgnoreConsecutiveRaceWarning || racing.enableForceRacing || racing.ignoreConsecutiveRaceWarning) {
-                    MessageLog.i(TAG, "[RACE] Consecutive race warning! Racing anyway...")
-                    result.dialog.ok(game.imageUtils)
-                    // This dialog requires a little extra delay since it loads the race list instead of just closing the dialog.
-                    game.wait(1.0, skipWaitingForLoading = true)
+                    if (!bHasCheckedDateThisTurn) {
+                        MessageLog.i(TAG, "[RACE] Consecutive race warning detected before turn-start updates. Closing it to perform checks first.")
+                        result.dialog.close(game.imageUtils)
+                    } else {
+                        MessageLog.i(TAG, "[RACE] Consecutive race warning! Racing anyway...")
+                        result.dialog.ok(game.imageUtils)
+                        game.wait(2.0)
+                    }
                 } else {
                     MessageLog.i(TAG, "[RACE] Consecutive race warning! Aborting racing...")
                     racing.clearRacingRequirementFlags()
@@ -547,11 +551,15 @@ abstract class Campaign(game: Game) : Task(game) {
             }
 
             "insufficient_goal_race_result_pts" -> {
-                MessageLog.i(TAG, "[RACE] Insufficient Goal Race Result Pts dialog! Forced to race...")
-                racing.hasInsufficientGoalRacePtsRequirement = true
-                result.dialog.ok(game.imageUtils)
-                // This dialog requires a little extra delay since it loads the race list instead of just closing the dialog.
-                game.wait(1.0, skipWaitingForLoading = true)
+                if (!bHasCheckedDateThisTurn) {
+                    MessageLog.i(TAG, "[RACE] Insufficient Goal Race Result Pts dialog detected before turn-start updates. Closing it to perform checks first.")
+                    result.dialog.close(game.imageUtils)
+                } else {
+                    MessageLog.i(TAG, "[RACE] Insufficient Goal Race Result Pts dialog! Forced to race...")
+                    racing.hasInsufficientGoalRacePtsRequirement = true
+                    result.dialog.ok(game.imageUtils)
+                    game.wait(2.0)
+                }
             }
 
             "goal_not_reached" -> {
@@ -567,11 +575,8 @@ abstract class Campaign(game: Game) : Task(game) {
             }
 
             "scheduled_race_available" -> {
-                MessageLog.i(TAG, "[INFO] There is a scheduled race today. Racing it now...")
-                result.dialog.ok(game.imageUtils)
-                if (!racing.handleRaceEvents(isScheduledRace = true) && handleRaceEventFallback()) {
-                    throw IllegalStateException("Stopping the bot due to failing to handle a scheduled race.")
-                }
+                MessageLog.i(TAG, "[INFO] There is a scheduled race today. Closing to perform turn-start updates...")
+                result.dialog.close(game.imageUtils)
             }
 
             "strategy" -> {
