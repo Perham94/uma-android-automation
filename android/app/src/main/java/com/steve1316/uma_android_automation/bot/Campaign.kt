@@ -1730,13 +1730,20 @@ abstract class Campaign(game: Game) : Task(game) {
 
         if (!bHasHandledSkillPointCheck && enableSkillPointCheck && trainee.skillPoints >= skillPointsRequired) {
             if (skillPlan.skillPlans["skillPointCheck"]?.bIsEnabled ?: false) {
-                ButtonSkills.click(game.imageUtils)
-                game.wait(1.0)
-                if (!handleSkillListScreen("skillPointCheck")) {
-                    throw InterruptedException("handleSkillList() for Skill Point Check failed. Stopping bot...")
+                // Ensure we are actually at the Main screen before attempting to navigate.
+                // If not, we skip the skill purchase for now and retry on the next turn.
+                if (checkMainScreen()) {
+                    MessageLog.i(TAG, "[SKILLS] Beginning process to purchase skills...")
+                    ButtonSkills.click(game.imageUtils)
+                    game.wait(1.0)
+                    if (!handleSkillListScreen("skillPointCheck")) {
+                        throw InterruptedException("handleSkillList() for Skill Point Check failed. Stopping bot...")
+                    }
+                    bHasHandledSkillPointCheck = true
+                    return true
+                } else {
+                    MessageLog.i(TAG, "[SKILLS] Not at Main screen while trying to start Skill Point Check. Retrying later.")
                 }
-                bHasHandledSkillPointCheck = true
-                return true
             } else {
                 throw CampaignBreakpointException("Bot reached skill point check threshold. Stopping bot...")
             }
