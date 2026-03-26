@@ -7,6 +7,8 @@ import com.steve1316.uma_android_automation.bot.Campaign
 import com.steve1316.uma_android_automation.components.ButtonClose
 import com.steve1316.uma_android_automation.components.ButtonNext
 import com.steve1316.uma_android_automation.components.IconTrainingEventHorseshoe
+import com.steve1316.uma_android_automation.types.NegativeStatus
+import com.steve1316.uma_android_automation.types.PositiveStatus
 import net.ricecode.similarity.JaroWinklerStrategy
 import net.ricecode.similarity.StringSimilarityServiceImpl
 import org.json.JSONObject
@@ -24,12 +26,6 @@ class TrainingEvent(private val game: Game, private val campaign: Campaign) {
 
     /** Whether to prioritize options that provide energy gains. */
     private val enablePrioritizeEnergyOptions: Boolean = SettingsHelper.getBooleanSetting("trainingEvent", "enablePrioritizeEnergyOptions")
-
-    /** List of positive status effects to look for in event rewards. */
-    private val positiveStatuses = listOf("Charming", "Fast Learner", "Practice Perfect")
-
-    /** List of negative status effects to look for in event rewards. */
-    private val negativeStatuses = listOf("Practice Poor", "Migraine", "Night Owl", "Slow Metabolism", "Slacker")
 
     /** Special event overrides loaded from SQLite settings. */
     private val specialEventOverrides: Map<String, EventOverride> =
@@ -571,14 +567,8 @@ class TrainingEvent(private val game: Game, private val campaign: Campaign) {
                                 MessageLog.i(TAG, "[TRAINING_EVENT] Adding weight for option #${optionSelected + 1} of $bondWeight for bond ${if (bondWeight > 0) "gain" else "loss"}.")
                                 selectionWeight[optionSelected] += bondWeight
                             } else if (line.lowercase().contains("hint")) {
-                                MessageLog.i(TAG, "[TRAINING_EVENT] Adding weight for option #${optionSelected + 1} of 25 for skill hint(s).")
-                                selectionWeight[optionSelected] += 25
-                            } else if (positiveStatuses.any { status -> line.contains(status) }) {
-                                MessageLog.i(TAG, "[TRAINING_EVENT] Adding weight for option #${optionSelected + 1} of 25 for positive status effect.")
-                                selectionWeight[optionSelected] += 25
-                            } else if (negativeStatuses.any { status -> line.contains(status) }) {
-                                MessageLog.i(TAG, "[TRAINING_EVENT] Adding weight for option #${optionSelected + 1} of -25 for negative status effect.")
-                                selectionWeight[optionSelected] += -25
+                            } else if (PositiveStatus.names.any { status -> line.contains(status) }) {
+                            } else if (NegativeStatus.names.any { status -> line.contains(status) }) {
                             } else if (line.lowercase().contains("skill")) {
                                 val finalSkillPoints =
                                     if (formattedLine.contains("/")) {

@@ -32,6 +32,8 @@ import com.steve1316.uma_android_automation.types.DateMonth
 import com.steve1316.uma_android_automation.types.DatePhase
 import com.steve1316.uma_android_automation.types.DateYear
 import com.steve1316.uma_android_automation.types.Mood
+import com.steve1316.uma_android_automation.types.NegativeStatus
+import com.steve1316.uma_android_automation.types.PositiveStatus
 import com.steve1316.uma_android_automation.types.RaceGrade
 import com.steve1316.uma_android_automation.types.ScannedItem
 import com.steve1316.uma_android_automation.types.StatName
@@ -58,6 +60,26 @@ class Trackblazer(game: Game) : Campaign(game) {
 
     /** Map representing the current inventory of items. */
     var currentInventory: Map<String, Int> = mapOf()
+
+    /** Map representing the mapping of bad condition items to their enums. */
+    val badConditionMap =
+        mapOf(
+            "Fluffy Pillow" to NegativeStatus.NIGHT_OWL.statusName,
+            "Pocket Planner" to NegativeStatus.SLACKER.statusName,
+            "Rich Hand Cream" to NegativeStatus.SKIN_OUTBREAK.statusName,
+            "Smart Scale" to NegativeStatus.SLOW_METABOLISM.statusName,
+            "Aroma Diffuser" to NegativeStatus.MIGRAINE.statusName,
+            "Practice Drills DVD" to NegativeStatus.PRACTICE_POOR.statusName,
+        )
+
+    /** Map representing the mapping of good condition items to their enums. */
+    val goodConditionMap =
+        mapOf(
+            "Pretty Mirror" to PositiveStatus.CHARMING.statusName,
+            "Reporter's Binoculars" to PositiveStatus.HOT_TOPIC.statusName,
+            "Master Practice Guide" to PositiveStatus.PRACTICE_PERFECT.statusName,
+            "Scholar's Hat" to PositiveStatus.FAST_LEARNER.statusName,
+        )
 
     /** The limit for consecutive races before the bot should stop and recover. */
     private val consecutiveRacesLimit: Int = SettingsHelper.getIntSetting("scenarioOverrides", "trackblazerConsecutiveRacesLimit", 5)
@@ -725,25 +747,6 @@ class Trackblazer(game: Game) : Campaign(game) {
         if (bForcePurchase) {
             MessageLog.i(TAG, "[TRACKBLAZER] Shop coins read as 0. This may be an OCR failure. Initiating Force Purchase mode.")
         }
-
-        // Buy items from the shop.
-        // Bad Condition items will be limited to 1 in our current inventory and only bought if the condition is active.
-        val badConditionMap =
-            mapOf(
-                "Fluffy Pillow" to "Night Owl",
-                "Pocket Planner" to "Slacker",
-                "Rich Hand Cream" to "Skin Outbreak",
-                "Smart Scale" to "Slow Metabolism",
-                "Aroma Diffuser" to "Migraine",
-                "Practice Drills DVD" to "Practice Poor",
-            )
-        val goodConditionMap =
-            mapOf(
-                "Pretty Mirror" to "Charming",
-                "Reporter's Binoculars" to "Hot Topic",
-                "Master Practice Guide" to "Practice Perfect",
-                "Scholar's Hat" to "Fast Learner",
-            )
 
         val inventoryLimits =
             finalPriorityList.associateWith { itemName ->

@@ -328,8 +328,6 @@ class TrainingEventRecognizer(private val game: Game, private val imageUtils: Cu
      * @return A [Quadruple] containing the event option rewards, confidence score, event title, and character/support name.
      */
     fun start(): Quadruple<ArrayList<String>, Double, String, String> {
-        MessageLog.i(TAG, "\n********************")
-
         // Initialize the best result found with default values.
         var bestResult = MatchingResult(0.0, "", "", "", arrayListOf(), "")
 
