@@ -836,6 +836,12 @@ class Racing(private val game: Game, private val campaign: Campaign) {
         val turnsRemaining = game.imageUtils.determineTurnsRemainingBeforeNextGoal()
         MessageLog.i(TAG, "[RACE] Current remaining number of days before the next mandatory race: $turnsRemaining.")
 
+        // Don't bother looking for races on Junior Year Early July (Turn 13) since they only start showing up on Turn 14.
+        if (campaign.date.day == 13) {
+            MessageLog.i(TAG, "[RACE] Junior Year Early July (Turn 13) detected. No races available until Turn 14. Skipping extra race check.")
+            return false
+        }
+
         // If the setting to force racing extra races is enabled or we have a specific requirement, always return true.
         if (enableForceRacing || hasFanRequirement || hasTrophyRequirement || hasInsufficientGoalRacePtsRequirement) {
             Log.d(TAG, "[DEBUG] checkEligibilityToStartExtraRacingProcess:: Force racing or requirement is active so eligibility will be true.")
