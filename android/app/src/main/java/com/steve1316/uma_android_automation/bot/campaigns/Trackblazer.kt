@@ -759,6 +759,7 @@ class Trackblazer(game: Game) : Campaign(game) {
 
         // Update current coins via OCR before buying.
         updateShopCoins()
+        MessageLog.i(TAG, "[TRACKBLAZER] Initial Shop Coins: $shopCoins")
 
         // If the shop coins are 0, it is possible that the OCR failed to read them correctly.
         // In this case, we will initiate a "Force Purchase" process to attempt to buy items until we can't anymore.
@@ -831,6 +832,7 @@ class Trackblazer(game: Game) : Campaign(game) {
 
                 // Update internal coins count via OCR after purchase.
                 updateShopCoins()
+                MessageLog.i(TAG, "[TRACKBLAZER] Remaining Shop Coins: $shopCoins")
 
                 ButtonBack.click(game.imageUtils)
                 game.wait(2.0)
@@ -1326,7 +1328,7 @@ class Trackblazer(game: Game) : Campaign(game) {
             val failureChance = training.trainingMap[trainingSelected]?.failureChance ?: 0
             val stateContext =
                 buildString {
-                    val stateList = listOf("Energy=$initialEnergy%", "Mood=$initialMood", "Megaphone Turn=$initialMegaphoneTurnCounter")
+                    val stateList = listOf("Energy=$initialEnergy%", "Mood=$initialMood", "Megaphone Turn=$initialMegaphoneTurnCounter", "Coins=$shopCoins")
                     appendLine("Current State: ${stateList.joinToString(", ")}")
                     if (trainingSelected != null) {
                         val failureInfo = if (failureChance > 0) " (Fail: $failureChance%)" else ""
