@@ -137,6 +137,36 @@ const ScenarioOverridesSettings = () => {
 
                         <View style={styles.section}>
                             <CustomCheckbox
+                                searchId="trackblazer-enable-irregular-training"
+                                checked={scenarioOverrides.trackblazerEnableIrregularTraining}
+                                onCheckedChange={(checked) => updateOverrideSetting("trackblazerEnableIrregularTraining", checked)}
+                                label="Enable Irregular Training"
+                                description="When enabled, the bot will occasionally check for highly profitable training sessions before opting for extra races."
+                            />
+                        </View>
+
+                        {scenarioOverrides.trackblazerEnableIrregularTraining && (
+                            <View style={styles.section}>
+                                <CustomSlider
+                                    searchId="trackblazer-irregular-training-min-stat-gain"
+                                    value={scenarioOverrides.trackblazerIrregularTrainingMinStatGain}
+                                    placeholder={bsc.defaultSettings.scenarioOverrides.trackblazerIrregularTrainingMinStatGain}
+                                    onValueChange={(value) => updateOverrideSetting("trackblazerIrregularTrainingMinStatGain", value)}
+                                    onSlidingComplete={(value) => updateOverrideSetting("trackblazerIrregularTrainingMinStatGain", value)}
+                                    min={20}
+                                    max={100}
+                                    step={5}
+                                    label="Minimum Main Stat Gain for Irregular Training"
+                                    labelUnit=""
+                                    showValue={true}
+                                    showLabels={true}
+                                    description="Sets the minimum main stat gain required to skip racing and perform Irregular Training instead."
+                                />
+                            </View>
+                        )}
+
+                        <View style={styles.section}>
+                            <CustomCheckbox
                                 searchId="trackblazer-whistle-forces-training"
                                 checked={scenarioOverrides.trackblazerWhistleForcesTraining}
                                 onCheckedChange={(checked) => updateOverrideSetting("trackblazerWhistleForcesTraining", checked)}

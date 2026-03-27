@@ -196,6 +196,8 @@ export interface Settings {
         trackblazerMaxRetriesPerRace: number
         trackblazerWhistleForcesTraining: boolean
         trackblazerRetryRacesBeforeFinalGrades: string[]
+        trackblazerEnableIrregularTraining: boolean
+        trackblazerIrregularTrainingMinStatGain: number
     }
 }
 
@@ -407,6 +409,8 @@ export const defaultSettings: Settings = {
         trackblazerMaxRetriesPerRace: 1,
         trackblazerWhistleForcesTraining: true,
         trackblazerRetryRacesBeforeFinalGrades: ["G1", "G2", "G3"],
+        trackblazerEnableIrregularTraining: false,
+        trackblazerIrregularTrainingMinStatGain: 30,
     },
 }
 

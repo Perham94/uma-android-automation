@@ -552,6 +552,18 @@ const searchConfig: SearchOption[] = [
         description: "Select which race grades should allow using a Race Retry in the Trackblazer scenario.",
         page: "ScenarioOverridesSettings",
     },
+    {
+        id: "trackblazer-enable-irregular-training",
+        title: "Trackblazer Enable Irregular Training",
+        description: "When enabled, the bot will check for highly profitable training sessions before opting for extra races.",
+        page: "ScenarioOverridesSettings",
+    },
+    {
+        id: "trackblazer-irregular-training-min-stat-gain",
+        title: "Trackblazer Irregular Training Minimum Stat Gain",
+        description: "Sets the minimum main stat gain required to skip racing and perform Irregular Training instead.",
+        page: "ScenarioOverridesSettings",
+    },
 
     // ============================================================
     // Debug Settings
