@@ -351,7 +351,8 @@ class TrainingEvent(private val game: Game, private val campaign: Campaign) {
         sb.appendLine("\n========== Training Event Summary ==========")
 
         val ownerInfo = if (ownerName.isNotEmpty()) " ($ownerName)" else ""
-        sb.appendLine("Event: \"$eventTitle\"$ownerInfo [Confidence: ${game.decimalFormat.format(confidence)}]")
+        val cleanedTitle = eventTitle.replace("\n", " ").replace("\r", "")
+        sb.appendLine("Event: \"$cleanedTitle\"$ownerInfo [Confidence: ${game.decimalFormat.format(confidence)}]")
         sb.appendLine("Current Date: ${campaign.date}")
         sb.appendLine("")
 
