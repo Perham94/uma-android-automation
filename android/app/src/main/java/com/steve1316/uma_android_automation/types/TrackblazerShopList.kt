@@ -151,13 +151,13 @@ class TrackblazerShopList(private val game: Game) {
         return processItemsWithFallback(
             keyExtractor = { entry ->
                 // Detect the item name for each entry.
-                val name = getShopItemName(entry, ButtonSkillUp.checkDisabled(game.imageUtils, entry.bitmap) == true)
+                val name = getShopItemName(entry, isEntryDisabled(entry.bitmap))
                 if (name != null) itemNameMap[entry.index] = name
                 name
             },
         ) { entry ->
             // Check if the item is buyable or disabled.
-            val isDisabled = ButtonSkillUp.checkDisabled(game.imageUtils, entry.bitmap) == true
+            val isDisabled = isEntryDisabled(entry.bitmap)
             val itemName = itemNameMap[entry.index] ?: getShopItemName(entry, isDisabled)
             if (itemName != null) {
                 val itemPrice = getShopItemPrice(itemName, entry.bitmap)
@@ -367,13 +367,13 @@ class TrackblazerShopList(private val game: Game) {
         val itemNameMapInQuickUse = mutableMapOf<Int, String>()
         processItemsWithFallback(
             keyExtractor = { entry ->
-                val name = getShopItemName(entry, ButtonSkillUp.checkDisabled(game.imageUtils, entry.bitmap) == true)
+                val name = getShopItemName(entry, isEntryDisabled(entry.bitmap))
                 if (name != null) itemNameMapInQuickUse[entry.index] = name
                 name
             },
         ) { entry ->
             // Check if the item is eligible for quick usage.
-            val isDisabled = ButtonSkillUp.checkDisabled(game.imageUtils, entry.bitmap) == true
+            val isDisabled = isEntryDisabled(entry.bitmap)
             val itemName = itemNameMapInQuickUse[entry.index] ?: getShopItemName(entry, isDisabled)
             if (itemName != null && shopItems[itemName]?.isQuickUsage == true) {
                 // Check if the item's plus button is enabled for usage.
@@ -450,12 +450,12 @@ class TrackblazerShopList(private val game: Game) {
             val itemNameMapInUse = mutableMapOf<Int, String>()
             processItemsWithFallback(
                 keyExtractor = { entry ->
-                    val name = getShopItemName(entry, ButtonSkillUp.checkDisabled(game.imageUtils, entry.bitmap) == true)
+                    val name = getShopItemName(entry, isEntryDisabled(entry.bitmap))
                     if (name != null) itemNameMapInUse[entry.index] = name
                     name
                 },
             ) { entry ->
-                val isDisabled = ButtonSkillUp.checkDisabled(game.imageUtils, entry.bitmap) == true
+                val isDisabled = isEntryDisabled(entry.bitmap)
                 val itemName = itemNameMapInUse[entry.index] ?: getShopItemName(entry, isDisabled)
 
                 if (itemName != null && itemsToUse.contains(itemName) && !isDisabled) {
@@ -476,7 +476,7 @@ class TrackblazerShopList(private val game: Game) {
                                 entry.bitmap
                             } ?: break
 
-                        if (ButtonSkillUp.checkDisabled(game.imageUtils, bitmapToUse) == true) {
+                        if (isEntryDisabled(bitmapToUse)) {
                             break
                         }
 
@@ -710,6 +710,17 @@ class TrackblazerShopList(private val game: Game) {
         return false
     }
 
+    /**
+     * Checks if the item entry is disabled by looking for a disabled checkbox or plus button.
+     *
+     * @param entryBitmap The bitmap of the item entry to check.
+     * @return True if the entry is disabled, false otherwise.
+     */
+    private fun isEntryDisabled(entryBitmap: Bitmap): Boolean {
+        return CheckboxShopItem.checkDisabled(game.imageUtils, entryBitmap) == true ||
+            ButtonSkillUp.checkDisabled(game.imageUtils, entryBitmap) == true
+    }
+
     // //////////////////////////////////////////////////////////////////////////////////////////////////
     // //////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -736,13 +747,13 @@ class TrackblazerShopList(private val game: Game) {
         val itemNameMap = mutableMapOf<Int, String>()
         processItemsWithFallback(
             keyExtractor = { entry ->
-                val name = getShopItemName(entry, ButtonSkillUp.checkDisabled(game.imageUtils, entry.bitmap) == true)
+                val name = getShopItemName(entry, isEntryDisabled(entry.bitmap))
                 if (name != null) itemNameMap[entry.index] = name
                 name
             },
         ) { entry ->
             // Check if the item's plus button is disabled.
-            val isDisabled = ButtonSkillUp.checkDisabled(game.imageUtils, entry.bitmap) == true
+            val isDisabled = isEntryDisabled(entry.bitmap)
             val itemName = itemNameMap[entry.index] ?: getShopItemName(entry, isDisabled)
             if (itemName != null) {
                 val price = getShopItemPrice(itemName, entry.bitmap)
@@ -867,12 +878,12 @@ class TrackblazerShopList(private val game: Game) {
         val itemNameMapInPurchase = mutableMapOf<Int, String>()
         processItemsWithFallback(
             keyExtractor = { entry ->
-                val name = getShopItemName(entry, ButtonSkillUp.checkDisabled(game.imageUtils, entry.bitmap) == true)
+                val name = getShopItemName(entry, isEntryDisabled(entry.bitmap))
                 if (name != null) itemNameMapInPurchase[entry.index] = name
                 name
             },
         ) { entry ->
-            val isDisabled = ButtonSkillUp.checkDisabled(game.imageUtils, entry.bitmap) == true
+            val isDisabled = isEntryDisabled(entry.bitmap)
             val itemName = itemNameMapInPurchase[entry.index] ?: getShopItemName(entry, isDisabled)
 
             if (itemName != null) {
