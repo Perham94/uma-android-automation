@@ -3,6 +3,7 @@ package com.steve1316.uma_android_automation.types
 import android.graphics.Bitmap
 import com.steve1316.automation_library.data.SharedData
 import com.steve1316.automation_library.utils.MessageLog
+import com.steve1316.automation_library.utils.SettingsHelper
 import com.steve1316.automation_library.utils.TextUtils
 import com.steve1316.uma_android_automation.MainActivity
 import com.steve1316.uma_android_automation.bot.Game
@@ -22,6 +23,7 @@ import com.steve1316.uma_android_automation.types.StatName
 import com.steve1316.uma_android_automation.types.Trainee
 import com.steve1316.uma_android_automation.utils.ScrollList
 import com.steve1316.uma_android_automation.utils.ScrollListEntry
+import org.json.JSONArray
 import org.opencv.core.Point
 
 /**
@@ -127,6 +129,9 @@ class TrackblazerShopList(private val game: Game) {
             "Master Cleat Hammer" to TrackblazerItemInfo(40, "Race bonus +35% (One turn)", false, "Races"),
             "Glow Sticks" to TrackblazerItemInfo(15, "Race fan gain +50% (One turn)", false, "Races"),
         )
+
+    /** Items to not purchase from the Shop. */
+    private val excludedItemsString = SettingsHelper.getStringSetting("scenarioOverrides", "trackblazerExcludedItems", "[]")
 
     /** Whether the shop currently has a sale active. */
     private var isShopOnSale: Boolean = false
@@ -767,9 +772,29 @@ class TrackblazerShopList(private val game: Game) {
         if (availableInShop.isEmpty()) {
             MessageLog.w(
                 TAG,
-                "[WARN] scanned the list of items in the Shop but could not read any of the names. OCR is dependent on correct display setup configuration. User's current display setup: ${SharedData.displayWidth}x${SharedData.displayHeight}, DPI ${SharedData.displayDPI}",
+                "[WARN] buyItems:: Scanned the list of items in the Shop but could not read any of the names. OCR is dependent on correct display setup configuration. User's current display setup: ${SharedData.displayWidth}x${SharedData.displayHeight}, DPI ${SharedData.displayDPI}",
             )
         }
+
+        val excludedItems = mutableListOf<String>()
+        try {
+            val jsonArray = JSONArray(excludedItemsString)
+            for (i in 0 until jsonArray.length()) {
+                excludedItems.add(jsonArray.getString(i))
+            }
+        } catch (e: Exception) {
+            MessageLog.e(TAG, "[ERROR] buyItems:: Failed to parse trackblazerExcludedItems: ${e.message}")
+        }
+
+        val filteredAvailableInShop =
+            availableInShop.filter { (name, _, _) ->
+                if (excludedItems.contains(name)) {
+                    MessageLog.i(TAG, "[INFO] Skipping excluded item: \"$name\".")
+                    false
+                } else {
+                    true
+                }
+            }
 
         // Step 2: Calculation & Summary Phase.
         // Determine which items from the priority list are available and affordable.
@@ -780,7 +805,7 @@ class TrackblazerShopList(private val game: Game) {
         val effectiveCoins = if (bForcePurchase && currentCoins == 0) 9999 else currentCoins
         var remainingCoinsAfterProposed = effectiveCoins
 
-        val tempAvailable = availableInShop.toMutableList()
+        val tempAvailable = filteredAvailableInShop.toMutableList()
         for (item in priorityList) {
             val limit = inventoryLimits[item] ?: 0
             if (limit <= 0) continue
