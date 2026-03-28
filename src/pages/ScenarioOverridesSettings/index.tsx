@@ -30,7 +30,11 @@ const ScenarioOverridesSettings = () => {
     const [searchQuery, setSearchQuery] = useState("")
 
     const filteredItems = useMemo(() => {
-        return Object.keys(trackblazerIcons).filter((itemName) => itemName.toLowerCase().includes(searchQuery.toLowerCase()))
+        return Object.keys(trackblazerIcons).filter((itemName) => {
+            const item = trackblazerIcons[itemName]
+            const query = searchQuery.toLowerCase()
+            return itemName.toLowerCase().includes(query) || item.description.toLowerCase().includes(query)
+        })
     }, [searchQuery])
 
     /**
@@ -342,10 +346,11 @@ const ScenarioOverridesSettings = () => {
                                     <ScrollView nestedScrollEnabled={true} showsVerticalScrollIndicator={true}>
                                         {filteredItems.map((itemName) => (
                                             <TouchableOpacity key={itemName} onPress={() => handleItemPress(itemName)} style={styles.itemContainer}>
-                                                <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                                                    <Image source={trackblazerIcons[itemName]} style={{ width: 48, height: 48, marginRight: 8 }} />
+                                                <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flex: 1 }}>
+                                                    <Image source={trackblazerIcons[itemName].icon} style={{ width: 48, height: 48, marginRight: 8 }} />
                                                     <View style={{ flex: 1 }}>
                                                         <Text style={{ fontSize: 16, fontWeight: "600", color: colors.foreground }}>{itemName}</Text>
+                                                        <Text style={{ fontSize: 12, color: colors.foreground, opacity: 0.6, marginTop: 2 }}>{trackblazerIcons[itemName].description}</Text>
                                                     </View>
                                                     {scenarioOverrides.trackblazerExcludedItems.includes(itemName) && <CircleCheckBig size={18} color={"green"} />}
                                                 </View>
