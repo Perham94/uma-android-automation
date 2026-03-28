@@ -1,24 +1,15 @@
 <AppUpdater>
   <update>
-    <latestVersion>5.3.3</latestVersion>
+    <latestVersion>5.3.4</latestVersion>
     <url>https://github.com/steve1316/uma-android-automation/releases</url>
     <releaseNotes>
-v5.3.3 - Changelog
+v5.3.4 - Changelog
 
 > Trackblazer support is still fresh off the oven so expect some bugs. Regarding completion times on strong hardware, URA Finale averages 25 minutes, Unity Cup averages 35 minutes and Trackblazer averages 1 hour 20 minutes.
 
 New
 ---
-- Add a new option to the `Racing Settings` page to disable extra races from being run when user ingame racing plan is enabled.
-
-Adjustments
----
-- Speed up scrolling inside lists.
-- Modify Discord token field to not hide the value.
-
-Fixes
----
-- Fix bug where the new consecutive race warning handling caused it to not run mandatory races.
+- Add a new option to the `Scenario Overrides Settings` page for users to select items from the list to exclude from purchases.
 
     </releaseNotes>
   </update>
