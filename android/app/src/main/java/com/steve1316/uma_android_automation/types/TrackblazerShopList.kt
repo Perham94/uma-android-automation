@@ -786,15 +786,8 @@ class TrackblazerShopList(private val game: Game) {
             MessageLog.e(TAG, "[ERROR] buyItems:: Failed to parse trackblazerExcludedItems: ${e.message}")
         }
 
-        val filteredAvailableInShop =
-            availableInShop.filter { (name, _, _) ->
-                if (excludedItems.contains(name)) {
-                    MessageLog.i(TAG, "[INFO] Skipping excluded item: \"$name\".")
-                    false
-                } else {
-                    true
-                }
-            }
+        val actuallyExcludedItems = availableInShop.filter { (name, _, _) -> excludedItems.contains(name) }.map { it.first }
+        val filteredAvailableInShop = availableInShop.filter { (name, _, _) -> !excludedItems.contains(name) }
 
         // Step 2: Calculation & Summary Phase.
         // Determine which items from the priority list are available and affordable.
@@ -852,6 +845,15 @@ class TrackblazerShopList(private val game: Game) {
             sb.appendLine("Items found:")
             sb.appendLine("")
             availableInShop.forEach { (name, _, _) ->
+                sb.appendLine("  - $name")
+            }
+        }
+
+        if (actuallyExcludedItems.isNotEmpty()) {
+            sb.appendLine("")
+            sb.appendLine("Items excluded from purchase:")
+            sb.appendLine("")
+            actuallyExcludedItems.forEach { name ->
                 sb.appendLine("  - $name")
             }
         }
