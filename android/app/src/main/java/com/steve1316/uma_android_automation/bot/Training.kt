@@ -50,7 +50,10 @@ class Training(private val game: Game, private val campaign: Campaign) {
     internal var skippedTrainingMap: MutableMap<StatName, TrainingOption> = mutableMapOf()
 
     /** List of training names that are restricted or unavailable. */
-    private val restrictedTrainingNames: MutableSet<StatName> = mutableSetOf()
+    private var restrictedTrainingNames: MutableSet<StatName> = mutableSetOf()
+
+    /** List of analysis results cached for reuse during the current turn. */
+    private var cachedAnalysisResults: List<TrainingAnalysisResult>? = null
 
     /** The current training scenario name. */
     private val scenario = game.scenario
@@ -796,8 +799,15 @@ class Training(private val game: Game, private val campaign: Campaign) {
         val singleTraining = args["singleTraining"] as? Boolean ?: false
         val ignoreFailureChance = args["ignoreFailureChance"] as? Boolean ?: false
         val isIrregularEvaluation = args["isIrregularEvaluation"] as? Boolean ?: false
-        if (singleTraining) {
+
+        if (test) {
+            MessageLog.v(TAG, "\n[TRAINING] Now starting process to analyze all 5 Trainings for Testing.")
+        } else if (singleTraining) {
             MessageLog.v(TAG, "\n[TRAINING] Now starting process to analyze the training on screen.")
+        } else if (cachedAnalysisResults != null) {
+            MessageLog.i(TAG, "[TRAINING] Using cached training analysis results for this turn.")
+            processAnalysisResults(cachedAnalysisResults!!, ignoreFailureChance, isIrregularEvaluation, test)
+            return
         } else {
             MessageLog.v(TAG, "\n[TRAINING] Now starting process to analyze all 5 Trainings.")
         }
@@ -1286,103 +1296,119 @@ class Training(private val game: Game, private val campaign: Campaign) {
                     return
                 }
 
-                // Apply secondary stat gain boosts based on context for all results.
+                // Apply secondary stat gain boosts based on context for all results before caching.
                 for (result in analysisResults) {
                     applyContextualStatGainBoost(result)
                 }
 
-                // Process results and output logs in training order.
-                for (result in analysisResults) {
-                    // Check if risky training logic should apply based on main stat gain.
-                    val mainStatGain: Int = result.statGains[result.name] ?: 0
-                    val effectiveFailureChance =
-                        if (enableRiskyTraining && mainStatGain >= riskyTrainingMinStatGain) {
-                            riskyTrainingMaxFailureChance
-                        } else {
-                            maximumFailureChance
-                        }
+                // Process results and populate training maps.
+                processAnalysisResults(analysisResults, ignoreFailureChance, isIrregularEvaluation, test)
 
-                    // Filter out trainings that exceed the effective failure chance threshold.
-                    if (!test && !ignoreFailureChance && result.failureChance > effectiveFailureChance) {
-                        val skipReason =
-                            if (enableRiskyTraining && mainStatGain >= riskyTrainingMinStatGain) {
-                                MessageLog.i(
-                                    TAG,
-                                    "[TRAINING] Skipping ${result.name} training due to failure chance (${result.failureChance}%) exceeding risky threshold ($riskyTrainingMaxFailureChance%) despite high main stat gain of $mainStatGain.",
-                                )
-                                "high failure chance (risky)"
-                            } else {
-                                MessageLog.i(TAG, "[TRAINING] Skipping ${result.name} training due to failure chance (${result.failureChance}%) exceeding threshold ($maximumFailureChance%).")
-                                "high failure chance"
-                            }
+                // Store analysis results in cache for reuse during the same turn.
+                if (!test && !singleTraining) {
+                    cachedAnalysisResults = analysisResults.toList()
+                }
+            }
+        } else {
+            // Clear the Training map if the bot failed to have enough energy to conduct the training.
+            trainingMap.clear()
+            skippedTrainingMap.clear()
+        }
 
-                        // Store the skipped training for logging purposes.
-                        val skippedTraining =
-                            TrainingOption(
-                                name = result.name,
-                                statGains = result.statGains,
-                                correctedStats = result.correctedStats,
-                                failureChance = result.failureChance,
-                                relationshipBars = result.relationshipBars,
-                                numRainbow = result.numRainbow,
-                                numSpiritGaugesCanFill = result.numSpiritGaugesCanFill,
-                                numSpiritGaugesReadyToBurst = result.numSpiritGaugesReadyToBurst,
-                                numSkillHints = result.numSkillHints,
-                                skipReason = skipReason,
-                            )
-                        skippedTrainingMap[result.name] = skippedTraining
-                        continue
-                    }
+        if (singleTraining) {
+            MessageLog.v(TAG, "[TRAINING] Process to analyze the singular Training complete.")
+        } else {
+            MessageLog.v(TAG, "[TRAINING] Process to analyze all 5 Trainings complete.")
+        }
+    }
 
-                    if (!test && ignoreFailureChance && result.failureChance > effectiveFailureChance && mainStatGain < minStatGainForCharm) {
+    /**
+     * Processes a list of training analysis results and populates the training maps based on thresholds and settings.
+     *
+     * @param results The list of [TrainingAnalysisResult] to process.
+     * @param ignoreFailureChance Whether to ignore the failure chance check.
+     * @param isIrregularEvaluation Whether this analysis is for an irregular training evaluation.
+     * @param test Whether the analysis is being performed for testing.
+     */
+    private fun processAnalysisResults(results: List<TrainingAnalysisResult>, ignoreFailureChance: Boolean, isIrregularEvaluation: Boolean, test: Boolean) {
+        // Clear maps to ensure fresh results if reusing cached analysis.
+        trainingMap.clear()
+        skippedTrainingMap.clear()
+
+        // Process results and output logs in training order.
+        for (result in results) {
+            // Check if risky training logic should apply based on main stat gain.
+            val mainStatGain: Int = result.statGains[result.name] ?: 0
+            val effectiveFailureChance =
+                if (enableRiskyTraining && mainStatGain >= riskyTrainingMinStatGain) {
+                    riskyTrainingMaxFailureChance
+                } else {
+                    maximumFailureChance
+                }
+
+            // Filter out trainings that exceed the effective failure chance threshold.
+            if (!test && !ignoreFailureChance && result.failureChance > effectiveFailureChance) {
+                val skipReason =
+                    if (enableRiskyTraining && mainStatGain >= riskyTrainingMinStatGain) {
                         MessageLog.i(
                             TAG,
-                            "[TRAINING] Skipping ${result.name} training with Good-Luck Charm because main stat gain ($mainStatGain) is less than $minStatGainForCharm and failure chance (${result.failureChance}%) is risky.",
+                            "[TRAINING] Skipping ${result.name} training due to failure chance (${result.failureChance}%) exceeding risky threshold ($riskyTrainingMaxFailureChance%) despite high main stat gain of $mainStatGain.",
                         )
-
-                        // Store the skipped training for logging purposes.
-                        val skippedTraining =
-                            TrainingOption(
-                                name = result.name,
-                                statGains = result.statGains,
-                                correctedStats = result.correctedStats,
-                                failureChance = result.failureChance,
-                                relationshipBars = result.relationshipBars,
-                                numRainbow = result.numRainbow,
-                                numSpiritGaugesCanFill = result.numSpiritGaugesCanFill,
-                                numSpiritGaugesReadyToBurst = result.numSpiritGaugesReadyToBurst,
-                                numSkillHints = result.numSkillHints,
-                                skipReason = "low gain with charm",
-                            )
-                        skippedTrainingMap[result.name] = skippedTraining
-                        continue
+                        "high failure chance (risky)"
+                    } else {
+                        MessageLog.i(TAG, "[TRAINING] Skipping ${result.name} training due to failure chance (${result.failureChance}%) exceeding threshold ($maximumFailureChance%).")
+                        "high failure chance"
                     }
 
-                    if (!test && isIrregularEvaluation) {
-                        val minIrregularGain = SettingsHelper.getIntSetting("scenarioOverrides", "trackblazerIrregularTrainingMinStatGain", 30)
-                        if (mainStatGain < minIrregularGain) {
-                            MessageLog.i(TAG, "[TRAINING] Skipping ${result.name} training due to irregular training threshold ($mainStatGain < $minIrregularGain).")
+                // Store the skipped training for logging purposes.
+                val skippedTraining =
+                    TrainingOption(
+                        name = result.name,
+                        statGains = result.statGains,
+                        correctedStats = result.correctedStats,
+                        failureChance = result.failureChance,
+                        relationshipBars = result.relationshipBars,
+                        numRainbow = result.numRainbow,
+                        numSpiritGaugesCanFill = result.numSpiritGaugesCanFill,
+                        numSpiritGaugesReadyToBurst = result.numSpiritGaugesReadyToBurst,
+                        numSkillHints = result.numSkillHints,
+                        skipReason = skipReason,
+                    )
+                skippedTrainingMap[result.name] = skippedTraining
+                continue
+            }
 
-                            // Store the skipped training for logging purposes.
-                            val skippedTraining =
-                                TrainingOption(
-                                    name = result.name,
-                                    statGains = result.statGains,
-                                    correctedStats = result.correctedStats,
-                                    failureChance = result.failureChance,
-                                    relationshipBars = result.relationshipBars,
-                                    numRainbow = result.numRainbow,
-                                    numSpiritGaugesCanFill = result.numSpiritGaugesCanFill,
-                                    numSpiritGaugesReadyToBurst = result.numSpiritGaugesReadyToBurst,
-                                    numSkillHints = result.numSkillHints,
-                                    skipReason = "low irregular gain",
-                                )
-                            skippedTrainingMap[result.name] = skippedTraining
-                            continue
-                        }
-                    }
+            if (!test && ignoreFailureChance && result.failureChance > effectiveFailureChance && mainStatGain < minStatGainForCharm) {
+                MessageLog.i(
+                    TAG,
+                    "[TRAINING] Skipping ${result.name} training with Good-Luck Charm because main stat gain ($mainStatGain) is less than $minStatGainForCharm and failure chance (${result.failureChance}%) is risky.",
+                )
 
-                    val newTraining =
+                // Store the skipped training for logging purposes.
+                val skippedTraining =
+                    TrainingOption(
+                        name = result.name,
+                        statGains = result.statGains,
+                        correctedStats = result.correctedStats,
+                        failureChance = result.failureChance,
+                        relationshipBars = result.relationshipBars,
+                        numRainbow = result.numRainbow,
+                        numSpiritGaugesCanFill = result.numSpiritGaugesCanFill,
+                        numSpiritGaugesReadyToBurst = result.numSpiritGaugesReadyToBurst,
+                        numSkillHints = result.numSkillHints,
+                        skipReason = "low gain with charm",
+                    )
+                skippedTrainingMap[result.name] = skippedTraining
+                continue
+            }
+
+            if (!test && isIrregularEvaluation) {
+                val minIrregularGain = SettingsHelper.getIntSetting("scenarioOverrides", "trackblazerIrregularTrainingMinStatGain", 30)
+                if (mainStatGain < minIrregularGain) {
+                    MessageLog.i(TAG, "[TRAINING] Skipping ${result.name} training due to irregular training threshold ($mainStatGain < $minIrregularGain).")
+
+                    // Store the skipped training for logging purposes.
+                    val skippedTraining =
                         TrainingOption(
                             name = result.name,
                             statGains = result.statGains,
@@ -1393,25 +1419,38 @@ class Training(private val game: Game, private val campaign: Campaign) {
                             numSpiritGaugesCanFill = result.numSpiritGaugesCanFill,
                             numSpiritGaugesReadyToBurst = result.numSpiritGaugesReadyToBurst,
                             numSkillHints = result.numSkillHints,
+                            skipReason = "low irregular gain",
                         )
-                    trainingMap[result.name] = newTraining
+                    skippedTrainingMap[result.name] = skippedTraining
+                    continue
                 }
             }
-        } else {
-            // Clear the Training map if the bot failed to have enough energy to conduct the training.
-            MessageLog.i(
-                TAG,
-                "[TRAINING] $failureChance% is not within acceptable range of $maximumFailureChance%${if (enableRiskyTraining) " or the risky threshold of $riskyTrainingMaxFailureChance%" else ""}. Proceeding to recover energy.",
-            )
-            trainingMap.clear()
-            skippedTrainingMap.clear()
-        }
 
-        if (singleTraining) {
-            MessageLog.v(TAG, "[TRAINING] Process to analyze the singular Training complete.")
-        } else {
-            MessageLog.v(TAG, "[TRAINING] Process to analyze all 5 Trainings complete.")
+            val newTraining =
+                TrainingOption(
+                    name = result.name,
+                    statGains = result.statGains,
+                    correctedStats = result.correctedStats,
+                    failureChance = result.failureChance,
+                    relationshipBars = result.relationshipBars,
+                    numRainbow = result.numRainbow,
+                    numSpiritGaugesCanFill = result.numSpiritGaugesCanFill,
+                    numSpiritGaugesReadyToBurst = result.numSpiritGaugesReadyToBurst,
+                    numSkillHints = result.numSkillHints,
+                )
+            trainingMap[result.name] = newTraining
         }
+    }
+
+    /**
+     * Clears the current training analysis results from the cache.
+     */
+    fun clearAnalysisCache() {
+        Log.d(TAG, "[DEBUG] clearAnalysisCache:: Clearing the training analysis cache.")
+        cachedAnalysisResults = null
+        trainingMap.clear()
+        skippedTrainingMap.clear()
+        restrictedTrainingNames.clear()
     }
 
     /**
@@ -2120,9 +2159,7 @@ class Training(private val game: Game, private val campaign: Campaign) {
             MessageLog.v(TAG, "[TRAINING] Conditions have not been met so training will not be done.")
         }
 
-        // Now reset the Training maps.
-        trainingMap.clear()
-        skippedTrainingMap.clear()
-        restrictedTrainingNames.clear()
+        // Now reset the Training maps and analysis cache.
+        clearAnalysisCache()
     }
 }

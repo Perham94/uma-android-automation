@@ -598,6 +598,7 @@ class Trackblazer(game: Game) : Campaign(game) {
         bUsedCharmToday = false
         bUsedHammerToday = false
         bIsIrregularTraining = false
+        training.clearAnalysisCache()
     }
 
     override fun onBeforeMainScreenUpdate() {
@@ -1002,6 +1003,9 @@ class Trackblazer(game: Game) : Campaign(game) {
         if (ButtonClose.click(game.imageUtils, tries = 50)) {
             game.wait(game.dialogWaitDelay)
         }
+
+        // Clear the training analysis cache so that the bot re-evaluates the training options if it re-enters the training screen.
+        training.clearAnalysisCache()
     }
 
     /**
