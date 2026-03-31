@@ -153,6 +153,12 @@ class Trackblazer(game: Game) : Campaign(game) {
     /** Whether to enable Irregular Training in between races during Trackblazer. */
     private val enableIrregularTraining: Boolean = SettingsHelper.getBooleanSetting("scenarioOverrides", "trackblazerEnableIrregularTraining", false)
 
+    /** The frequency to check the shop after a race. */
+    private val shopCheckFrequency: Int = SettingsHelper.getIntSetting("scenarioOverrides", "trackblazerShopCheckFrequency", 3)
+
+    /** Tracks the number of days since the last race for shop check frequency. */
+    private var shopCheckCounter: Int = 0
+
     // //////////////////////////////////////////////////////////////////////////////////////////////////
     // //////////////////////////////////////////////////////////////////////////////////////////////////
     // Debug Tests
@@ -344,11 +350,9 @@ class Trackblazer(game: Game) : Campaign(game) {
                 detectedDialog.ok(game.imageUtils)
                 game.wait(3.0)
 
-                // Clear the shop check flag as the shop is already being handled.
-                if (bShouldCheckShop) {
-                    MessageLog.i(TAG, "[TRACKBLAZER] Shop check fallback: Shop handled via dialog.")
-                    bShouldCheckShop = false
-                }
+                // Clear the shop check flag and counter as the shop is already being handled.
+                bShouldCheckShop = false
+                shopCheckCounter = 0
 
                 buyItems()
             }
@@ -503,14 +507,16 @@ class Trackblazer(game: Game) : Campaign(game) {
     }
 
     override fun recoverEnergy(sourceBitmap: Bitmap?): Boolean {
-        MessageLog.i(TAG, "[TRACKBLAZER] Resetting consecutive race counter due to energy recovery.")
+        MessageLog.i(TAG, "[TRACKBLAZER] Resetting consecutive race counter and shop check counter due to energy recovery.")
         consecutiveRaceCount = 0
+        shopCheckCounter = 0
         return super.recoverEnergy(sourceBitmap)
     }
 
     override fun recoverMood(sourceBitmap: Bitmap?): Boolean {
-        MessageLog.i(TAG, "[TRACKBLAZER] Resetting consecutive race counter due to mood recovery.")
+        MessageLog.i(TAG, "[TRACKBLAZER] Resetting consecutive race counter and shop check counter due to mood recovery.")
         consecutiveRaceCount = 0
+        shopCheckCounter = 0
         return super.recoverMood(sourceBitmap)
     }
 
@@ -582,12 +588,17 @@ class Trackblazer(game: Game) : Campaign(game) {
             // Check if we should perform a shop check after this race.
             // Any graded race defined in the settings or any scheduled race should trigger a shop check.
             if (isScheduledRace || shopCheckGrades.contains(racing.lastRaceGrade)) {
-                if (isScheduledRace) {
-                    MessageLog.i(TAG, "[TRACKBLAZER] Scheduled race completed. Shop check will be performed on main screen.")
+                if (shopCheckFrequency <= 1) {
+                    if (isScheduledRace) {
+                        MessageLog.i(TAG, "[TRACKBLAZER] Scheduled race completed. Shop check will be performed on main screen.")
+                    } else {
+                        MessageLog.i(TAG, "[TRACKBLAZER] Graded race detected (${racing.lastRaceGrade}). Shop check will be performed on main screen.")
+                    }
+                    bShouldCheckShop = true
                 } else {
-                    MessageLog.i(TAG, "[TRACKBLAZER] Graded race detected (${racing.lastRaceGrade}). Shop check will be performed on main screen.")
+                    MessageLog.i(TAG, "[TRACKBLAZER] Race completed. Starting shop check counter at 1. Frequency: $shopCheckFrequency.")
+                    shopCheckCounter = 1
                 }
-                bShouldCheckShop = true
             }
         }
         return result
@@ -712,6 +723,18 @@ class Trackblazer(game: Game) : Campaign(game) {
                 trainee.megaphoneTurnCounter--
                 MessageLog.i(TAG, "[TRACKBLAZER] Megaphone duration reduced. Turns remaining: ${trainee.megaphoneTurnCounter}.")
             }
+
+            // Increment shop check counter if it's active.
+            if (shopCheckCounter > 0) {
+                if (shopCheckCounter >= shopCheckFrequency) {
+                    MessageLog.i(TAG, "[TRACKBLAZER] Shop check frequency reached ($shopCheckFrequency). Shop check will be performed on main screen.")
+                    bShouldCheckShop = true
+                    shopCheckCounter = 0
+                } else {
+                    shopCheckCounter++
+                    MessageLog.i(TAG, "[TRACKBLAZER] Shop check counter incremented to $shopCheckCounter (Frequency: $shopCheckFrequency).")
+                }
+            }
         }
 
         return result
@@ -719,7 +742,12 @@ class Trackblazer(game: Game) : Campaign(game) {
 
     override fun onRaceWin() {
         MessageLog.i(TAG, "[TRACKBLAZER] Rival Race win detected via post-race popup.")
-        bShouldCheckShop = true
+        if (shopCheckFrequency <= 1) {
+            bShouldCheckShop = true
+        } else {
+            MessageLog.i(TAG, "[TRACKBLAZER] Rival Race win detected. Starting shop check counter at 1. Frequency: $shopCheckFrequency.")
+            shopCheckCounter = 1
+        }
     }
 
     // //////////////////////////////////////////////////////////////////////////////////////////////////
