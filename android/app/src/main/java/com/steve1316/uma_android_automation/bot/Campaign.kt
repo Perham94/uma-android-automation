@@ -877,7 +877,7 @@ abstract class Campaign(game: Game) : Task(game) {
      * @return True if the bot is at the Main screen, false otherwise.
      */
     open fun checkMainScreen(): Boolean {
-        return ButtonHomeFullStats.check(game.imageUtils) && IconTazuna.check(game.imageUtils) && (ButtonTraining.check(game.imageUtils) || ButtonRest.check(game.imageUtils))
+        return ButtonHomeFullStats.check(game.imageUtils) && IconTazuna.check(game.imageUtils) && ButtonTraining.check(game.imageUtils)
     }
 
     /**
