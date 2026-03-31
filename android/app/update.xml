@@ -1,25 +1,16 @@
 <AppUpdater>
   <update>
-    <latestVersion>5.3.6</latestVersion>
+    <latestVersion>5.3.7</latestVersion>
     <url>https://github.com/steve1316/uma-android-automation/releases</url>
     <releaseNotes>
-v5.3.6 - Changelog
+v5.3.7 - Changelog
 
 > Trackblazer support is still fresh off the oven so expect some bugs. Regarding completion times on strong hardware, URA Finale averages 25 minutes, Unity Cup averages 35 minutes and Trackblazer averages 50 minutes.
 
-New
----
-- Add a new option to the `Scenario Overrides Settings` page to adjust the Shop check frequency.
-
-Adjustments
----
-- Prevent skill plan purchase process from stopping the bot if it could not start itself properly.
-- Reduced the number of checks for `checkMainScreen()`.
-
 Fixes
 ---
-- Fix bug that prevented race items from being used for scheduled races specifically.
-- Fix bug where the "Scheduled Races" dialog can throw an Exception as non-deferred.
+- Fix bug where performMiscChecks() does not end if a breakpoint is reached like the `Popup Check`.
+- Fix bug where racing items are not used for the Trackblazer Finale races. This also ensures that at least one highest level `Cleat Hammer` and one `Glow Stick` is available for use in the Finale.
 
     </releaseNotes>
   </update>
