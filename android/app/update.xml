@@ -1,24 +1,25 @@
 <AppUpdater>
   <update>
-    <latestVersion>5.3.5</latestVersion>
+    <latestVersion>5.3.6</latestVersion>
     <url>https://github.com/steve1316/uma-android-automation/releases</url>
     <releaseNotes>
-v5.3.5 - Changelog
+v5.3.6 - Changelog
 
-> Trackblazer support is still fresh off the oven so expect some bugs. Regarding completion times on strong hardware, URA Finale averages 25 minutes, Unity Cup averages 35 minutes and Trackblazer averages 1 hour 20 minutes.
+> Trackblazer support is still fresh off the oven so expect some bugs. Regarding completion times on strong hardware, URA Finale averages 25 minutes, Unity Cup averages 35 minutes and Trackblazer averages 50 minutes.
 
 New
 ---
-- Add option to the `Racing Settings` page to skip Summer training in favor of scheduled races.
+- Add a new option to the `Scenario Overrides Settings` page to adjust the Shop check frequency.
 
 Adjustments
 ---
-- Update warning about display configuration to be more strict.
-- Log excluded items from purchase in the Shop purchase summary.
+- Prevent skill plan purchase process from stopping the bot if it could not start itself properly.
+- Reduced the number of checks for `checkMainScreen()`.
 
 Fixes
 ---
-- Attempt to fix bug with back to back training analysis when Irregular Training is enabled.
+- Fix bug that prevented race items from being used for scheduled races specifically.
+- Fix bug where the "Scheduled Races" dialog can throw an Exception as non-deferred.
 
     </releaseNotes>
   </update>
