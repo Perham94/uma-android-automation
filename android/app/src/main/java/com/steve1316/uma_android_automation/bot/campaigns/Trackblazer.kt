@@ -814,46 +814,44 @@ class Trackblazer(game: Game) : Campaign(game) {
 
     /**
      * Reads the Shop Coins amount via OCR and updates our internal count.
-     * If it fails to read the Shop Coins, it will return the last known Shop Coins amount.
      *
-     * @return The Shop Coins amount.
+     * @return True if the Shop Coins amount was updated successfully, false otherwise.
      */
-    fun updateShopCoins(): Int {
+    fun updateShopCoins(): Boolean {
         MessageLog.i(TAG, "[TRACKBLAZER] Updating current amount of Shop Coins...")
         game.wait(2.0)
         val (trainingItemsButtonLocation, sourceBitmap) = ButtonTrainingItems.find(game.imageUtils)
         if (trainingItemsButtonLocation == null) {
             MessageLog.e(TAG, "[ERROR] updateShopCoins:: Failed to find Training Items button.")
-            return shopCoins
+            return false
         }
         val coinText =
             game.imageUtils.performOCROnRegion(
                 sourceBitmap,
-                game.imageUtils.relX(trainingItemsButtonLocation.x, -37),
-                game.imageUtils.relY(trainingItemsButtonLocation.y, 84),
-                game.imageUtils.relWidth(175),
-                game.imageUtils.relHeight(60),
+                game.imageUtils.relX(trainingItemsButtonLocation.x, -35),
+                game.imageUtils.relY(trainingItemsButtonLocation.y, 80),
+                game.imageUtils.relWidth(180),
+                game.imageUtils.relHeight(65),
                 useThreshold = false,
                 useGrayscale = true,
-                scale = 1.0,
+                scale = 2.0,
                 ocrEngine = "mlkit",
                 debugName = "ShopCoins",
             )
 
-        return try {
+        try {
             val cleanedText = coinText.replace(Regex("[^0-9]"), "")
             if (cleanedText.isEmpty()) {
                 MessageLog.w(TAG, "[WARN] updateShopCoins:: Parsed empty string for Shop Coins from raw text: \"$coinText\".")
-                shopCoins
             } else {
                 shopCoins = cleanedText.toInt()
                 MessageLog.i(TAG, "[INFO] Current Shop Coins: $shopCoins (Raw OCR text: \"$coinText\")")
-                shopCoins
             }
         } catch (_: NumberFormatException) {
             MessageLog.e(TAG, "[ERROR] updateShopCoins:: Failed to parse Shop Coins from OCR text: \"$coinText\".")
-            shopCoins
         }
+
+        return true
     }
 
     /**
