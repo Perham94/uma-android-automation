@@ -706,10 +706,14 @@ class Trackblazer(game: Game) : Campaign(game) {
         val result =
             when (action) {
                 MainScreenAction.TRAIN -> {
-                    MessageLog.i(TAG, "[TRACKBLAZER] Decision made to train.")
-                    handleTrackblazerTraining()
-                    bHasCheckedDateThisTurn = false
-                    true
+                    if (bForcedWitTraining) {
+                        super.executeAction(action, bIsScheduledRaceDay)
+                    } else {
+                        MessageLog.i(TAG, "[TRACKBLAZER] Decision made to train.")
+                        handleTrackblazerTraining()
+                        bHasCheckedDateThisTurn = false
+                        true
+                    }
                 }
 
                 else -> {
@@ -1544,7 +1548,9 @@ class Trackblazer(game: Game) : Campaign(game) {
                 val gain = energyGains[itemName] ?: 0
                 val reason = "Restored energy (current: ${trainee.energy}%) because it fell below the $energyThresholdToUseEnergyItems% threshold."
                 if (clickItemPlusButton(itemName, entry, "[TRACKBLAZER] Queuing $itemName for use (Energy: ${trainee.energy}%, Gain: +$gain).", nextInventory, reason = reason)) {
-                    trainee.energy += gain
+                    val oldEnergy = trainee.energy
+                    trainee.energy = (trainee.energy + gain).coerceAtMost(100)
+                    MessageLog.i(TAG, "[TRACKBLAZER] Trainee energy updated: $oldEnergy% -> ${trainee.energy}%.")
                     return reason
                 }
             }
@@ -1565,8 +1571,10 @@ class Trackblazer(game: Game) : Campaign(game) {
                         "Restored energy (current: $oldEnergy%) while having mood recovery items available to offset the Mood decrease."
                     }
                 if (clickItemPlusButton(itemName, entry, "[TRACKBLAZER] Queuing $itemName for use (Energy: ${trainee.energy}%, Mood: ${trainee.mood}).", nextInventory, reason = reason)) {
+                    val oldMood = trainee.mood
                     trainee.energy = (trainee.energy + 100).coerceAtMost(100)
                     trainee.mood = trainee.mood.decrement()
+                    MessageLog.i(TAG, "[TRACKBLAZER] Trainee energy and mood updated: $oldEnergy% -> ${trainee.energy}%, $oldMood -> ${trainee.mood}.")
                     return reason
                 }
             }
@@ -1577,7 +1585,9 @@ class Trackblazer(game: Game) : Campaign(game) {
             // Very simple inline mood: use the first one seen.
             val reason = "Recovering mood (current: ${trainee.mood})."
             if (clickItemPlusButton(itemName, entry, "[TRACKBLAZER] Queuing $itemName for mood recovery.", nextInventory, reason = reason)) {
+                val oldMood = trainee.mood
                 trainee.mood = if (itemName == "Berry Sweet Cupcake") Mood.GOOD else Mood.NORMAL
+                MessageLog.i(TAG, "[TRACKBLAZER] Trainee mood updated: $oldMood -> ${trainee.mood}.")
                 return reason
             }
         }

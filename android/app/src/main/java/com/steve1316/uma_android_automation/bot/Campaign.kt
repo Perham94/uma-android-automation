@@ -80,6 +80,7 @@ import com.steve1316.uma_android_automation.types.FanCountClass
 import com.steve1316.uma_android_automation.types.GameDate
 import com.steve1316.uma_android_automation.types.Mood
 import com.steve1316.uma_android_automation.types.RunningStyle
+import com.steve1316.uma_android_automation.types.StatName
 import com.steve1316.uma_android_automation.types.Trainee
 import com.steve1316.uma_android_automation.utils.ScrollList
 import org.opencv.core.Point
@@ -136,6 +137,9 @@ abstract class Campaign(game: Game) : Task(game) {
 
     /** Required instance of the GameDate class. */
     var date: GameDate = GameDate(day = 1)
+
+    /** Flag to track whether the bot should force Wit training during the pre-summer turn. */
+    var bForcedWitTraining: Boolean = false
 
     /** Whether the bot should attempt the crane game. */
     protected val enableCraneGameAttempt: Boolean = SettingsHelper.getBooleanSetting("general", "enableCraneGameAttempt")
@@ -1816,8 +1820,17 @@ abstract class Campaign(game: Game) : Task(game) {
         }
 
         if (mustRestBeforeSummer && (date.year == DateYear.CLASSIC || date.year == DateYear.SENIOR) && date.month == DateMonth.JUNE && date.phase == DatePhase.LATE) {
-            MessageLog.i(TAG, "[INFO] Forcing rest during $date in preparation for Summer Training.")
-            return MainScreenAction.REST
+            if (trainee.energy < 70) {
+                MessageLog.i(TAG, "[INFO] Energy is low (${trainee.energy}% < 70%). Forcing rest during $date in preparation for Summer Training.")
+                return MainScreenAction.REST
+            } else if (trainee.mood < Mood.GREAT) {
+                MessageLog.i(TAG, "[INFO] Energy is sufficient (>= 70%) but Mood is not Great (${trainee.mood}). Forcing mood recovery during $date in preparation for Summer Training.")
+                return MainScreenAction.RECOVER_MOOD
+            } else {
+                MessageLog.i(TAG, "[INFO] Energy is sufficient (>= 70%) and mood is Great. Performing Wit training during $date in preparation for Summer Training.")
+                bForcedWitTraining = true
+                return MainScreenAction.TRAIN
+            }
         }
 
         val isRacingRequirementActive = racing.hasFanRequirement || racing.hasTrophyRequirement
@@ -1860,6 +1873,15 @@ abstract class Campaign(game: Game) : Task(game) {
      * @return True if the action was executed successfully, false otherwise.
      */
     open fun executeAction(action: MainScreenAction, bIsScheduledRaceDay: Boolean): Boolean {
+        // Force Wit Training if requested by the pre-summer logic.
+        if (action == MainScreenAction.TRAIN && bForcedWitTraining) {
+            MessageLog.i(TAG, "[INFO] Executing forced Wit training as requested by pre-summer logic.")
+            training.executeTraining(StatName.WIT)
+            bForcedWitTraining = false
+            bHasCheckedDateThisTurn = false
+            return true
+        }
+
         val sourceBitmap = game.imageUtils.getSourceBitmap()
 
         when (action) {
