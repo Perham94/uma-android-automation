@@ -26,6 +26,7 @@ import com.steve1316.uma_android_automation.components.DialogInterface
 import com.steve1316.uma_android_automation.components.DialogUtils
 import com.steve1316.uma_android_automation.components.IconGoalRibbon
 import com.steve1316.uma_android_automation.components.IconRaceDayRibbon
+import com.steve1316.uma_android_automation.components.IconTazuna
 import com.steve1316.uma_android_automation.components.IconTrainingEventHorseshoe
 import com.steve1316.uma_android_automation.components.IconUnityCupTutorialHeader
 import com.steve1316.uma_android_automation.components.LabelScheduledRace
@@ -623,7 +624,7 @@ class Trackblazer(game: Game) : Campaign(game) {
     }
 
     override fun checkCampaignSpecificConditions(): Boolean {
-        if (ButtonTrainingItems.check(game.imageUtils)) {
+        if (IconTazuna.check(game.imageUtils) && ButtonTrainingItems.check(game.imageUtils)) {
             MessageLog.i(TAG, "[TRACKBLAZER] Bot is at the Shop screen. Initiating buying process.")
             buyItems()
             return true
