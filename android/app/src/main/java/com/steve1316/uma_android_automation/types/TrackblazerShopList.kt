@@ -417,12 +417,16 @@ class TrackblazerShopList(private val game: Game) {
         val successfullyUsed = mutableListOf<Pair<String, String>>()
         if (itemsToUse.isEmpty()) return successfullyUsed
 
+        val requiredCounts = itemsToUse.groupingBy { it }.eachCount()
+
         if (scannedItems != null) {
             MessageLog.i(TAG, "[INFO] Using pre-scanned items for specific item usage.")
             val tempScanned = scannedItems.toMutableList()
             for (name in itemsToUse) {
-                // If we already used this name and aren't using all, skip to the next name.
-                if (!bUseAll && successfullyUsed.any { it.first == name }) continue
+                // If we already used this name and aren't using all, skip to the next name if the requirement is met.
+                val currentUsed = successfullyUsed.count { it.first == name }
+                val needed = requiredCounts[name] ?: 0
+                if (!bUseAll && currentUsed >= needed) continue
 
                 // If using all, find all available instances of this name in the pre-scanned list.
                 while (true) {
@@ -439,8 +443,8 @@ class TrackblazerShopList(private val game: Game) {
                             // Remove from temp list so we don't try to use the same instance twice.
                             tempScanned.removeAt(itemIndex)
 
-                            // Exit early if we only wanted to use one item.
-                            if (!bUseAll) break
+                            // Exit early if we only wanted to use as many as were in the list.
+                            if (!bUseAll && successfullyUsed.count { it.first == name } >= (requiredCounts[name] ?: 0)) break
                         } else {
                             break
                         }
@@ -448,11 +452,12 @@ class TrackblazerShopList(private val game: Game) {
                         break
                     }
                 }
-                // Stop early if we only wanted one item in total and we got it.
-                if (!bUseAll && successfullyUsed.isNotEmpty()) break
+                // Stop early if we satisfy every count requirement in itemsToUse.
+                if (!bUseAll && requiredCounts.all { (name, count) -> successfullyUsed.count { it.first == name } >= count }) break
             }
         } else {
             val itemNameMapInUse = mutableMapOf<Int, String>()
+            val handledItems = mutableSetOf<String>()
             processItemsWithFallback(
                 keyExtractor = { entry ->
                     val name = getShopItemName(entry, isEntryDisabled(entry.bitmap))
@@ -463,42 +468,55 @@ class TrackblazerShopList(private val game: Game) {
                 val isDisabled = isEntryDisabled(entry.bitmap)
                 val itemName = itemNameMapInUse[entry.index] ?: getShopItemName(entry, isDisabled)
 
-                if (itemName != null && itemsToUse.contains(itemName) && !isDisabled) {
-                    // If bUseAll is true, click until the button is disabled or we hit a reasonable limit.
-                    var clicks = 0
-                    while (true) {
-                        // Update individual log to include the item's effect or the explicit reason.
-                        val useReason = reason ?: shopItems[itemName]?.effect ?: "No reason provided"
-                        val logPrefix = if (bUseAll) "[TRACKBLAZER] Queuing item for use (copy ${clicks + 1}):" else "[TRACKBLAZER] Queuing specific item for use:"
-                        MessageLog.i(TAG, "$logPrefix \"$itemName\". (Reason: $useReason)")
+                if (itemName != null && requiredCounts.containsKey(itemName)) {
+                    // Mark as handled even if disabled, so we know we've encountered this item row.
+                    handledItems.add(itemName)
 
-                        // Re-check for disabled state after clicks if bUseAll is active.
-                        val bitmapToUse: Bitmap =
-                            if (clicks > 0) {
-                                val source = game.imageUtils.getSourceBitmap()
-                                game.imageUtils.createSafeBitmap(source, entry.bbox.x, entry.bbox.y, entry.bbox.w, entry.bbox.h, "recheck item")
+                    if (!isDisabled) {
+                        val currentUsedTotal = successfullyUsed.count { it.first == itemName }
+                        val neededTotal = requiredCounts[itemName] ?: 0
+
+                        // If bUseAll is true, click until the button is disabled or we hit a reasonable limit.
+                        var clicks = 0
+                        while (true) {
+                            // If bUseAll is false, stop if we reached the required count for this item.
+                            if (!bUseAll && (currentUsedTotal + clicks) >= neededTotal) break
+
+                            // Update individual log to include the item's effect or the explicit reason.
+                            val useReason = reason ?: shopItems[itemName]?.effect ?: "No reason provided"
+                            val logPrefix = if (bUseAll) "[TRACKBLAZER] Queuing item for use (copy ${clicks + 1}):" else "[TRACKBLAZER] Queuing specific item for use:"
+                            MessageLog.i(TAG, "$logPrefix \"$itemName\". (Reason: $useReason)")
+
+                            // Re-check for disabled state after clicks if bUseAll or multiple clicks are active.
+                            val bitmapToUse: Bitmap =
+                                if (clicks > 0) {
+                                    val source = game.imageUtils.getSourceBitmap()
+                                    game.imageUtils.createSafeBitmap(source, entry.bbox.x, entry.bbox.y, entry.bbox.w, entry.bbox.h, "recheck item")
+                                } else {
+                                    entry.bitmap
+                                } ?: break
+
+                            if (isEntryDisabled(bitmapToUse)) {
+                                break
+                            }
+
+                            val plusPoint = ButtonSkillUp.findImageWithBitmap(game.imageUtils, bitmapToUse)
+                            if (plusPoint != null) {
+                                game.tap(entry.bbox.x + plusPoint.x, entry.bbox.y + plusPoint.y)
+                                successfullyUsed.add(itemName to useReason)
+                                clicks++
+                                if (clicks >= 5) break
+                                game.wait(0.2)
                             } else {
-                                entry.bitmap
-                            } ?: break
-
-                        if (isEntryDisabled(bitmapToUse)) {
-                            break
-                        }
-
-                        val plusPoint = ButtonSkillUp.findImageWithBitmap(game.imageUtils, bitmapToUse)
-                        if (plusPoint != null) {
-                            game.tap(entry.bbox.x + plusPoint.x, entry.bbox.y + plusPoint.y)
-                            successfullyUsed.add(itemName to useReason)
-                            clicks++
-                            if (!bUseAll || clicks >= 5) break
-                            game.wait(0.2)
-                        } else {
-                            break
+                                break
+                            }
                         }
                     }
                 }
-                // Optimization: Stop the scan early if we found all requested items and aren't using all copies.
-                !bUseAll && itemsToUse.all { item -> successfullyUsed.any { it.first == item } }
+                // Optimization: Stop the scan early if we found and handled (processed or saw disabled) all unique items in itemsToUse.
+                // We allow early exit regardless of bUseAll, as once we've processed an item name's row,
+                // there are no more instances of that item name to find in the list.
+                requiredCounts.keys.all { name -> handledItems.contains(name) }
             }
         }
 

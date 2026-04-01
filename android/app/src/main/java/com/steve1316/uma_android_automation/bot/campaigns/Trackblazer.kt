@@ -1474,8 +1474,8 @@ class Trackblazer(game: Game) : Campaign(game) {
             }
 
             // Early exit if we've seen all items of interest.
-            // We allow early exit even if not synced for the turn yet, provided we had a non-empty cache to start with.
-            if (remainingItemsOfInterest.isEmpty() && (bInventorySynced || currentInventory.isNotEmpty())) {
+            // We only allow early exit if the inventory has already been fully synced.
+            if (remainingItemsOfInterest.isEmpty() && bInventorySynced) {
                 MessageLog.i(TAG, "[TRACKBLAZER] All items of interest processed. Exiting scan early.")
                 wasEarlyExit = true
                 true
