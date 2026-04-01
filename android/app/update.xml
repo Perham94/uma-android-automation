@@ -1,16 +1,27 @@
 <AppUpdater>
   <update>
-    <latestVersion>5.3.7</latestVersion>
+    <latestVersion>5.4.0</latestVersion>
     <url>https://github.com/steve1316/uma-android-automation/releases</url>
     <releaseNotes>
-v5.3.7 - Changelog
+v5.4.0 - Changelog
 
 > Trackblazer support is still fresh off the oven so expect some bugs. Regarding completion times on strong hardware, URA Finale averages 25 minutes, Unity Cup averages 35 minutes and Trackblazer averages 50 minutes.
 
-Fixes
+New
 ---
-- Fix bug where performMiscChecks() does not end if a breakpoint is reached like the `Popup Check`.
-- Fix bug where racing items are not used for the Trackblazer Finale races. This also ensures that at least one highest level `Cleat Hammer` and one `Glow Stick` is available for use in the Finale.
+- Creates a custom tooltip for the action counters in the `Remote Log Viewer` that shows a breakdown of each action for granularity like how many of each grade was done for racing, how many of each stat training was done, etc.
+
+Adjustments
+---
+- Increase height of crop region for failure chance and filter out "Failure" from the OCR result.
+- Add fallback to the previous valid failure chance if it encounters an OCR failure.
+- Stopping manually counts as success instead of an error for the Task.
+- Adjust how long to wait for the item usage animation to finish before closing the "Training Items" dialog.
+- Move OCR settings to pages where they are more aligned with and remove the `OCR Settings` page as it is now unneeded.
+- Remove old migration for the `focusOnSparkStatTarget` setting.
+- Update default stat targets for each distance based on past Champion Meetings. Refer to #251 for changes. Note that the changes are not retroactive so users will need to change them manually.
+- Improve optimization of rest action before Summer training to do mood recovery instead.
+- Optimize Training Event option selection by taking into account current energy and mood levels.
 
     </releaseNotes>
   </update>
