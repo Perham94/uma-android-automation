@@ -317,6 +317,7 @@ object DialogObjects {
             DialogCareerEventDetails,
             DialogCareerProfile,
             DialogChoices,
+            DialogChooseRecreationPartner,
             DialogCompleteCareer,
             DialogConcertSkipConfirmation,
             DialogConfirmAutoSelect,
@@ -573,6 +574,18 @@ object DialogChoices : DialogInterface {
     override val buttons: List<BaseComponentInterface> =
         listOf(
             ButtonClose,
+        )
+}
+
+/** Career */
+object DialogChooseRecreationPartner : DialogInterface {
+    override val name: String = "choose_recreation_partner"
+    override val title: String = "Choose Recreation Partner"
+    override val closeButton: BaseComponentInterface = ButtonCancel
+    override val okButton = null
+    override val buttons: List<BaseComponentInterface> =
+        listOf(
+            ButtonCancel,
         )
 }
 
