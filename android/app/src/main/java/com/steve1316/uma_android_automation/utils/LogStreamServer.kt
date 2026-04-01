@@ -97,16 +97,16 @@ object LogStreamServer {
     private var isPreDebut: Boolean = false
 
     /** Regex pattern to detect the start of a training session. */
-    private val actionTrainingPattern = Pattern.compile("\\[TRAINING] Now starting process to execute training")
+    private val actionTrainingPattern = Pattern.compile("\\[TRAINING] Now starting process to execute (\\w+) training")
 
     /** Regex pattern to detect the completion of a race. */
-    private val actionRacePattern = Pattern.compile("\\[RACE] Racing process for .*? Race.*? is completed", Pattern.CASE_INSENSITIVE)
+    private val actionRacePattern = Pattern.compile("\\[RACE] Racing process for .*? is completed\\. Grade: (.*)", Pattern.CASE_INSENSITIVE)
 
     /** Regex pattern to detect mood recovery. */
-    private val actionMoodPattern = Pattern.compile("Recovering mood now", Pattern.CASE_INSENSITIVE)
+    private val actionMoodPattern = Pattern.compile("\\[MOOD] Successfully recovered mood(?: via (.*))?", Pattern.CASE_INSENSITIVE)
 
     /** Regex pattern to detect successful energy recovery. */
-    private val actionEnergyPattern = Pattern.compile("\\[ENERGY] Successfully recovered energy")
+    private val actionEnergyPattern = Pattern.compile("\\[ENERGY] Successfully recovered energy via (.*)", Pattern.CASE_INSENSITIVE)
 
     /** Regex pattern to detect injury detection and healing attempts. */
     private val actionInjuryPattern = Pattern.compile("\\[INJURY] Injury detected and attempted to heal")
@@ -478,11 +478,49 @@ object LogStreamServer {
      * @return The action name if detected, otherwise null.
      */
     private fun detectAction(text: String): String? {
+        val trainingMatcher = actionTrainingPattern.matcher(text)
+        if (trainingMatcher.find()) {
+            val stat = trainingMatcher.group(1)?.lowercase()?.replaceFirstChar { it.uppercase() } ?: ""
+            return if (stat.isNotEmpty()) "training:$stat" else "training"
+        }
+
+        val raceMatcher = actionRacePattern.matcher(text)
+        if (raceMatcher.find()) {
+            val rawGrade = raceMatcher.group(1)?.trim()?.uppercase() ?: ""
+            val normalizedGrade =
+                when (rawGrade) {
+                    "OP" -> "OP"
+                    "PRE_OP" -> "Pre-OP"
+                    "G1", "G2", "G3" -> rawGrade
+                    else -> rawGrade.lowercase().replaceFirstChar { it.uppercase() }
+                }
+            return if (normalizedGrade.isNotEmpty()) "race:$normalizedGrade" else "race"
+        }
+
+        val moodMatcher = actionMoodPattern.matcher(text)
+        if (moodMatcher.find()) {
+            val type =
+                when (moodMatcher.group(1)?.lowercase()) {
+                    "recreation date" -> "Date"
+                    "summer rest" -> "Summer"
+                    else -> "Recreation"
+                }
+            return "mood:$type"
+        }
+
+        val energyMatcher = actionEnergyPattern.matcher(text)
+        if (energyMatcher.find()) {
+            val type =
+                when (energyMatcher.group(1)?.lowercase()) {
+                    "recreation date" -> "Date"
+                    "summer rest" -> "Summer"
+                    "rest" -> "Rest"
+                    else -> "Rest"
+                }
+            return "energy:$type"
+        }
+
         return when {
-            actionTrainingPattern.matcher(text).find() -> "training"
-            actionRacePattern.matcher(text).find() -> "race"
-            actionMoodPattern.matcher(text).find() -> "mood"
-            actionEnergyPattern.matcher(text).find() -> "energy"
             actionInjuryPattern.matcher(text).find() -> "injury"
             else -> null
         }

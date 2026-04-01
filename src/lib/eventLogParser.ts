@@ -43,6 +43,12 @@ export type DayRecord = {
     timestamp?: number
     /** The name of the trainee detected. */
     traineeName?: string
+    /** The grade of the race if any. */
+    raceGrade?: string
+    /** The type of energy recovery if any. */
+    energyType?: string
+    /** The type of mood recovery if any. */
+    moodType?: string
 }
 
 export type GapRecord = {
@@ -107,8 +113,8 @@ const REGEX = {
     dateFormattedText: /\[DATE\][^\n]*(?:It is currently|New date:)\s+(.+?)\s+(?:\/ Turn Number|\(Turn)/i,
     // Extract year from date text: "Junior Year", "Classic Year", or "Senior Year".
     yearExtract: /(Junior|Classic|Senior)\s+Year/i,
-    // Extract training type: "[TRAINING] Executing the Power Training."
-    trainingExecution: /\[TRAINING\]\s+Executing\s+the\s+(\w+)\s+Training/i,
+    // Extract training type: "[TRAINING] Executing the Power Training." or "[TRAINING] Now starting process to execute Power Training."
+    trainingExecution: /\[TRAINING\]\s+(?:Executing\s+the|Now\s+starting\s+process\s+to\s+execute)\s+(\w+)\s+Training/i,
     // Extract stat gains: "[INFO] Speed Training stat gains: [14, 0, 6, 0, 0]"
     // New Example: "SPEED Training: stats={SPEED=10, STAMINA=0, POWER=6, GUTS=0, WIT=0}"
     trainingStatGains:
@@ -151,19 +157,19 @@ function matchesLine(line: string, matcher: LineMatcher): boolean {
 const MATCHERS: Record<ActionKey, LineMatcher> = {
     training: {
         substr: ["Process to execute training completed", " stat gains: [", "[TRAINING] Executing the ", " with a focus on building relationship bars"],
-        regex: [/\[TRAINING\] Now starting process to execute training/i],
+        regex: [/\[TRAINING\] Now starting process to execute (?:\w+\s+)?training/i],
     },
     race: {
-        substr: ["Racing process for Mandatory Race is completed", "Racing process for Extra Race is completed", "Racing process for Extra Race (scheduled) is completed"],
-        regex: [/\[RACE\] Racing process for .*? Race.*? is completed/i],
+        substr: ["Racing process for ", " is completed. Grade: "],
+        regex: [/\[RACE\] Racing process for .*? is completed\. Grade: ([\w\-]+)/i],
     },
     energy: {
-        substr: ["Successfully recovered energy"],
-        regex: [/\[ENERGY\] Successfully recovered energy/i],
+        substr: ["Successfully recovered energy via "],
+        regex: [/\[ENERGY\] Successfully recovered energy via (.*?)(\.|$)/i],
     },
     mood: {
-        substr: ["Recovering mood now"],
-        regex: [/Recovering mood now/i],
+        substr: ["Successfully recovered mood"],
+        regex: [/\[MOOD\] Successfully recovered mood(?: via (.*?)(\.|$))?/i],
     },
     injury: {
         substr: ["Injury detected and attempted to heal"],
@@ -184,17 +190,48 @@ function sanitizeSummary(text?: string): string {
 
 /**
  * Composes a summary for a day based on the actions that occurred.
- * @param actions The actions that occurred on the day.
+ * @param day The day data containing actions and granular types.
  * @param firstNotable The first notable action that occurred on the day.
  * @returns The summary for the day.
  */
-function composeSummary(actions: DayActions, firstNotable?: string): string {
+function composeSummary(
+    day: {
+        actions: DayActions
+        trainingType?: string
+        raceGrade?: string
+        energyType?: string
+        moodType?: string
+    },
+    firstNotable?: string
+): string {
     const labels: string[] = []
-    if (actions.training) labels.push("Training")
-    if (actions.race) labels.push("Race")
-    if (actions.energy) labels.push("Recover Energy")
-    if (actions.mood) labels.push("Recover Mood")
-    if (actions.injury) labels.push("Recover Injury")
+
+    if (day.actions.training) {
+        labels.push(day.trainingType ? `${day.trainingType} Training` : "Training")
+    }
+    if (day.actions.race) {
+        labels.push(day.raceGrade ? `${day.raceGrade} Race` : "Race")
+    }
+    if (day.actions.energy) {
+        // Normalize energy types for clarity.
+        let type = day.energyType ? day.energyType.trim().toLowerCase() : ""
+        if (type === "summer rest") type = "Summer"
+        else if (type === "recreation date") type = "Date"
+        else if (type === "rest") type = "Rest"
+        else if (type) type = type.charAt(0).toUpperCase() + type.slice(1)
+
+        labels.push(type ? `Recover Energy (${type})` : "Recover Energy")
+    }
+    if (day.actions.mood) {
+        // Normalize mood types for clarity.
+        let type = day.moodType ? day.moodType.trim().toLowerCase() : ""
+        if (type === "recreation date") type = "Date"
+        else if (type) type = type.charAt(0).toUpperCase() + type.slice(1)
+
+        labels.push(type ? `Recover Mood (${type})` : "Recover Mood")
+    }
+    if (day.actions.injury) labels.push("Recover Injury")
+
     if (labels.length > 0) {
         return labels.join(" + ")
     }
@@ -250,6 +287,9 @@ export function parseLogs(files: LogFileInput[]): ParseResult {
             ended?: boolean // True if day ended with [END] or "Now saving Message Log".
             timestamp?: number // Timestamp in milliseconds from file start.
             traineeName?: string // The name of the trainee.
+            raceGrade?: string // The grade of the race.
+            energyType?: string // The type of energy recovery.
+            moodType?: string // The type of mood recovery.
         }
     >()
 
@@ -362,6 +402,9 @@ export function parseLogs(files: LogFileInput[]): ParseResult {
                             ended: false,
                             timestamp: lineTimestamp,
                             traineeName: fileTraineeName,
+                            raceGrade: undefined,
+                            energyType: undefined,
+                            moodType: undefined,
                         })
                     } else {
                         const existingDay = dayMap.get(currentDay)!
@@ -452,9 +495,24 @@ export function parseLogs(files: LogFileInput[]): ParseResult {
             }
 
             for (const key of ACTION_KEYS) {
-                if (matchesLine(line, MATCHERS[key])) {
+                const matcher = MATCHERS[key]
+                if (matchesLine(line, matcher)) {
                     day.actions[key] = true
                     day.triggers[key].push(line)
+
+                    // Extract granular details if available via regex.
+                    if (matcher.regex) {
+                        for (const r of matcher.regex) {
+                            const m = line.match(r)
+                            if (m && m[1]) {
+                                if (key === "race") day.raceGrade = m[1].trim()
+                                if (key === "energy") day.energyType = m[1].trim()
+                                if (key === "mood") day.moodType = m[1].trim()
+                                break
+                            }
+                        }
+                    }
+
                     if (!day.firstNotable && (key === "training" || key === "race")) {
                         day.firstNotable = line.trim()
                     }
@@ -493,7 +551,7 @@ export function parseLogs(files: LogFileInput[]): ParseResult {
             kind: "day",
             dayNumber: d,
             dateText: entry.dateText,
-            summary: composeSummary(entry.actions, entry.firstNotable),
+            summary: composeSummary(entry, entry.firstNotable),
             actions: entry.actions,
             fileName: entry.fileName,
             triggers: entry.triggers,
@@ -502,6 +560,9 @@ export function parseLogs(files: LogFileInput[]): ParseResult {
             trainingStatGains: entry.trainingStatGains,
             timestamp: entry.timestamp,
             traineeName: entry.traineeName,
+            raceGrade: entry.raceGrade,
+            energyType: entry.energyType,
+            moodType: entry.moodType,
         })
         prevDay = d
         prevFileName = entry.fileName
