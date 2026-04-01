@@ -1309,7 +1309,14 @@ class Racing(private val game: Game, private val campaign: Campaign) {
                             retriesThisRace++
                             raceRetries--
                         }
-                    } else if (lastRaceIsRival && !bRetriedCurrentRace && raceRetries > 0 && retriesThisRace < maxRetriesPerRace && ButtonTryAgainAlt.checkDisabled(game.imageUtils) == false) {
+                    } else if (lastRaceIsRival &&
+                        lastRaceGrade != null &&
+                        trackblazerRetryGrades.contains(lastRaceGrade) &&
+                        !bRetriedCurrentRace &&
+                        raceRetries > 0 &&
+                        retriesThisRace < maxRetriesPerRace &&
+                        ButtonTryAgainAlt.checkDisabled(game.imageUtils) == false
+                    ) {
                         // Trackblazer Rival Race retry logic: retry once then stop.
                         MessageLog.i(TAG, "[TRACKBLAZER] Rival Race retry button is available. Retrying once...")
                         bRetriedCurrentRace = true
@@ -1343,6 +1350,8 @@ class Racing(private val game: Game, private val campaign: Campaign) {
 
                 game.scenario == "Trackblazer" &&
                     lastRaceIsRival &&
+                    lastRaceGrade != null &&
+                    trackblazerRetryGrades.contains(lastRaceGrade) &&
                     !bRetriedCurrentRace &&
                     raceRetries > 0 &&
                     retriesThisRace < maxRetriesPerRace &&

@@ -282,7 +282,7 @@ class Trackblazer(game: Game) : Campaign(game) {
     // //////////////////////////////////////////////////////////////////////////////////////////////////
 
     override fun handleDialogs(dialog: DialogInterface?, args: Map<String, Any>): DialogHandlerResult {
-        val result: DialogHandlerResult = super.handleDialogs(dialog, args + mapOf("dialogNameToDefer" to "consecutive_race_warning"))
+        val result: DialogHandlerResult = super.handleDialogs(dialog, args + mapOf("dialogNamesToDefer" to listOf("consecutive_race_warning", "try_again")))
 
         // Extract dialog name if result has one.
         val dialogName =
@@ -296,7 +296,7 @@ class Trackblazer(game: Game) : Campaign(game) {
         if (result !is DialogHandlerResult.Unhandled) {
             // Only handle successful results that are NOT the consecutive race warning,
             // as we want to apply Trackblazer-specific logic for that one.
-            if (dialogName != "consecutive_race_warning") {
+            if (dialogName != "consecutive_race_warning" && dialogName != "try_again") {
                 return result
             }
         }
@@ -467,22 +467,21 @@ class Trackblazer(game: Game) : Campaign(game) {
 
             "try_again" -> {
                 // Specialized Trackblazer retry logic.
-                if (racing.lastRaceIsRival && !racing.bRetriedCurrentRace) {
-                    MessageLog.i(TAG, "[TRACKBLAZER] Rival Race retry button is available. Retrying once.")
-                    racing.bRetriedCurrentRace = true
-                    if (detectedDialog.ok(game.imageUtils)) {
-                        game.wait(1.0)
+                if (racing.lastRaceGrade != null && racing.trackblazerRetryGrades.contains(racing.lastRaceGrade) && racing.raceRetries >= 0) {
+                    if (racing.lastRaceIsRival && !racing.bRetriedCurrentRace) {
+                        MessageLog.i(TAG, "[TRACKBLAZER] ${racing.lastRaceGrade} Rival Race retry button is available. Retrying once.")
+                        racing.bRetriedCurrentRace = true
+                    } else {
+                        MessageLog.i(TAG, "[TRACKBLAZER] ${racing.lastRaceGrade} race retry button is available. Retrying.")
                     }
-                    return DialogHandlerResult.Handled(detectedDialog)
-                } else if (racing.lastRaceGrade != null && racing.trackblazerRetryGrades.contains(racing.lastRaceGrade) && racing.raceRetries >= 0) {
-                    MessageLog.i(TAG, "[TRACKBLAZER] ${racing.lastRaceGrade} race retry button is available. Retrying.")
+
                     racing.raceRetries--
                     if (detectedDialog.ok(game.imageUtils)) {
                         game.wait(1.0)
                     }
                     return DialogHandlerResult.Handled(detectedDialog)
                 } else {
-                    MessageLog.w(TAG, "[WARN] handleDialogs:: No retries remaining for this race. Closing dialog.")
+                    MessageLog.w(TAG, "[WARN] handleDialogs:: No retries remaining or G1/G2/G3/Rival race conditions not met. Closing dialog.")
                     detectedDialog.close(game.imageUtils)
                     return DialogHandlerResult.Handled(detectedDialog)
                 }
