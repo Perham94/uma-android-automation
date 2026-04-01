@@ -171,9 +171,9 @@ abstract class Task(game: Game) : DialogHandler(game) {
                 }
             } catch (e: InterruptedException) {
                 result =
-                    TaskResult.Error(
-                        TaskResultCode.TASK_RESULT_UNHANDLED_EXCEPTION,
-                        e.message ?: "Unhandled exception. Stopping bot...",
+                    TaskResult.Success(
+                        TaskResultCode.TASK_RESULT_MANUALLY_STOPPED,
+                        "Bot was manually stopped by the user.",
                     )
                 break
             }
