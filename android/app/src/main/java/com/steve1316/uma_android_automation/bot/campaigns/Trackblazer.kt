@@ -359,13 +359,18 @@ class Trackblazer(game: Game) : Campaign(game) {
                     shopCheckCounter = 0
                     bInitialShopCheckPerformed = true
 
+                    game.wait(0.5)
+                    buyItems()
                     return DialogHandlerResult.Handled(detectedDialog)
                 } else {
                     MessageLog.e(TAG, "[ERROR] handleDialogs:: Failed to click the OK button on the Shop dialog.")
                     return DialogHandlerResult.Unhandled(detectedDialog)
                 }
+            }
 
-                buyItems()
+            "training_items" -> {
+                MessageLog.i(TAG, "[TRACKBLAZER] Training Items dialog detected. Closing it as it is not currently being handled by a specific process.")
+                detectedDialog.close(game.imageUtils)
             }
 
             "consecutive_race_warning" -> {
