@@ -527,7 +527,7 @@ class TrainingEvent(private val game: Game, private val campaign: Campaign) {
 
                             var priorityStatCheck = false
                             if (line.lowercase().contains("can start dating")) {
-                                selectionWeight[rewardIndex] += 100
+                                selectionWeight[rewardIndex] += 1000
                             } else if (line.lowercase().contains("event chain ended")) {
                                 selectionWeight[rewardIndex] += -300
                             } else if (line.lowercase().contains("(random)")) {
