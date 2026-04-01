@@ -52,15 +52,42 @@ export const applyMigrations = (settings: Settings): { settings: Settings; anyMi
     let anyMigrated = false
     let migratedSettings = settings
 
-    // Migration: focusOnSparkStatTarget from boolean to string array format.
-    const focusOnSparkStatTargetValue = migratedSettings.training?.focusOnSparkStatTarget
-    if (typeof focusOnSparkStatTargetValue === "boolean") {
-        migratedSettings.training.focusOnSparkStatTarget = focusOnSparkStatTargetValue ? ["Speed", "Stamina", "Power"] : []
+    // Migration: Move Training Event specific OCR settings to trainingEvent category.
+    const ocr = (migratedSettings as any).ocr
+    const debug = (migratedSettings as any).debug
+
+    if (ocr?.ocrConfidence !== undefined) {
+        migratedSettings.trainingEvent.ocrConfidence = ocr.ocrConfidence
+        delete ocr.ocrConfidence
         anyMigrated = true
-        logWithTimestamp("[SettingsManager] Migrated focusOnSparkStatTarget from boolean to array format.")
+        logWithTimestamp("[SettingsManager] Migrated ocrConfidence to trainingEvent category.")
     }
 
-    // Add future migrations here.
+    if (ocr?.enableAutomaticOCRRetry !== undefined) {
+        migratedSettings.trainingEvent.enableAutomaticOCRRetry = ocr.enableAutomaticOCRRetry
+        delete ocr.enableAutomaticOCRRetry
+        anyMigrated = true
+        logWithTimestamp("[SettingsManager] Migrated enableAutomaticOCRRetry to trainingEvent category.")
+    }
+
+    if (debug?.enableHideOCRComparisonResults !== undefined) {
+        migratedSettings.trainingEvent.enableHideOCRComparisonResults = debug.enableHideOCRComparisonResults
+        delete debug.enableHideOCRComparisonResults
+        anyMigrated = true
+        logWithTimestamp("[SettingsManager] Migrated enableHideOCRComparisonResults to trainingEvent category.")
+    }
+
+    if (ocr?.ocrThreshold !== undefined) {
+        migratedSettings.debug.ocrThreshold = ocr.ocrThreshold
+        delete ocr.ocrThreshold
+        anyMigrated = true
+        logWithTimestamp("[SettingsManager] Migrated ocrThreshold to debug category.")
+    }
+
+    // After moving all OCR settings, delete the empty ocr object.
+    if (migratedSettings && (migratedSettings as any).ocr && Object.keys((migratedSettings as any).ocr).length === 0) {
+        delete (migratedSettings as any).ocr
+    }
 
     return { settings: migratedSettings, anyMigrated }
 }
