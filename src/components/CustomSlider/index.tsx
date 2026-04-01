@@ -42,6 +42,8 @@ interface CustomSliderProps {
     searchCondition?: boolean
     /** Optional ID of the parent searchable item for hierarchical search. */
     parentId?: string
+    /** Optional NativeWind class name. */
+    className?: string
     /** Optional children rendered below the slider. */
     children?: React.ReactNode
 }
@@ -88,6 +90,7 @@ const CustomSlider: React.FC<CustomSliderProps> = ({
     searchDescription,
     searchCondition,
     parentId,
+    className = "",
     children,
 }) => {
     const { colors } = useTheme()
@@ -342,7 +345,7 @@ const CustomSlider: React.FC<CustomSliderProps> = ({
     }
 
     const content = (
-        <View style={[styles.container, style]}>
+        <View className={className} style={[styles.container, style]}>
             {label && <Text style={styles.label}>{label}</Text>}
             {description && <Text style={styles.descriptionText}>{description}</Text>}
 
