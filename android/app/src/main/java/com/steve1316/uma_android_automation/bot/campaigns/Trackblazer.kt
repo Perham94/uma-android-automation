@@ -1022,14 +1022,15 @@ class Trackblazer(game: Game) : Campaign(game) {
 
         // Lengthy delay here for the animation to finish.
         // We increase the delay by a second for each additional item to be used after 3 items.
-        val animationDelay = if (itemsUsedCount > 3) 5.0 + (itemsUsedCount - 3) else 5.0
+        val animationDelay = if (itemsUsedCount > 3) 3.0 + (itemsUsedCount - 3) else 3.0
         MessageLog.i(TAG, "[TRACKBLAZER] Waiting for animation to finish (Delay: $animationDelay seconds).")
         game.wait(animationDelay)
 
         // Finalize by closing the dialog.
         MessageLog.i(TAG, "[TRACKBLAZER] Closing training items dialog.")
-        if (ButtonClose.click(game.imageUtils, tries = 50)) {
-            game.wait(game.dialogWaitDelay)
+        if (ButtonClose.check(game.imageUtils, tries = 50)) {
+            game.wait(0.5)
+            ButtonClose.click(game.imageUtils)
         }
 
         // Clear the training analysis cache so that the bot re-evaluates the training options if it re-enters the training screen.
