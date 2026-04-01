@@ -926,7 +926,6 @@ class Trackblazer(game: Game) : Campaign(game) {
         if (filteredPriorityList.isEmpty()) {
             MessageLog.v(TAG, getInventorySummary(withDividers = true))
         } else if (bDryRun) {
-            MessageLog.i(TAG, "[TEST] Dry Run: Identified items that would be bought: ${filteredPriorityList.joinToString(", ")}")
             shopList.buyItems(filteredPriorityList, shopCoins, inventoryLimits, bDryRun = true, bForcePurchase = bForcePurchase)
             return
         }

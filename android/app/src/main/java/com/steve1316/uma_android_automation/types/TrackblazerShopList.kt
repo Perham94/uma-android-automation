@@ -810,7 +810,6 @@ class TrackblazerShopList(private val game: Game) {
         // Step 2: Calculation & Summary Phase.
         // Determine which items from the priority list are available and affordable.
         val itemsToBuy = mutableListOf<Triple<String, Int, ScrollListEntry>>()
-        val skippedItemsReasons = mutableMapOf<String, String>()
 
         // If in Force Purchase mode and current coins is 0, we assume OCR failure and proceed with a high sacrificial value for calculation.
         val effectiveCoins = if (bForcePurchase && currentCoins == 0) 9999 else currentCoins
@@ -835,11 +834,9 @@ class TrackblazerShopList(private val game: Game) {
                         tempAvailable.removeAt(availableIndex)
                         boughtCount++
                     } else {
-                        skippedItemsReasons[item] = "Too expensive ($price required, but only $remainingCoinsAfterProposed left)"
                         break
                     }
                 } else {
-                    skippedItemsReasons[item] = if (boughtCount == 0) "Not found in shop" else "No more instances found in shop"
                     break
                 }
             }
@@ -858,8 +855,7 @@ class TrackblazerShopList(private val game: Game) {
         }
 
         if (availableInShop.isNotEmpty()) {
-            sb.appendLine("Identified ${availableInShop.size} items in shop.")
-            // Log the names of all identified items in the shop.
+            sb.appendLine("Identified ${availableInShop.size} items that are able to be purchased. Current coins: $currentCoins.")
             sb.appendLine("Items found:")
             sb.appendLine("")
             availableInShop.forEach { (name, _, _) ->
@@ -883,16 +879,7 @@ class TrackblazerShopList(private val game: Game) {
             sb.appendLine("")
         }
 
-        if (itemsToBuy.isEmpty()) {
-            sb.appendLine("No items from the filtered priority list will be bought. Current coins: $currentCoins.")
-            if (skippedItemsReasons.isNotEmpty()) {
-                sb.appendLine("Evaluation reasons for first 10 priority items:")
-                priorityList.take(10).forEach { item ->
-                    val reason = skippedItemsReasons[item] ?: "Eligible but somehow skipped"
-                    sb.appendLine("  - $item: $reason")
-                }
-            }
-        } else {
+        if (itemsToBuy.isNotEmpty()) {
             // Log each item planned to be bought.
             sb.appendLine("Items to buy:")
             sb.appendLine("")
