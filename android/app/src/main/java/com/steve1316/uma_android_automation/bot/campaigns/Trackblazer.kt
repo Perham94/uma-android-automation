@@ -970,6 +970,7 @@ class Trackblazer(game: Game) : Campaign(game) {
             if (ankleWeight != null) priorityList.add(ankleWeight)
         }
         priorityList.add("Coaching Megaphone")
+        priorityList.add("Reset Whistle")
 
         // 5. Heal Bad Conditions (Non-priority ones, limit 1 logic is handled in buyItems()).
         priorityList.add("Fluffy Pillow")
@@ -991,9 +992,15 @@ class Trackblazer(game: Game) : Campaign(game) {
             priorityList.add(trainingApp)
         }
 
-        // 7. Lowest Priority Energy.
+        // 7. Other Energy Items.
         priorityList.add("Energy Drink MAX")
         priorityList.add("Energy Drink MAX EX")
+
+        // 8. Good Condition Items
+        priorityList.add("Pretty Mirror")
+        priorityList.add("Reporter's Binoculars")
+        priorityList.add("Master Practice Guide")
+        priorityList.add("Scholar's Hat")
 
         return priorityList
     }
