@@ -1141,6 +1141,60 @@
                     min-width: 140px;
                 }
             }
+
+            /* Custom Tooltip */
+            .custom-tooltip {
+                position: fixed;
+                background: rgba(18, 18, 26, 0.95);
+                backdrop-filter: blur(8px);
+                -webkit-backdrop-filter: blur(8px);
+                border: 1px solid rgba(108, 140, 255, 0.3);
+                border-radius: 8px;
+                padding: 10px 14px;
+                color: var(--text-primary);
+                font-size: 12px;
+                pointer-events: none;
+                opacity: 0;
+                transform: translateY(10px);
+                transition: opacity 0.2s ease, transform 0.2s ease;
+                z-index: 10000;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+                max-width: 250px;
+            }
+            .custom-tooltip.visible {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            .tooltip-title {
+                font-weight: 700;
+                color: var(--accent-blue);
+                margin-bottom: 6px;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                font-size: 11px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                padding-bottom: 4px;
+            }
+            .tooltip-content {
+                line-height: 1.5;
+            }
+            .tooltip-row {
+                display: flex;
+                justify-content: space-between;
+                gap: 20px;
+                margin-bottom: 2px;
+            }
+            .tooltip-row:last-child {
+                margin-bottom: 0;
+            }
+            .tooltip-label {
+                color: var(--text-muted);
+            }
+            .tooltip-value {
+                font-family: var(--font-mono);
+                font-weight: 600;
+                color: var(--text-primary);
+            }
         </style>
     </head>
     <body>
@@ -1268,23 +1322,23 @@
                     </div>
                     <!-- Session Action Counters -->
                     <div class="stats-container session-stats">
-                        <div class="stat-box" title="Training">
+                        <div class="stat-box" onmouseenter="showTrainingTooltip(event)" onmouseleave="hideTooltip()">
                             <div class="stat-label">TRN</div>
                             <div id="countTraining" class="stat-value">0</div>
                         </div>
-                        <div class="stat-box" title="Racing">
+                        <div class="stat-box" onmouseenter="showRaceTooltip(event)" onmouseleave="hideTooltip()">
                             <div class="stat-label">RCE</div>
                             <div id="countRace" class="stat-value">0</div>
                         </div>
-                        <div class="stat-box" title="Injury Recovery">
+                        <div class="stat-box" onmouseenter="showSimpleTooltip(event, 'Injury Recovery')" onmouseleave="hideTooltip()">
                             <div class="stat-label">INJ</div>
                             <div id="countInjury" class="stat-value">0</div>
                         </div>
-                        <div class="stat-box" title="Mood Recovery">
+                        <div class="stat-box" onmouseenter="showMoodTooltip(event)" onmouseleave="hideTooltip()">
                             <div class="stat-label">MOD</div>
                             <div id="countMood" class="stat-value">0</div>
                         </div>
-                        <div class="stat-box" title="Energy Recovery">
+                        <div class="stat-box" onmouseenter="showEnergyTooltip(event)" onmouseleave="hideTooltip()">
                             <div class="stat-label">ENG</div>
                             <div id="countEnergy" class="stat-value">0</div>
                         </div>
@@ -1391,6 +1445,182 @@
 
         <script>
             // ==============================================
+            // Tooltip UI
+            // ==============================================
+            const tooltip = document.createElement("div")
+            tooltip.id = "tooltip"
+            tooltip.className = "custom-tooltip"
+            document.body.appendChild(tooltip)
+
+            /**
+             * Shows the custom tooltip with the given content.
+             */
+            function showTooltip(event, title, content) {
+                const target = event.currentTarget
+                let html = `<div class="tooltip-title">${title}</div>`
+                html += `<div class="tooltip-content">${content}</div>`
+                
+                tooltip.innerHTML = html
+                tooltip.classList.add("visible")
+                
+                updateTooltipPosition(event)
+            }
+
+            /**
+             * Hides the custom tooltip.
+             */
+            function hideTooltip() {
+                tooltip.classList.remove("visible")
+            }
+
+            /**
+             * Shows a specific tooltip for the training action counter.
+             */
+            function showTrainingTooltip(event) {
+                let content = '<div style="display: flex; flex-direction: column; gap: 4px;">'
+                const stats = ["Speed", "Stamina", "Power", "Guts", "Wit"]
+                
+                stats.forEach(stat => {
+                    const count = trainingBreakdown[stat] || 0
+                    content += `
+                        <div class="tooltip-row">
+                            <span class="tooltip-label">${stat}</span>
+                            <span class="tooltip-value">${count}</span>
+                        </div>`
+                })
+                
+                content += "</div>"
+                showTooltip(event, "Training Breakdown", content)
+            }
+
+            /**
+             * Shows a simple title/count tooltip for other action counters.
+             */
+            function showSimpleTooltip(event, title) {
+                const count = event.currentTarget.querySelector(".stat-value").textContent
+                const content = `
+                    <div class="tooltip-row">
+                        <span class="tooltip-label">Total actions</span>
+                        <span class="tooltip-value">${count}</span>
+                    </div>`
+                showTooltip(event, title, content)
+            }
+
+            /**
+             * Shows a specific tooltip for the race action counter.
+             */
+            function showRaceTooltip(event) {
+                let content = '<div style="display: flex; flex-direction: column; gap: 4px;">'
+                const grades = ["Finale", "G1", "G2", "G3", "OP", "Pre-OP", "Maiden", "Mandatory", "Standalone"]
+                
+                let found = false
+                grades.forEach(grade => {
+                    const count = raceBreakdown[grade] || 0
+                    if (count > 0) {
+                        found = true
+                        content += `
+                            <div class="tooltip-row">
+                                <span class="tooltip-label">${grade}</span>
+                                <span class="tooltip-value">${count}</span>
+                            </div>`
+                    }
+                })
+                
+                // Show "Other" if there are any unrecognized grades.
+                let otherCount = 0
+                for (const [grade, count] of Object.entries(raceBreakdown)) {
+                    if (!grades.includes(grade) && count > 0) {
+                        otherCount += count
+                    }
+                }
+                if (otherCount > 0) {
+                    found = true
+                    content += `
+                        <div class="tooltip-row">
+                            <span class="tooltip-label">Other</span>
+                            <span class="tooltip-value">${otherCount}</span>
+                        </div>`
+                }
+                
+                if (!found) {
+                    content += '<div class="tooltip-row"><span class="tooltip-label">No races yet</span></div>'
+                }
+                
+                content += "</div>"
+                showTooltip(event, "Race Grade Breakdown", content)
+            }
+
+            /**
+             * Shows a specific tooltip for the mood recovery action counter.
+             */
+            function showMoodTooltip(event) {
+                let content = '<div style="display: flex; flex-direction: column; gap: 4px;">'
+                const types = ["Recreation", "Date", "Summer"]
+                
+                types.forEach(type => {
+                    const count = moodBreakdown[type] || 0
+                    content += `
+                        <div class="tooltip-row">
+                            <span class="tooltip-label">${type}</span>
+                            <span class="tooltip-value">${count}</span>
+                        </div>`
+                })
+                
+                content += "</div>"
+                showTooltip(event, "Mood Recovery Breakdown", content)
+            }
+
+            /**
+             * Shows a specific tooltip for the energy recovery action counter.
+             */
+            function showEnergyTooltip(event) {
+                let content = '<div style="display: flex; flex-direction: column; gap: 4px;">'
+                const types = ["Rest", "Date", "Summer"]
+                
+                types.forEach(type => {
+                    const count = energyBreakdown[type] || 0
+                    content += `
+                        <div class="tooltip-row">
+                            <span class="tooltip-label">${type}</span>
+                            <span class="tooltip-value">${count}</span>
+                        </div>`
+                })
+                
+                content += "</div>"
+                showTooltip(event, "Energy Recovery Breakdown", content)
+            }
+
+            /**
+             * Updates the tooltip position based on the mouse event.
+             */
+            function updateTooltipPosition(event) {
+                const padding = 15
+                let x = event.clientX + padding
+                let y = event.clientY + padding
+                
+                // Keep within viewport.
+                const width = tooltip.offsetWidth
+                const height = tooltip.offsetHeight
+                
+                if (x + width > window.innerWidth) {
+                    x = event.clientX - width - padding
+                }
+                if (y + height > window.innerHeight) {
+                    y = event.clientY - height - padding
+                }
+                
+                tooltip.style.left = x + "px"
+                tooltip.style.top = y + "px"
+            }
+
+            // Also update position on mousemove while visible.
+            document.addEventListener("mousemove", (e) => {
+                if (tooltip.classList.contains("visible")) {
+                    updateTooltipPosition(e)
+                }
+            })
+
+            // ==============================================
             // State
             // ==============================================
             let ws = null
@@ -1405,6 +1635,12 @@
             let reconnectAttempts = 0
             let reconnectInterval = null
             const maxReconnectDelay = 30000
+
+            // Granular breakdowns state.
+            let trainingBreakdown = { Speed: 0, Stamina: 0, Power: 0, Guts: 0, Wit: 0 }
+            let raceBreakdown = { Finale: 0, G1: 0, G2: 0, G3: 0, OP: 0, "Pre-OP": 0, Maiden: 0, Mandatory: 0, Standalone: 0 }
+            let moodBreakdown = { Standard: 0, Date: 0, Summer: 0 }
+            let energyBreakdown = { Rest: 0, Date: 0, Summer: 0 }
 
             // Synchronization state with LogStreamServer.
             let isSyncing = true
@@ -1647,7 +1883,11 @@
                         injury: 0,
                         mood: 0,
                         energy: 0
-                    }
+                    },
+                    trainingBreakdown: { Speed: 0, Stamina: 0, Power: 0, Guts: 0, Wit: 0 },
+                    raceBreakdown: { Finale: 0, G1: 0, G2: 0, G3: 0, OP: 0, "Pre-OP": 0, Maiden: 0, Mandatory: 0, Standalone: 0 },
+                    moodBreakdown: { Standard: 0, Date: 0, Summer: 0 },
+                    energyBreakdown: { Rest: 0, Date: 0, Summer: 0 }
                 }
 
                 parsedMessages.forEach(function (parsed) {
@@ -1708,7 +1948,11 @@
                         injury: 0,
                         mood: 0,
                         energy: 0
-                    }
+                    },
+                    trainingBreakdown: { Speed: 0, Stamina: 0, Power: 0, Guts: 0, Wit: 0 },
+                    raceBreakdown: { Finale: 0, G1: 0, G2: 0, G3: 0, OP: 0, "Pre-OP": 0, Maiden: 0, Mandatory: 0, Standalone: 0 },
+                    moodBreakdown: { Standard: 0, Date: 0, Summer: 0 },
+                    energyBreakdown: { Rest: 0, Date: 0, Summer: 0 }
                 }
                 
                 // allMessages is guaranteed to be in chronological order at this point.
@@ -1910,6 +2154,12 @@
                 document.getElementById("countMood").textContent = "0"
                 document.getElementById("countEnergy").textContent = "0"
 
+                // Reset granular breakdowns.
+                trainingBreakdown = { Speed: 0, Stamina: 0, Power: 0, Guts: 0, Wit: 0 }
+                raceBreakdown = { Finale: 0, G1: 0, G2: 0, G3: 0, OP: 0, "Pre-OP": 0, Maiden: 0, Mandatory: 0, Standalone: 0 }
+                moodBreakdown = { Standard: 0, Date: 0, Summer: 0 }
+                energyBreakdown = { Rest: 0, Date: 0, Summer: 0 }
+
                 // Reset the trainee name display.
                 document.getElementById("dashboardName").textContent = "-"
                 document.getElementById("dashboardEnergy").textContent = "-"
@@ -2069,8 +2319,26 @@
                 const action = parsed.action
                 if (!action) return
 
+                let actionKey = action
+                let subType = null
+
+                if (action.includes(":")) {
+                    const parts = action.split(":")
+                    actionKey = parts[0]
+                    subType = parts[1]
+                }
+
                 if (stateTarget) {
-                    stateTarget.actions[action]++
+                    stateTarget.actions[actionKey]++
+                    if (subType) {
+                        const breakdownKey = actionKey + "Breakdown"
+                        if (stateTarget[breakdownKey]) {
+                            if (!stateTarget[breakdownKey].hasOwnProperty(subType)) {
+                                stateTarget[breakdownKey][subType] = 0
+                            }
+                            stateTarget[breakdownKey][subType]++
+                        }
+                    }
                 } else {
                     const elId = {
                         training: "countTraining",
@@ -2078,10 +2346,27 @@
                         injury: "countInjury",
                         mood: "countMood",
                         energy: "countEnergy"
-                    }[action]
+                    }[actionKey]
+                    
                     if (elId) {
                         const el = document.getElementById(elId)
                         el.textContent = parseInt(el.textContent || "0") + 1
+                    }
+
+                    if (subType) {
+                        const breakdown = {
+                            training: trainingBreakdown,
+                            race: raceBreakdown,
+                            mood: moodBreakdown,
+                            energy: energyBreakdown
+                        }[actionKey]
+                        
+                        if (breakdown) {
+                            if (!breakdown.hasOwnProperty(subType)) {
+                                breakdown[subType] = 0
+                            }
+                            breakdown[subType]++
+                        }
                     }
                 }
             }
@@ -2215,6 +2500,31 @@
                     document.getElementById("countMood").textContent = state.actions.mood
                     document.getElementById("countEnergy").textContent = state.actions.energy
                     document.getElementById("countInjury").textContent = state.actions.injury
+                    
+                    // Batch update training breakdown.
+                    if (state.trainingBreakdown) {
+                        for (const [stat, count] of Object.entries(state.trainingBreakdown)) {
+                            trainingBreakdown[stat] = count
+                        }
+                    }
+                    // Batch update race breakdown.
+                    if (state.raceBreakdown) {
+                        for (const [grade, count] of Object.entries(state.raceBreakdown)) {
+                            raceBreakdown[grade] = count
+                        }
+                    }
+                    // Batch update mood breakdown.
+                    if (state.moodBreakdown) {
+                        for (const [type, count] of Object.entries(state.moodBreakdown)) {
+                            moodBreakdown[type] = count
+                        }
+                    }
+                    // Batch update energy breakdown.
+                    if (state.energyBreakdown) {
+                        for (const [type, count] of Object.entries(state.energyBreakdown)) {
+                            energyBreakdown[type] = count
+                        }
+                    }
                 }
             }
 
