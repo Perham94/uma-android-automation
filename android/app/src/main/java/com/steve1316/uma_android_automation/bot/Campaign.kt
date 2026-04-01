@@ -45,6 +45,7 @@ import com.steve1316.uma_android_automation.components.ButtonTryAgain
 import com.steve1316.uma_android_automation.components.ButtonUnityCupRace
 import com.steve1316.uma_android_automation.components.ComponentInterface
 import com.steve1316.uma_android_automation.components.DialogInterface
+import com.steve1316.uma_android_automation.components.DialogUtils
 import com.steve1316.uma_android_automation.components.IconGoalRibbon
 import com.steve1316.uma_android_automation.components.IconInfirmaryEventHeader
 import com.steve1316.uma_android_automation.components.IconMoodAwful
@@ -881,6 +882,11 @@ abstract class Campaign(game: Game) : Task(game) {
      * @return True if the bot is at the Main screen, false otherwise.
      */
     open fun checkMainScreen(): Boolean {
+        // If there is a dialog on the screen, then we are not directly on the Main screen.
+        if (DialogUtils.check(game.imageUtils)) {
+            return false
+        }
+
         return ButtonHomeFullStats.check(game.imageUtils) && IconTazuna.check(game.imageUtils) && ButtonTraining.check(game.imageUtils)
     }
 
