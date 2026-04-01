@@ -172,7 +172,8 @@ const searchConfig: SearchOption[] = [
     {
         id: "stat-targets-by-distance",
         title: "Stat Targets by Distance",
-        description: "Set target values for each stat based on race distance. The bot will prioritize training stats that are below these targets.",
+        description:
+            "Set target values for each stat based on race distance. These stat targets are derived from past Champion Meetings. The bot will prioritize training stats that are below these targets.",
         page: "TrainingSettings",
     },
 
