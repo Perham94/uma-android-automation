@@ -289,7 +289,7 @@ class TrackblazerShopList(private val game: Game) {
                 game.imageUtils.relY(refPoint.y, -15),
                 game.imageUtils.relWidth(55),
                 game.imageUtils.relHeight(50),
-                useThreshold = true,
+                useThreshold = false,
                 useGrayscale = true,
                 scale = 2.0,
                 ocrEngine = "mlkit",
