@@ -535,7 +535,6 @@ const DebugSettings = () => {
                                 style={{ marginTop: 10 }}
                             />
 
-
                             <CustomCheckbox
                                 searchId="debug-race-list-detection-test"
                                 checked={bsc.settings.debug.debugMode_startRaceListDetectionTest}

@@ -8,7 +8,6 @@ import com.steve1316.automation_library.utils.ImageUtils.ScaleConfidenceResult
 import com.steve1316.automation_library.utils.MessageLog
 import com.steve1316.automation_library.utils.SettingsHelper
 import com.steve1316.uma_android_automation.components.ButtonBack
-import com.steve1316.uma_android_automation.components.ButtonBurger
 import com.steve1316.uma_android_automation.components.ButtonCancel
 import com.steve1316.uma_android_automation.components.ButtonCareerEndSkills
 import com.steve1316.uma_android_automation.components.ButtonChangeRunningStyle
@@ -21,7 +20,6 @@ import com.steve1316.uma_android_automation.components.ButtonHomeFansInfo
 import com.steve1316.uma_android_automation.components.ButtonHomeFullStats
 import com.steve1316.uma_android_automation.components.ButtonInfirmary
 import com.steve1316.uma_android_automation.components.ButtonInheritance
-import com.steve1316.uma_android_automation.components.ButtonLog
 import com.steve1316.uma_android_automation.components.ButtonNext
 import com.steve1316.uma_android_automation.components.ButtonNextRaceEnd
 import com.steve1316.uma_android_automation.components.ButtonOk
@@ -29,41 +27,24 @@ import com.steve1316.uma_android_automation.components.ButtonRaceStrategyEnd
 import com.steve1316.uma_android_automation.components.ButtonRaceStrategyFront
 import com.steve1316.uma_android_automation.components.ButtonRaceStrategyLate
 import com.steve1316.uma_android_automation.components.ButtonRaceStrategyPace
-import com.steve1316.uma_android_automation.components.ButtonRaces
 import com.steve1316.uma_android_automation.components.ButtonRecreation
 import com.steve1316.uma_android_automation.components.ButtonRest
 import com.steve1316.uma_android_automation.components.ButtonRestAndRecreation
 import com.steve1316.uma_android_automation.components.ButtonSkills
 import com.steve1316.uma_android_automation.components.ButtonSkip
 import com.steve1316.uma_android_automation.components.ButtonTraining
-import com.steve1316.uma_android_automation.components.ButtonTrainingGuts
-import com.steve1316.uma_android_automation.components.ButtonTrainingPower
-import com.steve1316.uma_android_automation.components.ButtonTrainingSpeed
-import com.steve1316.uma_android_automation.components.ButtonTrainingStamina
-import com.steve1316.uma_android_automation.components.ButtonTrainingWit
 import com.steve1316.uma_android_automation.components.ButtonTryAgain
 import com.steve1316.uma_android_automation.components.ButtonUnityCupRace
-import com.steve1316.uma_android_automation.components.ComponentInterface
 import com.steve1316.uma_android_automation.components.DialogInterface
 import com.steve1316.uma_android_automation.components.DialogUtils
 import com.steve1316.uma_android_automation.components.IconGoalRibbon
 import com.steve1316.uma_android_automation.components.IconInfirmaryEventHeader
-import com.steve1316.uma_android_automation.components.IconMoodAwful
-import com.steve1316.uma_android_automation.components.IconMoodBad
-import com.steve1316.uma_android_automation.components.IconMoodGood
-import com.steve1316.uma_android_automation.components.IconMoodGreat
-import com.steve1316.uma_android_automation.components.IconMoodNormal
 import com.steve1316.uma_android_automation.components.IconOneFreePerDayTooltip
 import com.steve1316.uma_android_automation.components.IconRaceDayRibbon
 import com.steve1316.uma_android_automation.components.IconRaceNotEnoughFans
 import com.steve1316.uma_android_automation.components.IconRecreationDate
 import com.steve1316.uma_android_automation.components.IconTazuna
 import com.steve1316.uma_android_automation.components.IconTrainingEventHorseshoe
-import com.steve1316.uma_android_automation.components.IconTrainingHeaderGuts
-import com.steve1316.uma_android_automation.components.IconTrainingHeaderPower
-import com.steve1316.uma_android_automation.components.IconTrainingHeaderSpeed
-import com.steve1316.uma_android_automation.components.IconTrainingHeaderStamina
-import com.steve1316.uma_android_automation.components.IconTrainingHeaderWit
 import com.steve1316.uma_android_automation.components.LabelEnergy
 import com.steve1316.uma_android_automation.components.LabelEventProgress
 import com.steve1316.uma_android_automation.components.LabelOrdinaryCuties
@@ -71,7 +52,6 @@ import com.steve1316.uma_android_automation.components.LabelRecreationDateComple
 import com.steve1316.uma_android_automation.components.LabelRecreationUmamusume
 import com.steve1316.uma_android_automation.components.LabelScheduledRace
 import com.steve1316.uma_android_automation.components.LabelStatTableHeaderSkillPoints
-import com.steve1316.uma_android_automation.components.LabelTrainingFailureChance
 import com.steve1316.uma_android_automation.components.LabelUmamusumeClassFans
 import com.steve1316.uma_android_automation.types.BoundingBox
 import com.steve1316.uma_android_automation.types.DateMonth
@@ -283,7 +263,6 @@ abstract class Campaign(game: Game) : Task(game) {
         }
     }
 
-
     /**
      * Performs a comprehensive update test on the Main screen and perform all Main screen updates.
      */
@@ -308,7 +287,6 @@ abstract class Campaign(game: Game) : Task(game) {
         trainee.logInfo()
         MessageLog.i(TAG, "\n[TEST] Main Screen update test complete.")
     }
-
 
     /**
      * Performs a scrollbar detection and functionality test on the current screen.
