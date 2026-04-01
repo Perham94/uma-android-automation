@@ -391,6 +391,7 @@ object DialogObjects {
             DialogStoryUnlocked,
             DialogTeamInfo,
             DialogTrophyWon,
+            DialogTrainingItems,
             DialogTryAgain,
             DialogUmamusumeClass,
             DialogUmamusumeDetails,
@@ -1684,5 +1685,18 @@ object DialogViewStory : DialogInterface {
             RadioLandscape,
             RadioPortrait,
             RadioVoiceOff,
+        )
+}
+
+/** Trackblazer */
+object DialogTrainingItems : DialogInterface {
+    override val name: String = "training_items"
+    override val title: String = "Training Items"
+    override val closeButton: BaseComponentInterface = ButtonClose
+    override val okButton: BaseComponentInterface = ButtonConfirmUse
+    override val buttons: List<BaseComponentInterface> =
+        listOf(
+            ButtonClose,
+            ButtonConfirmUse,
         )
 }
