@@ -1082,6 +1082,7 @@ class Trackblazer(game: Game) : Campaign(game) {
         if (ButtonClose.check(game.imageUtils, tries = 50)) {
             game.wait(0.5)
             ButtonClose.click(game.imageUtils)
+            game.wait(0.5)
         }
 
         // Clear the training analysis cache so that the bot re-evaluates the training options if it re-enters the training screen.
