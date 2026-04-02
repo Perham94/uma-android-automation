@@ -182,6 +182,10 @@ object IconRecreationDate : ComponentInterface {
     override val template = Template("components/icon/recreation_date", region = Region.bottomHalf)
 }
 
+object IconRecreationDateOpen : ComponentInterface {
+    override val template = Template("components/icon/recreation_date_open", region = Region.middle)
+}
+
 object IconTrainingEventHorseshoe : ComponentInterface {
     override val template = Template("components/icon/training_event_horseshoe", region = Region.leftHalf)
 }
