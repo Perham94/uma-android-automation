@@ -16,6 +16,7 @@ import com.steve1316.uma_android_automation.components.ButtonCompleteCareer
 import com.steve1316.uma_android_automation.components.ButtonCraneGame
 import com.steve1316.uma_android_automation.components.ButtonCraneGameOk
 import com.steve1316.uma_android_automation.components.ButtonDetails
+import com.steve1316.uma_android_automation.components.ButtonEventProgressChevron
 import com.steve1316.uma_android_automation.components.ButtonHomeFansInfo
 import com.steve1316.uma_android_automation.components.ButtonHomeFullStats
 import com.steve1316.uma_android_automation.components.ButtonInfirmary
@@ -43,6 +44,7 @@ import com.steve1316.uma_android_automation.components.IconOneFreePerDayTooltip
 import com.steve1316.uma_android_automation.components.IconRaceDayRibbon
 import com.steve1316.uma_android_automation.components.IconRaceNotEnoughFans
 import com.steve1316.uma_android_automation.components.IconRecreationDate
+import com.steve1316.uma_android_automation.components.IconRecreationDateOpen
 import com.steve1316.uma_android_automation.components.IconTazuna
 import com.steve1316.uma_android_automation.components.IconTrainingEventHorseshoe
 import com.steve1316.uma_android_automation.components.LabelEnergy
@@ -1103,7 +1105,7 @@ abstract class Campaign(game: Game) : Task(game) {
 
             MessageLog.v(TAG, "\n[RECREATION_DATE] Recreation has a possible date available.")
             game.wait(1.0)
-            // Check if the date is already done.
+            // Check if all of the possible dates have been completed.
             if (LabelRecreationDateComplete.check(game.imageUtils)) {
                 MessageLog.v(TAG, "[RECREATION_DATE] Recreation date is already completed.")
                 recreationDateCompleted = true
@@ -1117,12 +1119,46 @@ abstract class Campaign(game: Game) : Task(game) {
                     ButtonCancel.click(game.imageUtils)
                     true
                 }
-            } else if (LabelEventProgress.click(game.imageUtils)) {
-                game.waitForLoading()
-                MessageLog.v(TAG, "[RECREATION_DATE] Recreation date can be done.")
-                true
             } else {
-                false
+                // If not complete, handle both regular support dates and Group Support Card dates.
+                // Group Support Cards open a "Choose Recreation Partner" dialog.
+                if (IconRecreationDateOpen.click(game.imageUtils)) {
+                    game.wait(1.0)
+                    MessageLog.v(TAG, "[RECREATION_DATE] Choose Recreation Partner dialog opened.")
+
+                    // Use the ScrollList processor to find and click the first available date progress label.
+                    val bResult =
+                        ScrollList.processWithFallback(
+                            game,
+                            fallbackComponent = ButtonEventProgressChevron,
+                            bForceComponentDetection = true,
+                            onEntry = { _, entry ->
+                                MessageLog.i(TAG, "[INFO] Found entry: $entry at ${entry.bbox.cx}, ${entry.bbox.cy}")
+                                game.tap(entry.bbox.cx.toDouble(), entry.bbox.cy.toDouble())
+                                game.waitForLoading()
+                                true
+                            },
+                        )
+
+                    if (bResult) {
+                        MessageLog.v(TAG, "[RECREATION_DATE] Started a date from the partner selection dialog.")
+                        game.waitForLoading()
+                        true
+                    } else {
+                        MessageLog.e(TAG, "[ERROR] handleRecreationDate:: Failed to find any date progress labels in the partner selection dialog.")
+                        game.waitForLoading()
+                        false
+                    }
+                } else if (LabelEventProgress.click(game.imageUtils)) {
+                    // Legacy support cards or situations where the dialog doesn't apply.
+                    game.waitForLoading()
+                    MessageLog.v(TAG, "[RECREATION_DATE] Recreation date can be done.")
+                    true
+                } else {
+                    MessageLog.e(TAG, "[ERROR] handleRecreationDate:: Failed to find a way to start the recreation date.")
+                    game.waitForLoading()
+                    false
+                }
             }
         } else {
             false
