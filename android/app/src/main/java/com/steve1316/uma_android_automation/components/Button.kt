@@ -523,3 +523,7 @@ object ButtonUseTrainingItems : ButtonInterface {
 object ButtonConditions : ButtonInterface {
     override val template = Template("components/button/conditions", region = Region.middle)
 }
+
+object ButtonEventProgressChevron : ButtonInterface {
+    override val template = Template("components/button/event_progress_chevron")
+}
