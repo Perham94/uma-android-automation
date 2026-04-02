@@ -158,6 +158,10 @@ object IconStatBlockTrainer : ComponentInterface {
     override val template = Template("components/icon/stat_block_trainer")
 }
 
+object IconStatBlockGroup : ComponentInterface {
+    override val template = Template("components/icon/stat_block_group")
+}
+
 object IconStatSupportEtsukoOtonashi : ComponentInterface {
     override val template = Template("components/icon/stat_support_etsuko_otonashi")
 }
