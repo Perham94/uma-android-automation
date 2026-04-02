@@ -422,6 +422,12 @@ class SkillList(private val game: Game, private val campaign: Campaign) {
             // Clean up OCR noise. These symbols are always preceded by a space in the skill database.
             // If OCR misread the icon as a character (like 'O' or 'x'), we strip the last character.
             skillName = skillName.trimEnd()
+
+            // Handle edge case where "Savvy ○" or "Savvy ◎" is misread as "SavvyO".
+            if (skillName.endsWith("SavvyO")) {
+                skillName = skillName.dropLast(1)
+            }
+
             if (skillName.isNotEmpty() && skillName.last().isLetterOrDigit()) {
                 // If the last character is a single letter/digit with a preceding space, it's likely noise.
                 if (skillName.length == 1 || (skillName.length >= 2 && skillName[skillName.length - 2] == ' ')) {
