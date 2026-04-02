@@ -1186,7 +1186,7 @@ class Trackblazer(game: Game) : Campaign(game) {
 
                         // Re-analyze after shuffle.
                         MessageLog.i(TAG, "[TRACKBLAZER] Re-analyzing trainings after Reset Whistle.")
-                        training.analyzeTrainings()
+                        training.analyzeTrainings(mapOf("ignoreFailureChance" to hasCharm))
                         trainingSelected = training.recommendTraining(forceSelection = whistleForcesTraining)
 
                         // Perform another consolidated item usage pass if needed after shuffle.
