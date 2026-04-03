@@ -865,6 +865,11 @@
                 gap: 6px;
                 flex: 1;
             }
+            .info-left-col, .info-right-col {
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+            }
 
             .dashboard-row {
                 display: flex;
@@ -1060,87 +1065,7 @@
                 font-size: 11px;
             }
 
-            @media (max-width: 768px) {
-                .header {
-                    padding: 10px 12px;
-                }
-                .dashboard {
-                    padding: 8px 10px;
-                    flex-direction: row;
-                    gap: 8px;
-                    align-items: stretch;
-                    justify-content: space-between;
-                }
-                .dashboard-info {
-                    width: auto;
-                    align-items: flex-end;
-                    gap: 4px;
-                }
-                .dashboard-row {
-                    gap: 8px;
-                    justify-content: flex-end;
-                    width: auto;
-                }
-                .stats-container {
-                    padding: 3px 6px;
-                    gap: 4px;
-                    width: auto;
-                }
-                .stat-box {
-                    min-width: 30px;
-                }
-                .stat-label {
-                    font-size: 8px;
-                }
-                .stat-value {
-                    font-size: 11px;
-                }
-                .dashboard-label {
-                    font-size: 8px;
-                }
-                .dashboard-value {
-                    font-size: 11px;
-                }
-                .aptitude-table {
-                    font-size: 8px;
-                    width: auto;
-                    min-width: 0;
-                }
-                .aptitude-table th,
-                .aptitude-table td {
-                    padding: 1px 3px;
-                }
-                .aptitude-table th {
-                    width: 45px;
-                }
-                .aptitude-cell {
-                    margin: 0 1px;
-                }
-                .aptitude-name {
-                    font-size: 8px;
-                }
-                .grade-badge {
-                    width: 14px;
-                    height: 14px;
-                    line-height: 14px;
-                    font-size: 9px;
-                }
-                .toolbar-content {
-                    padding: 8px 12px;
-                }
-                .log-container {
-                    padding: 8px 12px;
-                }
-                .footer {
-                    padding: 6px 12px;
-                }
-                .logo-sub {
-                    display: none;
-                }
-                .search-container {
-                    min-width: 140px;
-                }
-            }
+
 
             /* Custom Tooltip */
             .custom-tooltip {
@@ -1194,6 +1119,104 @@
                 font-family: var(--font-mono);
                 font-weight: 600;
                 color: var(--text-primary);
+            }
+            @media screen and (max-width: 800px) {
+                .dashboard {
+                    flex-wrap: wrap !important;
+                    flex-direction: row !important;
+                    padding: 6px 10px !important;
+                    gap: 8px !important;
+                }
+                .aptitude-table {
+                    flex: 1 1 50% !important;
+                    max-width: 58% !important;
+                    min-width: 0 !important;
+                    font-size: 8px !important;
+                    background: rgba(255, 255, 255, 0.02) !important;
+                }
+                .aptitude-table th {
+                    width: 50px !important;
+                    padding: 2px 4px !important;
+                }
+                .aptitude-table td {
+                    padding: 2px 4px !important;
+                }
+                .aptitude-cell {
+                    margin: 0 2px !important;
+                    gap: 1px !important;
+                }
+                .aptitude-name {
+                    font-size: 8px !important;
+                }
+                .grade-badge {
+                    width: 16px !important;
+                    height: 16px !important;
+                    line-height: 16px !important;
+                    font-size: 10px !important;
+                }
+                .conditions-section {
+                    flex: 1 1 35% !important;
+                    max-width: 40% !important;
+                    min-width: 0 !important;
+                    padding: 4px 6px !important;
+                    gap: 4px !important;
+                }
+                .condition-group-label {
+                    font-size: 8px !important;
+                }
+                .condition-badge {
+                    font-size: 9px !important;
+                    padding: 1px 4px !important;
+                }
+                .dashboard-info {
+                    flex: 1 0 100% !important;
+                    flex-direction: row !important;
+                    align-items: flex-start !important;
+                    text-align: left !important;
+                    gap: 8px !important;
+                    margin-top: 4px !important;
+                }
+                .info-left-col {
+                    flex: 1 !important;
+                    align-items: flex-start !important;
+                    gap: 4px !important;
+                }
+                .info-right-col {
+                    flex: 1 !important;
+                    align-items: center !important;
+                    gap: 8px !important;
+                }
+                .dashboard-row {
+                    justify-content: flex-start !important;
+                    width: 100% !important;
+                    gap: 8px !important;
+                }
+                .info-right-col .dashboard-row {
+                    justify-content: center !important;
+                }
+                .stat-box {
+                    min-width: 32px !important;
+                }
+                .stat-label {
+                    font-size: 8px !important;
+                }
+                .stat-value {
+                    font-size: 11px !important;
+                }
+                .dashboard-label {
+                    font-size: 8px !important;
+                }
+                .dashboard-value {
+                    font-size: 11px !important;
+                }
+                .stats-container {
+                    padding: 4px 8px !important;
+                    gap: 6px !important;
+                }
+                .search-container {
+                    min-width: 100% !important;
+                    max-width: none !important;
+                }
             }
         </style>
     </head>
@@ -1267,80 +1290,86 @@
                 </div>
 
             <div class="dashboard-info">
-                <div class="dashboard-row">
-                    <div class="dashboard-item">
-                        <div class="dashboard-label">Trainee</div>
-                        <div id="dashboardName" class="dashboard-value" style="font-weight: 600; letter-spacing: 0.3px">-</div>
+                <div class="info-left-col">
+                    <div class="dashboard-row">
+                        <div class="dashboard-item">
+                            <div class="dashboard-label">Trainee</div>
+                            <div id="dashboardName" class="dashboard-value" style="font-weight: 600; letter-spacing: 0.3px">-</div>
+                        </div>
+                    </div>
+                    <div class="dashboard-row">
+                        <div class="dashboard-item">
+                            <div class="dashboard-label">Energy</div>
+                            <div id="dashboardEnergy" class="dashboard-value">-</div>
+                        </div>
+                        <div class="dashboard-item">
+                            <div class="dashboard-label">Fans</div>
+                            <div id="dashboardFans" class="dashboard-value">-</div>
+                        </div>
+                        <div class="dashboard-item">
+                            <div class="dashboard-label">Skill Points</div>
+                            <div id="dashboardSkillPoints" class="dashboard-value">-</div>
+                        </div>
+                    </div>
+                    <div class="dashboard-row">
+                        <div class="dashboard-item">
+                            <div class="dashboard-label">Current Date</div>
+                            <div id="dashboardDate" class="dashboard-value">-</div>
+                        </div>
+                        <div class="dashboard-item">
+                            <div class="dashboard-label">Turn</div>
+                            <div id="dashboardTurn" class="dashboard-value">-</div>
+                        </div>
                     </div>
                 </div>
-                <div class="dashboard-row">
-                    <div class="dashboard-item">
-                        <div class="dashboard-label">Energy</div>
-                        <div id="dashboardEnergy" class="dashboard-value">-</div>
-                    </div>
-                    <div class="dashboard-item">
-                        <div class="dashboard-label">Fans</div>
-                        <div id="dashboardFans" class="dashboard-value">-</div>
-                    </div>
-                    <div class="dashboard-item">
-                        <div class="dashboard-label">Skill Points</div>
-                        <div id="dashboardSkillPoints" class="dashboard-value">-</div>
-                    </div>
-                </div>
-                <div class="dashboard-row">
-                    <div class="dashboard-item">
-                        <div class="dashboard-label">Current Date</div>
-                        <div id="dashboardDate" class="dashboard-value">-</div>
-                    </div>
-                    <div class="dashboard-item">
-                        <div class="dashboard-label">Turn</div>
-                        <div id="dashboardTurn" class="dashboard-value">-</div>
-                    </div>
-                </div>
-                <div class="dashboard-row">
-                    <div class="stats-container">
-                        <div class="stat-box" title="Speed">
-                            <div class="stat-label">SPD</div>
-                            <div id="statSpeed" class="stat-value">-</div>
-                        </div>
-                        <div class="stat-box" title="Stamina">
-                            <div class="stat-label">STA</div>
-                            <div id="statStamina" class="stat-value">-</div>
-                        </div>
-                        <div class="stat-box" title="Power">
-                            <div class="stat-label">POW</div>
-                            <div id="statPower" class="stat-value">-</div>
-                        </div>
-                        <div class="stat-box" title="Guts">
-                            <div class="stat-label">GUT</div>
-                            <div id="statGuts" class="stat-value">-</div>
-                        </div>
-                        <div class="stat-box" title="Wit">
-                            <div class="stat-label">WIT</div>
-                            <div id="statWit" class="stat-value">-</div>
+                <div class="info-right-col">
+                    <div class="dashboard-row">
+                        <div class="stats-container">
+                            <div class="stat-box" title="Speed">
+                                <div class="stat-label">SPD</div>
+                                <div id="statSpeed" class="stat-value">-</div>
+                            </div>
+                            <div class="stat-box" title="Stamina">
+                                <div class="stat-label">STA</div>
+                                <div id="statStamina" class="stat-value">-</div>
+                            </div>
+                            <div class="stat-box" title="Power">
+                                <div class="stat-label">POW</div>
+                                <div id="statPower" class="stat-value">-</div>
+                            </div>
+                            <div class="stat-box" title="Guts">
+                                <div class="stat-label">GUT</div>
+                                <div id="statGuts" class="stat-value">-</div>
+                            </div>
+                            <div class="stat-box" title="Wit">
+                                <div class="stat-label">WIT</div>
+                                <div id="statWit" class="stat-value">-</div>
+                            </div>
                         </div>
                     </div>
-                    <!-- Session Action Counters -->
-                    <div class="stats-container session-stats">
-                        <div class="stat-box" onmouseenter="showTrainingTooltip(event)" onmouseleave="hideTooltip()">
-                            <div class="stat-label">TRN</div>
-                            <div id="countTraining" class="stat-value">0</div>
-                        </div>
-                        <div class="stat-box" onmouseenter="showRaceTooltip(event)" onmouseleave="hideTooltip()">
-                            <div class="stat-label">RCE</div>
-                            <div id="countRace" class="stat-value">0</div>
-                        </div>
-                        <div class="stat-box" onmouseenter="showSimpleTooltip(event, 'Injury Recovery')" onmouseleave="hideTooltip()">
-                            <div class="stat-label">INJ</div>
-                            <div id="countInjury" class="stat-value">0</div>
-                        </div>
-                        <div class="stat-box" onmouseenter="showMoodTooltip(event)" onmouseleave="hideTooltip()">
-                            <div class="stat-label">MOD</div>
-                            <div id="countMood" class="stat-value">0</div>
-                        </div>
-                        <div class="stat-box" onmouseenter="showEnergyTooltip(event)" onmouseleave="hideTooltip()">
-                            <div class="stat-label">ENG</div>
-                            <div id="countEnergy" class="stat-value">0</div>
+                    <div class="dashboard-row">
+                        <!-- Session Action Counters -->
+                        <div class="stats-container session-stats">
+                            <div class="stat-box" onmouseenter="showTrainingTooltip(event)" onmouseleave="hideTooltip()">
+                                <div class="stat-label">TRN</div>
+                                <div id="countTraining" class="stat-value">0</div>
+                            </div>
+                            <div class="stat-box" onmouseenter="showRaceTooltip(event)" onmouseleave="hideTooltip()">
+                                <div class="stat-label">RCE</div>
+                                <div id="countRace" class="stat-value">0</div>
+                            </div>
+                            <div class="stat-box" onmouseenter="showSimpleTooltip(event, 'Injury Recovery')" onmouseleave="hideTooltip()">
+                                <div class="stat-label">INJ</div>
+                                <div id="countInjury" class="stat-value">0</div>
+                            </div>
+                            <div class="stat-box" onmouseenter="showMoodTooltip(event)" onmouseleave="hideTooltip()">
+                                <div class="stat-label">MOD</div>
+                                <div id="countMood" class="stat-value">0</div>
+                            </div>
+                            <div class="stat-box" onmouseenter="showEnergyTooltip(event)" onmouseleave="hideTooltip()">
+                                <div class="stat-label">ENG</div>
+                                <div id="countEnergy" class="stat-value">0</div>
+                            </div>
                         </div>
                     </div>
                 </div>
