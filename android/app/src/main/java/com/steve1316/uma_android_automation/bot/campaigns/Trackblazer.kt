@@ -16,6 +16,7 @@ import com.steve1316.uma_android_automation.components.ButtonOk
 import com.steve1316.uma_android_automation.components.ButtonRaceDayRace
 import com.steve1316.uma_android_automation.components.ButtonRaceListFullStats
 import com.steve1316.uma_android_automation.components.ButtonRaces
+import com.steve1316.uma_android_automation.components.ButtonRestAndRecreation
 import com.steve1316.uma_android_automation.components.ButtonShopTrackblazer
 import com.steve1316.uma_android_automation.components.ButtonSkillUp
 import com.steve1316.uma_android_automation.components.ButtonTraining
@@ -555,10 +556,10 @@ class Trackblazer(game: Game) : Campaign(game) {
         return super.recoverEnergy(sourceBitmap)
     }
 
-    override fun recoverMood(sourceBitmap: Bitmap?): Boolean {
+    override fun recoverMood(sourceBitmap: Bitmap?, targetMood: Mood): Boolean {
         MessageLog.i(TAG, "[TRACKBLAZER] Resetting consecutive race counter due to mood recovery.")
         consecutiveRaceCount = 0
-        return super.recoverMood(sourceBitmap)
+        return super.recoverMood(sourceBitmap, targetMood)
     }
 
     override fun handleRaceEvents(isScheduledRace: Boolean): Boolean {
@@ -685,23 +686,44 @@ class Trackblazer(game: Game) : Campaign(game) {
     }
 
     override fun shouldRecoverMood(sourceBitmap: Bitmap): Boolean {
-        // Recover mood if it is below Normal, and we do not have any mood recovery items.
-        if (trainee.mood < Mood.NORMAL) {
+        if (trainee.mood <= Mood.NORMAL) {
+            // Special case: During the first training check of the game/session, if mood is Normal,
+            // we skip recovery to allow at least one training analysis to happen first.
+            if (training.firstTrainingCheck && trainee.mood == Mood.NORMAL && !ButtonRestAndRecreation.check(game.imageUtils, sourceBitmap = sourceBitmap)) {
+                MessageLog.i(TAG, "[TRACKBLAZER] Current mood is Normal. Not recovering mood due to firstTrainingCheck flag being active.")
+                return false
+            }
+
             val hasMoodItems =
                 currentInventory.any { (name, count) ->
-                    count > 0 && (name == "Berry Sweet Cupcake" || name == "Plain Cupcake")
+                    count > 0 && (name == "Berry Sweet Cupcake" || name == "Plain Cupcake") && !disabledItems.contains(name)
                 }
-            if (!hasMoodItems) {
-                MessageLog.i(TAG, "[TRACKBLAZER] Mood is ${trainee.mood} and no mood items are available. Attempting to recover mood via rest/recreation...")
+
+            if (trainee.energy >= 70) {
+                // If energy is high, we prefer to rest/recover mood naturally to save items.
+                MessageLog.i(TAG, "[TRACKBLAZER] Mood is ${trainee.mood} and energy is ${trainee.energy}% (>= 70%). Attempting to recover mood via rest/recreation (saving items).")
+                return true
+            } else if (!hasMoodItems) {
+                // If energy is low, we prefer to use items. If no items are available, we must rest/recover mood manually as a fallback.
+                MessageLog.i(TAG, "[TRACKBLAZER] Mood is ${trainee.mood} and energy is ${trainee.energy}% (< 70%). No mood items are available. Attempting to recover mood via rest/recreation...")
                 return true
             }
         }
+
+        // Handle forced mood recovery during Late June before Summer Training.
+        if (mustRestBeforeSummer && (date.year == DateYear.CLASSIC || date.year == DateYear.SENIOR) && date.month == DateMonth.JUNE && date.phase == DatePhase.LATE) {
+            if (trainee.mood < Mood.GREAT) {
+                MessageLog.i(TAG, "[TRACKBLAZER] Mood is ${trainee.mood} and it is Late June. Recovering mood to GREAT in preparation for Summer Training.")
+                return true
+            }
+        }
+
         return false
     }
 
-    override fun performMoodRecovery(sourceBitmap: Bitmap): Boolean {
+    override fun performMoodRecovery(sourceBitmap: Bitmap, targetMood: Mood): Boolean {
         // If we don't have Cupcakes, we fall back to the standard recovery method.
-        return recoverMood()
+        return recoverMood(sourceBitmap, targetMood = targetMood)
     }
 
     override fun decideNextAction(): MainScreenAction {

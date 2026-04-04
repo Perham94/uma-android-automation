@@ -124,6 +124,9 @@ abstract class Campaign(game: Game) : Task(game) {
     /** Flag to track whether the bot should force Wit training during the pre-summer turn. */
     var bForcedWitTraining: Boolean = false
 
+    /** Flag to track if the bot should force a specific target mood during recovery. */
+    var forcedTargetMood: Mood? = null
+
     /** Whether the bot should attempt the crane game. */
     protected val enableCraneGameAttempt: Boolean = SettingsHelper.getBooleanSetting("general", "enableCraneGameAttempt")
 
@@ -681,10 +684,11 @@ abstract class Campaign(game: Game) : Task(game) {
      * Performs mood recovery for the trainee.
      *
      * @param sourceBitmap Current screen bitmap.
+     * @param targetMood The mood level to recover to. Defaults to GOOD.
      * @return True if mood was successfully recovered, false otherwise.
      */
-    open fun performMoodRecovery(sourceBitmap: Bitmap): Boolean {
-        return recoverMood(sourceBitmap)
+    open fun performMoodRecovery(sourceBitmap: Bitmap, targetMood: Mood = Mood.GOOD): Boolean {
+        return recoverMood(sourceBitmap, targetMood = targetMood)
     }
 
     /**
@@ -1020,9 +1024,10 @@ abstract class Campaign(game: Game) : Task(game) {
      * Attempts to recover mood to maintain at least "Above Normal" status.
      *
      * @param sourceBitmap Optional pre-captured bitmap to analyze.
+     * @param targetMood The mood level to recover to. Defaults to GREAT.
      * @return True if mood was successfully recovered, false otherwise.
      */
-    open fun recoverMood(sourceBitmap: Bitmap? = null): Boolean {
+    open fun recoverMood(sourceBitmap: Bitmap? = null, targetMood: Mood = Mood.GOOD): Boolean {
         MessageLog.v(TAG, "\n[MOOD] Detecting current mood on $date.")
 
         val sourceBitmap = sourceBitmap ?: game.imageUtils.getSourceBitmap()
@@ -1032,14 +1037,14 @@ abstract class Campaign(game: Game) : Task(game) {
 
         MessageLog.v(TAG, "[MOOD] Detected mood to be ${trainee.mood}.")
 
-        // Only recover mood if its below Good mood and it's not Summer.
+        // Only recover mood if its below target mood and it's not Summer.
         return if (training.firstTrainingCheck && trainee.mood == Mood.NORMAL && !ButtonRestAndRecreation.check(game.imageUtils, sourceBitmap = sourceBitmap)) {
             MessageLog.v(
                 TAG,
                 "[MOOD] Current mood is Normal. Not recovering mood due to firstTrainingCheck flag being active. Will need to complete a training first before being allowed to recover mood.",
             )
             false
-        } else if ((trainee.mood < Mood.GOOD) &&
+        } else if ((trainee.mood < targetMood) &&
             (
                 ButtonRecreation.check(game.imageUtils, sourceBitmap = sourceBitmap) ||
                     ButtonRestAndRecreation.check(
@@ -1678,6 +1683,7 @@ abstract class Campaign(game: Game) : Task(game) {
                 return MainScreenAction.REST
             } else if (trainee.mood < Mood.GREAT) {
                 MessageLog.i(TAG, "[INFO] Energy is sufficient (>= 70%) but Mood is not Great (${trainee.mood}). Forcing mood recovery during $date in preparation for Summer Training.")
+                forcedTargetMood = Mood.GREAT
                 return MainScreenAction.RECOVER_MOOD
             } else {
                 MessageLog.i(TAG, "[INFO] Energy is sufficient (>= 70%) and mood is Great. Performing Wit training during $date in preparation for Summer Training.")
@@ -1758,8 +1764,10 @@ abstract class Campaign(game: Game) : Task(game) {
             }
 
             MainScreenAction.RECOVER_MOOD -> {
-                if (performMoodRecovery(sourceBitmap)) {
+                val target = forcedTargetMood ?: Mood.GOOD
+                if (performMoodRecovery(sourceBitmap, targetMood = target)) {
                     bHasCheckedDateThisTurn = false
+                    forcedTargetMood = null
                 }
             }
 
