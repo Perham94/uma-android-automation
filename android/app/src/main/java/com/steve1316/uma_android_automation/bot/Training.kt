@@ -2047,9 +2047,10 @@ class Training(private val game: Game, private val campaign: Campaign) {
      *
      * This method orchestrates the identifying, analyzing, recommending, and executing of training.
      *
+     * @param forceStat Optional stat name to force the bot to perform regardless of analysis.
      * @return The name of the training that was executed, or null if none.
      */
-    fun handleTraining(): StatName? {
+    fun handleTraining(forceStat: StatName? = null): StatName? {
         MessageLog.v(TAG, "\n********************")
         MessageLog.v(TAG, "[TRAINING] Starting Training process on ${campaign.date}.")
         val startTime = System.currentTimeMillis()
@@ -2063,7 +2064,7 @@ class Training(private val game: Game, private val campaign: Campaign) {
             game.wait(0.5)
             // Acquire the percentages and stat gains for each training.
             analyzeTrainings()
-            trainingSelected = recommendTraining()
+            trainingSelected = forceStat ?: recommendTraining()
 
             if (trainingMap.isEmpty()) {
                 // Check if we should force Wit training during the Finale instead of recovering energy.

@@ -1743,7 +1743,7 @@ abstract class Campaign(game: Game) : Task(game) {
         // Force Wit Training if requested by the pre-summer logic.
         if (action == MainScreenAction.TRAIN && bForcedWitTraining) {
             MessageLog.i(TAG, "[INFO] Executing forced Wit training as requested by pre-summer logic.")
-            training.executeTraining(StatName.WIT)
+            training.handleTraining(StatName.WIT)
             bForcedWitTraining = false
             bHasCheckedDateThisTurn = false
             return true
