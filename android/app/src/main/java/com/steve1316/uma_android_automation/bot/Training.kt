@@ -1469,8 +1469,21 @@ class Training(private val game: Game, private val campaign: Campaign) {
      * @param result The [TrainingAnalysisResult] to update.
      */
     private fun applyContextualStatGainBoost(result: TrainingAnalysisResult) {
-        val currentStat = campaign.trainee.stats.asMap()[result.name] ?: 0
-        val effectiveStatCap = getCurrentStatCap(result.name) - 20
+        val allStats = campaign.trainee.stats.asMap()
+        val currentStat = allStats[result.name] ?: 0
+        val statCap = getCurrentStatCap(result.name)
+        val effectiveStatCap = statCap - 20
+
+        // Helper: a stat gain is "at cap" if currentValue + gain >= the stat's cap,
+        // meaning the low OCR value is expected (not an OCR error).
+        fun isAtCap(statName: StatName, gain: Int): Boolean {
+            val current = allStats[statName] ?: 0
+            val cap = getCurrentStatCap(statName)
+            return current + gain >= cap
+        }
+
+        val mainStatGainRaw = result.statGains[result.name] ?: 0
+        val mainStatAtCap = isAtCap(result.name, mainStatGainRaw)
 
         val newStatGains = result.statGains.toMutableMap()
         val sideEffectStats = newStatGains.keys.filter { it != result.name }
@@ -1484,7 +1497,7 @@ class Training(private val game: Game, private val campaign: Campaign) {
             val speedGain = newStatGains[StatName.SPEED] ?: 0
             var powerGain = newStatGains[StatName.POWER] ?: 0
 
-            if (powerGain < speedGain) {
+            if (powerGain < speedGain && !isAtCap(StatName.POWER, powerGain)) {
                 val originalPowerGain = powerGain
                 while (powerGain <= speedGain) {
                     powerGain += 10
@@ -1525,7 +1538,8 @@ class Training(private val game: Game, private val campaign: Campaign) {
 
         // Check if any expected side effect stat has a higher or equal gain than the main stat.
         // This check only runs if the main stat gain is greater than zero to avoid overlapping with other edge cases.
-        if (mainStatGain > 0 && mainStatGain in 1..maxSideEffectGain) {
+        // Skip if the main stat is at cap since the low gain is expected.
+        if (mainStatGain > 0 && mainStatGain in 1..maxSideEffectGain && !mainStatAtCap) {
             newStatGains[result.name] = maxSideEffectGain + 10
 
             val newCorrectedStats = result.correctedStats.toMutableList()
@@ -1542,9 +1556,10 @@ class Training(private val game: Game, private val campaign: Campaign) {
         }
 
         // If the expected side effect stat gains were zeroes, boost them to half of the main stat gain.
+        // Skip if the side effect stat is at cap since a zero gain is expected.
         val boostedMainStatGain = newStatGains[result.name] ?: 0
         for (statName in expectedSideEffects) {
-            if ((newStatGains[statName] ?: 0) == 0 && boostedMainStatGain > 0) {
+            if ((newStatGains[statName] ?: 0) == 0 && boostedMainStatGain > 0 && !isAtCap(statName, 0)) {
                 newStatGains[statName] = boostedMainStatGain / 2
 
                 val newCorrectedStats = result.correctedStats.toMutableList()
@@ -1590,8 +1605,9 @@ class Training(private val game: Game, private val campaign: Campaign) {
         }
 
         // Edge case: Low stat gains with relationship bars in Senior Year.
+        // Skip if the main stat is at cap since the low gain is expected.
         val currentMainStatGain = newStatGains[result.name] ?: 0
-        if (campaign.date.year == DateYear.SENIOR && currentMainStatGain <= 9 && result.relationshipBars.isNotEmpty()) {
+        if (campaign.date.year == DateYear.SENIOR && currentMainStatGain <= 9 && result.relationshipBars.isNotEmpty() && !mainStatAtCap) {
             val boostAmount = result.relationshipBars.size * 5
             newStatGains[result.name] = currentMainStatGain + boostAmount
 
@@ -1616,9 +1632,10 @@ class Training(private val game: Game, private val campaign: Campaign) {
         }
 
         // Edge case: Side effect is less than 9 and the difference with the main effect is greater than 20.
+        // Skip if the side effect stat is at cap since the low gain is expected.
         for (sideEffect in expectedSideEffects) {
             val sideGain = newStatGains[sideEffect] ?: 0
-            if (sideGain < 9 && (mainStatGain - sideGain) > 20) {
+            if (sideGain < 9 && (mainStatGain - sideGain) > 20 && !isAtCap(sideEffect, sideGain)) {
                 newStatGains[sideEffect] = sideGain + 10
 
                 val newCorrectedStats = result.correctedStats.toMutableList()
