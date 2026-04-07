@@ -2,7 +2,6 @@ package com.steve1316.uma_android_automation.bot.campaigns
 
 import android.graphics.Bitmap
 import android.util.Log
-import com.steve1316.automation_library.utils.DiscordUtils
 import com.steve1316.automation_library.utils.MessageLog
 import com.steve1316.automation_library.utils.SettingsHelper
 import com.steve1316.uma_android_automation.bot.Campaign
@@ -1558,8 +1557,15 @@ class Trackblazer(game: Game) : Campaign(game) {
             }
         }
 
+        // Determine if a Good-Luck Charm is being used this turn (either already queued or will be queued).
+        // If so, skip energy items because the Charm sets failure to 0% regardless of energy, and the energy cost
+        // is subtracted after training — so using energy items would waste them.
+        val charmBeingUsedThisTurn =
+            bUsedCharmToday ||
+                (date.day >= 13 && failureChance >= 20 && (nextInventory["Good-Luck Charm"] ?: 0) > 0 && !disabledItems.contains("Good-Luck Charm"))
+
         // Energy Items Check.
-        if (trainee.energy <= energyThresholdToUseEnergyItems && shopList.energyItemNames.contains(itemName)) {
+        if (!charmBeingUsedThisTurn && trainee.energy <= energyThresholdToUseEnergyItems && shopList.energyItemNames.contains(itemName)) {
             if (isBestEnergyItemToUse(trainee, itemName, nextInventory, remainingItemsOfInterest)) {
                 val gain = energyGains[itemName] ?: 0
                 val reason = "Restored energy (current: ${trainee.energy}%) because it fell below the $energyThresholdToUseEnergyItems% threshold."
@@ -1572,8 +1578,8 @@ class Trackblazer(game: Game) : Campaign(game) {
             }
         }
 
-        // Royal Kale Juice Check.
-        if (itemName == "Royal Kale Juice") {
+        // Royal Kale Juice Check (also skipped when Charm is being used).
+        if (!charmBeingUsedThisTurn && itemName == "Royal Kale Juice") {
             val hasMoodItems = nextInventory.any { (name, count) -> count > 0 && (name == "Berry Sweet Cupcake" || name == "Plain Cupcake") }
             val moodConditionMet = trainee.energy <= 20 || hasMoodItems || trainee.mood == Mood.AWFUL
             val shouldUse = isBestEnergyItemToUse(trainee, itemName, nextInventory, remainingItemsOfInterest) && moodConditionMet
