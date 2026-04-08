@@ -1034,6 +1034,7 @@ class Trackblazer(game: Game) : Campaign(game) {
         // Finalize by closing the dialog.
         MessageLog.i(TAG, "[TRACKBLAZER] Closing training items dialog.")
         if (ButtonClose.check(game.imageUtils, tries = 50)) {
+            game.wait(1.0)
             ButtonClose.click(game.imageUtils)
             game.wait(1.0)
         }
