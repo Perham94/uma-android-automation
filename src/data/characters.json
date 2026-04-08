@@ -1850,6 +1850,17 @@
             "Randomly either\n----------\nMaximum Energy +12\nEnergy +40\nHeal all negative status effects\nor (~30%)\nor (~30%)\nEnergy -20\nMood -2\nGet Practice Poor status",
             "Randomly either\n----------\nEnergy +20\nMood +1\nGet Charming ○ status\nor (~15%)\nor (~15%)\nEnergy -10 / -20\nMood -1\n(random) Get Practice Poor status",
             "Energy +10"
+        ],
+        "The Shape of a Miracle": [
+            "Guts +10",
+            "Energy +15\nMood +1\nSkill points +10"
+        ],
+        "A Proffered Hand": [
+            "Randomly either\n----------\nSpeed +20\nWit +20\nRight-Handed ○ hint +3\n----------\n\n----------\nRight-Handed ○ hint +1"
+        ],
+        "The Way I See You": [
+            "Wit +10\n(random) Get Charming ○ status",
+            "Unyielding Spirit hint +2\n(random) Get Practice Perfect ○ status"
         ]
     },
     "Gold City": {
@@ -6831,6 +6842,17 @@
             "Randomly either\n----------\nMaximum Energy +12\nEnergy +40\nHeal all negative status effects\nor (~30%)\nor (~30%)\nEnergy -20\nMood -2\nGet Practice Poor status",
             "Randomly either\n----------\nEnergy +20\nMood +1\nGet Charming ○ status\nor (~15%)\nor (~15%)\nEnergy -10 / -20\nMood -1\n(random) Get Practice Poor status",
             "Energy +10"
+        ],
+        "Before the Ligne Droite": [
+            "Energy +30\n※ Will affect the outcome of the 2nd event",
+            "Wit +10\n※ Will affect the outcome of the 2nd event"
+        ],
+        "Memories Adorned with Flowers": [
+            "※ Can only happen if you chose the 1st option during the 1st event\nRight-Handed ○ hint +1\n\n※ Can only happen if you chose the 2nd option during the 1st event\nStamina +15\nSkill points +30\nRight-Handed ○ hint +3"
+        ],
+        "Keep This Secret": [
+            "Stamina +15\n(random) Get Fast Learner status",
+            "Fast-Paced hint +2\n(random) Get Hot Topic status"
         ]
     },
     "Silence Suzuka": {

@@ -103,6 +103,16 @@
         ],
         "(❯❯❯)\nI'm the Strongest": [
             "Stamina +15\nWit +15\nSkill points +30\nUnyielding hint +2"
+        ],
+        "(❯)\nBoth High and Low": [
+            "Speed +10\nPower +10\nAir Shakur bond +5",
+            "Eager hint +1\nAir Shakur bond +5"
+        ],
+        "(❯❯)\nBPM in Sync": [
+            "Speed +15\nEnd Closer Straightaways ○ hint +1\nAir Shakur bond +5"
+        ],
+        "(❯❯❯)\nConnected EQs": [
+            "Speed +10\nSkill points +10\nSerenity hint +1\nAir Shakur bond +5"
         ]
     },
     "Aoi Kiryuin": {
@@ -1468,6 +1478,16 @@
         "(❯❯)\nOil and Water": [
             "Randomly either\n----------\nSpeed +15\nPower +15\nSirius Symboli bond +5\n----------\n\n----------\nEnergy -5\nSpeed +10\nSirius Symboli bond -5",
             "Skill points +20\nShrewd Step hint +1\nSirius Symboli bond +5"
+        ],
+        "(❯)\nThose with the Name of Symboli": [
+            "Energy +15\nSirius Symboli bond +5",
+            "Skill points +30\nPlaytime's Over! hint +1\nSirius Symboli bond +5\nEvent chain ended"
+        ],
+        "(❯❯)\nTo Set Oneself Free": [
+            "Speed +10\nWit +10\nLate Surger Savvy ○ hint +1\nSirius Symboli bond +5"
+        ],
+        "(❯❯❯)\nTipped Scales": [
+            "Randomly either\n----------\nWit +15\nTake the Chance hint +3\nSirius Symboli bond +5\n----------\n\n----------\nWit +30\nFrom the Brink hint +3\nSirius Symboli bond +5"
         ]
     },
     "Smart Falcon": {
@@ -1488,6 +1508,13 @@
         ],
         "(❯❯❯)\nMy Umadol Way ☆": [
             "Randomly either\n----------\nMaximum Energy +4\nStamina +5\nPower +5\nWit +5\nPrudent Positioning hint +1\n----------\n\n----------\nMaximum Energy +4\nStamina +15\nPower +15\nWit +15\nCenter Stage hint +3"
+        ],
+        "(❯)\nWhat Is an Umadol?": [
+            "Leader's Pride hint +1\nSmart Falcon bond +5",
+            "Energy +10\nPower +5\nSmart Falcon bond +5"
+        ],
+        "(❯❯)\nThis Is an Umadol!": [
+            "Skill points +25\nTop Pick hint +1\nSmart Falcon bond +5"
         ]
     },
     "Special Week": {
@@ -1583,6 +1610,16 @@
         "The Student Council President's Thoughtfulness": [
             "Rainy Days ○ hint +1\nSymboli Rudolf bond +5",
             "Stamina +15\nSymboli Rudolf bond +5"
+        ],
+        "(❯)\nFires That Do Not Cross": [
+            "Stamina +10\nSkill points +10\nSymboli Rudolf bond +5"
+        ],
+        "(❯❯)\nThat Which Generates Heat": [
+            "Energy +10\nSkill points +10\nSoft Step hint +1\nSymboli Rudolf bond +5",
+            "Energy -10\nStamina +25\nGuts +25\nSymboli Rudolf bond -5/+5\nEvent chain ended"
+        ],
+        "(❯❯❯)\nPassions That Guide": [
+            "Stamina +10\nSkill points +30\nBurning Soul hint +1\nSymboli Rudolf bond +5"
         ]
     },
     "TM Opera O": {
@@ -1775,6 +1812,24 @@
             "All stats +3\nSkill points +5"
         ],
         "The Luckiest Umamusume in Japan\nDating before the first New Year's": [
+            "Speed +8\nStamina +8\nPower +8\nCorner Recovery ○ hint +1\nTeam Sirius bond +5"
+        ],
+        "The Secret to Her Success\nRice Shower": [
+            "Energy +30\nSkill points +17\nTarget in Sight ○ hint +2\nTeam Sirius bond +5"
+        ],
+        "The Scenery that Lies Beyond\nSilence Suzuka": [
+            "Energy -5\nSpeed +17\nPower +17\nSkill points +17\nTeam Sirius bond +5"
+        ],
+        "We're All Shining Stars\nDating starts": [
+            "Speed +6\nStamina +5\nPower +5\nGet Pure Passion: Team Sirius status\nTeam Sirius bond +5\nCan start dating"
+        ],
+        "Every One of Us Has a Dream\nAfter first training": [
+            "Speed +6\nPower +6\nTeam Sirius bond +5"
+        ],
+        "Beyond the Horizon of Our Dreams\nAfter Finals (bond maxed)": [
+            "All stats +5\nSkill points +11"
+        ],
+        "The Luckiest Racer in Japan\nDating before the first New Year's": [
             "Speed +8\nStamina +8\nPower +8\nCorner Recovery ○ hint +1\nTeam Sirius bond +5"
         ]
     },
