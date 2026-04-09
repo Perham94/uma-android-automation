@@ -32,7 +32,7 @@ export interface Settings {
         enableCraneGameAttempt: boolean
         enableStopBeforeFinals: boolean
         enableStopAtDate: boolean
-        stopAtDate: string
+        stopAtDates: string[]
         waitDelay: number
         dialogWaitDelay: number
     }
@@ -206,7 +206,7 @@ export const defaultSettings: Settings = {
         enableCraneGameAttempt: false,
         enableStopBeforeFinals: false,
         enableStopAtDate: false,
-        stopAtDate: "Senior January Early",
+        stopAtDates: ["Senior January Early"],
         waitDelay: 0.5,
         dialogWaitDelay: 0.5,
     },

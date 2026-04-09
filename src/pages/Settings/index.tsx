@@ -104,8 +104,9 @@ const Settings = () => {
     ]
 
     const handleStopAtDateChange = useCallback(
-        (part: "year" | "month" | "phase", value: string) => {
-            const currentParts = bsc.settings.general.stopAtDate.split(" ")
+        (index: number, part: "year" | "month" | "phase", value: string) => {
+            const dates = [...bsc.settings.general.stopAtDates]
+            const currentParts = dates[index].split(" ")
             let newYear = currentParts[0] || "Senior"
             let newMonth = currentParts[1] || "January"
             let newPhase = currentParts[2] || "Early"
@@ -114,9 +115,28 @@ const Settings = () => {
             if (part === "month") newMonth = value
             if (part === "phase") newPhase = value
 
+            dates[index] = `${newYear} ${newMonth} ${newPhase}`
             bsc.setSettings({
                 ...bsc.settings,
-                general: { ...bsc.settings.general, stopAtDate: `${newYear} ${newMonth} ${newPhase}` },
+                general: { ...bsc.settings.general, stopAtDates: dates },
+            })
+        },
+        [bsc]
+    )
+
+    const handleAddStopAtDate = useCallback(() => {
+        bsc.setSettings({
+            ...bsc.settings,
+            general: { ...bsc.settings.general, stopAtDates: [...bsc.settings.general.stopAtDates, "Senior January Early"] },
+        })
+    }, [bsc])
+
+    const handleRemoveStopAtDate = useCallback(
+        (index: number) => {
+            const dates = bsc.settings.general.stopAtDates.filter((_, i) => i !== index)
+            bsc.setSettings({
+                ...bsc.settings,
+                general: { ...bsc.settings.general, stopAtDates: dates.length > 0 ? dates : ["Senior January Early"] },
             })
         },
         [bsc]
@@ -241,42 +261,59 @@ const Settings = () => {
                         })
                     }}
                     label="Stop at Date"
-                    description="Stops the bot on the specified date."
+                    description="Stops the bot on one or more specified dates. The bot will stop at the earliest matching date it reaches."
                     className="mt-4"
                 />
 
                 {bsc.settings.general.enableStopAtDate && (
-                    <SearchableItem id="settings-stop-at-date" title="Target Date" description="Stops the bot on the specified date." style={{ marginLeft: 16, marginTop: 8 }}>
-                        <Text style={{ fontSize: 16, fontWeight: "600", color: colors.foreground, marginBottom: 8 }}>Target Date</Text>
-                        <View style={{ flexDirection: "row", gap: 8, justifyContent: "space-between" }}>
-                            <View style={{ flex: 1 }}>
-                                <CustomSelect
-                                    placeholder="Year"
-                                    width="100%"
-                                    options={years}
-                                    value={bsc.settings.general.stopAtDate.split(" ")[0]}
-                                    onValueChange={(value) => handleStopAtDateChange("year", value || "Senior")}
-                                />
-                            </View>
-                            <View style={{ flex: 1 }}>
-                                <CustomSelect
-                                    placeholder="Month"
-                                    width="100%"
-                                    options={months}
-                                    value={bsc.settings.general.stopAtDate.split(" ")[1]}
-                                    onValueChange={(value) => handleStopAtDateChange("month", value || "January")}
-                                />
-                            </View>
-                            <View style={{ flex: 1 }}>
-                                <CustomSelect
-                                    placeholder="Phase"
-                                    width="100%"
-                                    options={phases}
-                                    value={bsc.settings.general.stopAtDate.split(" ")[2]}
-                                    onValueChange={(value) => handleStopAtDateChange("phase", value || "Early")}
-                                />
-                            </View>
-                        </View>
+                    <SearchableItem id="settings-stop-at-date" title="Target Dates" description="Stops the bot on the specified dates." style={{ marginLeft: 16, marginTop: 8 }}>
+                        {bsc.settings.general.stopAtDates.map((dateStr, index) => {
+                            const parts = dateStr.split(" ")
+                            return (
+                                <View key={index} style={{ marginBottom: index < bsc.settings.general.stopAtDates.length - 1 ? 12 : 0 }}>
+                                    <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+                                        <Text style={{ fontSize: 14, fontWeight: "600", color: colors.foreground }}>Date {index + 1}</Text>
+                                        {bsc.settings.general.stopAtDates.length > 1 && (
+                                            <CustomButton onPress={() => handleRemoveStopAtDate(index)} variant="destructive" size="sm" fontSize={12}>
+                                                Remove
+                                            </CustomButton>
+                                        )}
+                                    </View>
+                                    <View style={{ flexDirection: "row", gap: 8, justifyContent: "space-between" }}>
+                                        <View style={{ flex: 1 }}>
+                                            <CustomSelect
+                                                placeholder="Year"
+                                                width="100%"
+                                                options={years}
+                                                value={parts[0]}
+                                                onValueChange={(value) => handleStopAtDateChange(index, "year", value || "Senior")}
+                                            />
+                                        </View>
+                                        <View style={{ flex: 1 }}>
+                                            <CustomSelect
+                                                placeholder="Month"
+                                                width="100%"
+                                                options={months}
+                                                value={parts[1]}
+                                                onValueChange={(value) => handleStopAtDateChange(index, "month", value || "January")}
+                                            />
+                                        </View>
+                                        <View style={{ flex: 1 }}>
+                                            <CustomSelect
+                                                placeholder="Phase"
+                                                width="100%"
+                                                options={phases}
+                                                value={parts[2]}
+                                                onValueChange={(value) => handleStopAtDateChange(index, "phase", value || "Early")}
+                                            />
+                                        </View>
+                                    </View>
+                                </View>
+                            )
+                        })}
+                        <CustomButton onPress={handleAddStopAtDate} variant="default" fontSize={14} style={{ marginTop: 12, alignSelf: "flex-start" }}>
+                            + Add Date
+                        </CustomButton>
                     </SearchableItem>
                 )}
 

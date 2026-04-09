@@ -89,6 +89,15 @@ export const applyMigrations = (settings: Settings): { settings: Settings; anyMi
         delete (migratedSettings as any).ocr
     }
 
+    // Migration: Convert single stopAtDate string to stopAtDates array.
+    const general = migratedSettings.general as any
+    if (general?.stopAtDate !== undefined && typeof general.stopAtDate === "string") {
+        migratedSettings.general.stopAtDates = [general.stopAtDate]
+        delete general.stopAtDate
+        anyMigrated = true
+        logWithTimestamp("[SettingsManager] Migrated stopAtDate to stopAtDates array.")
+    }
+
     return { settings: migratedSettings, anyMigrated }
 }
 
