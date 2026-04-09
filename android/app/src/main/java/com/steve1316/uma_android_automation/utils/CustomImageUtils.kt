@@ -352,7 +352,7 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
             // Determine crop region and small adjustments for improved OCR rates.
             val (offsetX, offsetY, width, height) = listOf(-50, 10, relWidth(100), relHeight(55))
 
-            // Perform OCR with 3x scaling and thresholding (small text compensation).
+            // Perform OCR with 2x scaling and no thresholding.
             val detectedText =
                 performOCROnRegion(
                     sourceBitmap!!,
@@ -360,9 +360,9 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
                     relY(trainingSelectionLocation.y, offsetY),
                     width,
                     height,
-                    useThreshold = true,
+                    useThreshold = false,
                     useGrayscale = true,
-                    scale = 3.0,
+                    scale = 2.0,
                     ocrEngine = "mlkit",
                     debugName = "TrainingFailureChance",
                 )
