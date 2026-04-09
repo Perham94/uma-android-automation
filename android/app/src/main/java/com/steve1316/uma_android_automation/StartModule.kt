@@ -449,7 +449,11 @@ class StartModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
     @ReactMethod
     fun getDeviceDimensions(promise: Promise) {
         try {
-            val metrics = reactApplicationContext.resources.displayMetrics
+            val metrics = android.util.DisplayMetrics()
+            @Suppress("DEPRECATION")
+            val display = reactApplicationContext.getSystemService(android.view.WindowManager::class.java).defaultDisplay
+            @Suppress("DEPRECATION")
+            display.getRealMetrics(metrics)
             val map = Arguments.createMap()
             map.putInt("width", metrics.widthPixels)
             map.putInt("height", metrics.heightPixels)
