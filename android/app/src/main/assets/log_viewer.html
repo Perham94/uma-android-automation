@@ -1676,6 +1676,7 @@
 
             // Condensation state.
             const condensationLimit = 13
+            const condensationExclusions = new Set(["VERBOSE"])
             let condensationBuffer = []
 
             // Granular breakdowns state.
@@ -1869,7 +1870,7 @@
 
                 const textEl = entry.querySelector(".log-text")
                 if (textEl) {
-                    textEl.innerHTML = escapeHtml(parsed.message) + " (x" + count + ")"
+                    textEl.innerHTML = escapeHtml(parsed.message) + " <b>(x" + count + ")</b>"
 
                     // Trigger fade animation to signal an update.
                     textEl.classList.remove("log-text-update")
@@ -1896,10 +1897,11 @@
                 // Handle special messages for dashboard updates immediately for individual messages.
                 processSpecialLogs(parsed)
 
-                let match = condensationBuffer.find(item =>
+                const canCondense = !condensationExclusions.has(parsed.level)
+                let match = canCondense ? condensationBuffer.find(item =>
                     item.parsed.level === parsed.level &&
                     item.parsed.message === parsed.message
-                )
+                ) : null
 
                 if (match) {
                     match.count++
@@ -1920,14 +1922,16 @@
                     }
                     logContainer.appendChild(entry)
 
-                    condensationBuffer.push({
-                        el: entry,
-                        parsed: parsed,
-                        count: 1
-                    })
+                    if (canCondense) {
+                        condensationBuffer.push({
+                            el: entry,
+                            parsed: parsed,
+                            count: 1
+                        })
 
-                    if (condensationBuffer.length > condensationLimit) {
-                        condensationBuffer.shift()
+                        if (condensationBuffer.length > condensationLimit) {
+                            condensationBuffer.shift()
+                        }
                     }
                 }
 
@@ -1984,10 +1988,11 @@
                         // Collect updates into the batch state object.
                         processSpecialLogs(parsed, batchState)
 
-                        let match = condensationBuffer.find(item =>
+                        const canCondense = !condensationExclusions.has(parsed.level)
+                        let match = canCondense ? condensationBuffer.find(item =>
                             item.parsed.level === parsed.level &&
                             item.parsed.message === parsed.message
-                        )
+                        ) : null
 
                         if (match) {
                             match.count++
@@ -2008,13 +2013,15 @@
                             }
                             fragment.appendChild(entry)
 
-                            condensationBuffer.push({
-                                el: entry,
-                                parsed: parsed,
-                                count: 1
-                            })
-                            if (condensationBuffer.length > condensationLimit) {
-                                condensationBuffer.shift()
+                            if (canCondense) {
+                                condensationBuffer.push({
+                                    el: entry,
+                                    parsed: parsed,
+                                    count: 1
+                                })
+                                if (condensationBuffer.length > condensationLimit) {
+                                    condensationBuffer.shift()
+                                }
                             }
                         }
                     } catch (e) {
