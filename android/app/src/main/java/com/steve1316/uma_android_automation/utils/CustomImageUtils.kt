@@ -335,6 +335,9 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
     fun findTrainingFailureChance(sourceBitmap: Bitmap? = null, trainingSelectionLocation: Point? = null, tries: Int = 1): Int {
         fun detectTrainingFailureChance(sourceBitmap: Bitmap? = null, trainingSelectionLocation: Point? = null): Int {
             // Crop the source screenshot to hold the success percentage only.
+            // Delay for failure bubble tween.
+            game.waitForLoading()
+
             val (trainingSelectionLocation, sourceBitmap) =
                 if (sourceBitmap == null && trainingSelectionLocation == null) {
                     LabelTrainingFailureChance.find(this)
@@ -346,8 +349,8 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
                 return -1
             }
 
-            // Determine crop region.
-            val (offsetX, offsetY, width, height) = listOf(-45, 15, relWidth(100), relHeight(70))
+            // Determine crop region and small adjustments for improved OCR rates.
+            val (offsetX, offsetY, width, height) = listOf(-50, 10, relWidth(100), relHeight(55))
 
             // Perform OCR with 2x scaling and no thresholding.
             val detectedText =
@@ -404,9 +407,9 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
         }
 
         if (debugMode) {
-            MessageLog.i(TAG, "[INFO] Failure chance detected to be at $result%.")
+            MessageLog.i(TAG, "[INFO] Failure chance of '$result'% at $trainingSelectionLocation")
         } else {
-            Log.i(TAG, "[INFO] Failure chance detected to be at $result%.")
+            Log.i(TAG, "[INFO] Failure chance of '$result'% at $trainingSelectionLocation")
         }
         return result
     }
@@ -825,7 +828,7 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
                 relHeight(height),
                 useThreshold = false,
                 useGrayscale = true,
-                scale = 1.0,
+                scale = 2.0,
                 ocrEngine = "tesseract_digits",
                 debugName = "${statName}StatValue",
             )
@@ -834,12 +837,15 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
         Log.d(TAG, "[DEBUG] determineSingleStatValue:: Detected number of stats for $statName from Tesseract before formatting: $text")
         if (text.lowercase().contains("max") || text.lowercase().contains("ax")) {
             Log.d(TAG, "[DEBUG] determineSingleStatValue:: $statName seems to be maxed out. Setting it to $manualStatCap.")
-            return manualStatCap
+            val cleanedText = text.replace(Regex("[^0-9]"), "")
+            val parsed = cleanedText.toInt()
+            return if (manualStatCap > 0) parsed.coerceIn(0, manualStatCap) else parsed.coerceAtLeast(0)
         } else {
             try {
                 Log.d(TAG, "[DEBUG] determineSingleStatValue:: Converting $text to integer for $statName stat value")
                 val cleanedText = text.replace(Regex("[^0-9]"), "")
-                return cleanedText.toInt().coerceIn(0, manualStatCap)
+                val parsed = cleanedText.toInt()
+                return if (manualStatCap > 0) parsed.coerceIn(0, manualStatCap) else parsed.coerceAtLeast(0)
             } catch (_: NumberFormatException) {
                 return -1
             }
@@ -893,10 +899,11 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
                     width = 105
                     height = 40
                 } else {
+                    // Minor adjustments for OCR accuracy.
                     offsetX = -862 + (index * 170)
-                    offsetY = 25
+                    offsetY = 20
                     width = 98
-                    height = 42
+                    height = 50
                 }
 
                 // Perform OCR with no thresholding (stats are on solid background).
@@ -915,17 +922,31 @@ class CustomImageUtils(context: Context, private val game: Game) : ImageUtils(co
                     )
 
                 // Parse the text.
-                Log.d(TAG, "[DEBUG] determineStatValues:: Detected number of stats for $statName from Tesseract before formatting: $text")
+                Log.d(TAG, "[DEBUG] determineStatValues:: Raw OCR text for $statName: '$text' (length: ${text.length})")
+
                 if (text.lowercase().contains("max") || text.lowercase().contains("ax")) {
                     Log.d(TAG, "[DEBUG] determineStatValues:: $statName seems to be maxed out. Setting it to $manualStatCap.")
-                    result[statName] = manualStatCap
+                    result[statName] = if (manualStatCap > 0) manualStatCap else 1200
                 } else {
                     try {
-                        Log.d(TAG, "[DEBUG] determineStatValues:: Converting $text to integer for $statName stat value")
-                        val cleanedText = text.replace(Regex("[^0-9]"), "")
-                        result[statName] = cleanedText.toInt().coerceIn(0, manualStatCap)
-                    } catch (_: NumberFormatException) {
+                    // Extract all numbers from the text
+                    val numbers = Regex("\\d+").findAll(text).map { it.value.toInt() }.toList()
+
+                    if (numbers.isEmpty()) {
+                        MessageLog.w(TAG, "[WARN] determineStatValues:: No numbers found in '$text' for $statName")
                         result[statName] = -1
+                    } else {
+                        val validNumbers = numbers.filter { it in 0..1200 }
+                        val value = if (validNumbers.isNotEmpty()) {
+                            validNumbers.max()
+                        } else {
+                            numbers.max()
+                        }
+                        result[statName] = if (manualStatCap > 0) value.coerceIn(0, manualStatCap) else value.coerceAtLeast(0)
+                    }
+                } catch (e: Exception) {
+                    MessageLog.e(TAG, "[ERROR] determineStatValues:: Failed to parse '$text' for $statName: ${e.message}")
+                    result[statName] = -1
                     }
                 }
             }

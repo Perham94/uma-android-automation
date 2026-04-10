@@ -387,13 +387,13 @@ class Trackblazer(game: Game) : Campaign(game) {
     }
 
     override fun recoverEnergy(sourceBitmap: Bitmap?): Boolean {
-        MessageLog.i(TAG, "[TRACKBLAZER] Resetting consecutive race counter due to energy recovery.")
+        MessageLog.i(TAG, "[TRACKBLAZER] Resetting $consecutiveRaceCount consecutive race counts due to energy recovery.")
         consecutiveRaceCount = 0
         return super.recoverEnergy(sourceBitmap)
     }
 
     override fun recoverMood(sourceBitmap: Bitmap?, targetMood: Mood): Boolean {
-        MessageLog.i(TAG, "[TRACKBLAZER] Resetting consecutive race counter due to mood recovery.")
+        MessageLog.i(TAG, "[TRACKBLAZER] Resetting $consecutiveRaceCount consecutive race counts due to mood recovery.")
         consecutiveRaceCount = 0
         return super.recoverMood(sourceBitmap, targetMood)
     }
