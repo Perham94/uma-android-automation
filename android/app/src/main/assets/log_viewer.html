@@ -1870,7 +1870,7 @@
 
                 const textEl = entry.querySelector(".log-text")
                 if (textEl) {
-                    textEl.innerHTML = escapeHtml(parsed.message) + " <b>(x" + count + ")</b>"
+                    textEl.innerHTML = escapeHtml(parsed.message) + " (x" + count + ")"
 
                     // Trigger fade animation to signal an update.
                     textEl.classList.remove("log-text-update")
