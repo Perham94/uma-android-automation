@@ -516,6 +516,9 @@ class Racing(private val game: Game, private val campaign: Campaign) {
 
         game.waitForLoading()
 
+        // Wait for any dialog (e.g. consecutive race warning) to appear before checking.
+        game.wait(game.dialogWaitDelay)
+
         // We are forced to race, so we need to ignore this warning dialog.
         campaign.handleDialogs(args = mapOf("overrideIgnoreConsecutiveRaceWarning" to true))
 
