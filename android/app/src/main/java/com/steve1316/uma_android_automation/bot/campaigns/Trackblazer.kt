@@ -668,6 +668,19 @@ class Trackblazer(game: Game) : Campaign(game) {
             return MainScreenAction.TRAIN
         }
 
+        // Avoid racing and training analysis at low energy with 3+ consecutive races to prevent
+        // -30 stat penalty. Energy items were already attempted in onMainScreenEntry().
+        // However, if a Good-Luck Charm is available, allow training analysis since the charm
+        // can bypass high failure chances that come with low energy.
+        val hasCharmAvailable = !bUsedCharmToday && (currentInventory["Good-Luck Charm"] ?: 0) > 0
+        if (trainee.energy <= 10 && consecutiveRaceCount >= 3 && !hasCharmAvailable) {
+            MessageLog.w(
+                TAG,
+                "[TRACKBLAZER] Energy is low (${trainee.energy}%) with $consecutiveRaceCount consecutive races and no Good-Luck Charm available. Resting to avoid -30 stat penalty.",
+            )
+            return MainScreenAction.REST
+        }
+
         if (enableIrregularTraining && date.year > DateYear.JUNIOR && !bHasCheckedIrregularTrainingThisTurn) {
             val isScheduledRace = LabelScheduledRace.check(game.imageUtils)
             val isMandatoryRace = IconRaceDayRibbon.check(game.imageUtils) || IconGoalRibbon.check(game.imageUtils)
@@ -1284,8 +1297,11 @@ class Trackblazer(game: Game) : Campaign(game) {
             }
         } else {
             if (date.day == 73 && (masterHammerCount > 0 || artisanHammerCount > 0 || glowSticksCount > 0)) {
-                MessageLog.i(TAG, "[TRACKBLAZER] Conserving race items for Semi-Final/Final (turns 74-75). " +
-                    "Hammer: ${masterHammerCount + artisanHammerCount}, Glow Sticks: $glowSticksCount.")
+                MessageLog.i(
+                    TAG,
+                    "[TRACKBLAZER] Conserving race items for Semi-Final/Final (turns 74-75). " +
+                        "Hammer: ${masterHammerCount + artisanHammerCount}, Glow Sticks: $glowSticksCount.",
+                )
             } else {
                 MessageLog.i(TAG, "[TRACKBLAZER] No relevant race items in cached inventory for $grade.")
             }
