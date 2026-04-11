@@ -1118,7 +1118,7 @@ class Trackblazer(game: Game) : Campaign(game) {
         // Reset Whistle Check: Use if recommendations are poor.
         // We define "poor" as no training being selected or certain other conditions.
         // Block whistling during irregular training evaluations.
-        if (date.day >= 13 && !bUsedWhistleToday && trainingSelected == null && !bIsIrregularTraining) {
+        if (date.day >= 13 && !bUsedWhistleToday && trainingSelected == null && !bIsIrregularTraining && !training.needsEnergyRecovery) {
             val hasWhistle = (currentInventory["Reset Whistle"] ?: 0) > 0
             if (hasWhistle) {
                 MessageLog.i(TAG, "[TRACKBLAZER] No suitable training found. Using Reset Whistle.")
@@ -1145,6 +1145,8 @@ class Trackblazer(game: Game) : Campaign(game) {
             } else {
                 MessageLog.i(TAG, "[TRACKBLAZER] No suitable training found and no Reset Whistles in cached inventory or all are disabled.")
             }
+        } else if (training.needsEnergyRecovery && trainingSelected == null) {
+            MessageLog.i(TAG, "[TRACKBLAZER] Skipping Reset Whistle as energy recovery is needed, not a training re-roll.")
         }
 
         // Final Training Execution.

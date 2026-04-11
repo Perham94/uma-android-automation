@@ -109,6 +109,9 @@ class Training(private val game: Game, private val campaign: Campaign) {
     /** List of stat trainings to ignore. */
     private val blacklist: List<StatName?> = SettingsHelper.getStringArraySetting("training", "trainingBlacklist").map { StatName.fromName(it) }
 
+    /** Whether the last analysis was skipped due to energy being too low (failure chance too high). */
+    var needsEnergyRecovery: Boolean = false
+
     /** Whether this is the first training check of the turn. */
     internal var firstTrainingCheck = true
 
@@ -795,6 +798,7 @@ class Training(private val game: Game, private val campaign: Campaign) {
      *             - "isIrregularEvaluation" (Boolean): Whether this analysis is for an irregular training evaluation.
      */
     fun analyzeTrainings(args: Map<String, Any?> = emptyMap()) {
+        needsEnergyRecovery = false
         val test = args["test"] as? Boolean ?: false
         val singleTraining = args["singleTraining"] as? Boolean ?: false
         val ignoreFailureChance = args["ignoreFailureChance"] as? Boolean ?: false
@@ -1319,6 +1323,7 @@ class Training(private val game: Game, private val campaign: Campaign) {
             }
         } else {
             // Clear the Training map if the bot failed to have enough energy to conduct the training.
+            needsEnergyRecovery = true
             trainingMap.clear()
             skippedTrainingMap.clear()
         }
