@@ -108,6 +108,9 @@ object LogStreamServer {
     /** Regex pattern to detect successful energy recovery. */
     private val actionEnergyPattern = Pattern.compile("\\[ENERGY] Successfully recovered energy via (.*)", Pattern.CASE_INSENSITIVE)
 
+    /** Regex pattern to detect energy level updates from item usage. */
+    private val actionEnergyUpdatePattern = Pattern.compile("Trainee energy updated: (\\d+)%\\s*->\\s*(\\d+)%", Pattern.CASE_INSENSITIVE)
+
     /** Regex pattern to detect injury detection and healing attempts. */
     private val actionInjuryPattern = Pattern.compile("\\[INJURY] Injury detected and attempted to heal")
 
@@ -139,6 +142,7 @@ object LogStreamServer {
      * @property action Identified bot action (training, race, injury, mood).
      * @property trainee Trainee detailed info (category and raw data).
      * @property dateInfo Extracted date and turn information.
+     * @property energyInfo Extracted energy level update (from/to percentages).
      */
     private data class LogEntry(
         val newline: String,
@@ -148,6 +152,7 @@ object LogStreamServer {
         val action: String? = null,
         val trainee: JSONObject? = null,
         val dateInfo: JSONObject? = null,
+        val energyInfo: JSONObject? = null,
     ) {
         /** Converts the log entry into a JSON object for WebSocket transmission. */
         fun toJSON(): JSONObject {
@@ -159,6 +164,7 @@ object LogStreamServer {
                 action?.let { put("action", it) }
                 trainee?.let { put("trainee", it) }
                 dateInfo?.let { put("dateInfo", it) }
+                energyInfo?.let { put("energyInfo", it) }
             }
         }
     }
@@ -456,7 +462,9 @@ object LogStreamServer {
                     null
                 }
 
-            LogEntry(newline, timestamp, level, text, action, trainee, dateInfo).toJSON()
+            val energyInfo = parseEnergyInfo(text)
+
+            LogEntry(newline, timestamp, level, text, action, trainee, dateInfo, energyInfo).toJSON()
         } else {
             // Fallback: detect level and treat entire message as text.
             val level =
@@ -638,6 +646,24 @@ object LogStreamServer {
         }
 
         return null
+    }
+
+    /**
+     * Parses energy level update information for the dashboard.
+     *
+     * @param text The log message text to check.
+     * @return A [JSONObject] containing the from/to energy percentages if detected, otherwise null.
+     */
+    private fun parseEnergyInfo(text: String): JSONObject? {
+        val matcher = actionEnergyUpdatePattern.matcher(text)
+        return if (matcher.find()) {
+            JSONObject().apply {
+                put("from", matcher.group(1)?.toIntOrNull() ?: 0)
+                put("to", matcher.group(2)?.toIntOrNull() ?: 0)
+            }
+        } else {
+            null
+        }
     }
 
     /**
