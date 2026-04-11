@@ -2,9 +2,12 @@
 
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/m/steve1316/uma-android-automation?logo=GitHub) ![GitHub last commit](https://img.shields.io/github/last-commit/steve1316/uma-android-automation?logo=GitHub) ![GitHub issues](https://img.shields.io/github/issues/steve1316/uma-android-automation?logo=GitHub) ![GitHub pull requests](https://img.shields.io/github/issues-pr/steve1316/uma-android-automation?logo=GitHub) ![GitHub](https://img.shields.io/github/license/steve1316/uma-android-automation?logo=GitHub)
 
-> Discord here: https://discord.gg/5Yv4kqjAbm
+> **Discord:** https://discord.gg/5Yv4kqjAbm
 
 This Android application written in Kotlin is designed to fully automate a run of Uma Musume Pretty Derby by offering a comprehensive set of options to customize event rewards, stat prioritization, race scheduling, automatic skill point buying, and more. Featuring a robust modern frontend built on React Native (Expo) and an extensive computer-vision driven backend, this app aims to solve the issue of spending too much hands-on time completing runs into something you can set and forget.
+
+> [!TIP]
+> For a detailed explanation of how the bot works — including the decision engine, training scoring, racing system, item management, and scenario-specific logic — see [HOW_IT_WORKS.md](HOW_IT_WORKS.md).
 
 https://github.com/user-attachments/assets/962adaf4-5e78-4807-8c25-e39be9a68fb4
 
@@ -14,35 +17,39 @@ This project is purely for educational purposes to learn about Android automatio
 
 # Requirements
 
--   Android Device or Emulator (Nougat 7.0+)
-    -   Hard requirement for Android phones is 1080p and 240 DPI or 450 DPI (for Samsung phones). If your device do not meet these, you can try the `Basic Template Matching Test` in the Settings under the `Debug Tests` section to determine the best scale to use in the `Custom Scale for Template Matching` setting. If not, then you can also try the [To set the phone's resolution to 1080p (faster and more accurate)](#to-set-the-phones-resolution-to-1080p-faster-and-more-accurate) section to forcibly set the display resolution and DPI of your Android phone. Note that may come with the side-effect of your device UI being scrunched in or zoomed out.
-        -   Note: If you change the display resolution while the overlay button is still active, you will need to restart the app in order for the display changes to persist to the `MediaProjection` service.
-    -   Tested emulators are Bluestacks 5 (Pie 64-bit, but other versions should work) and MuMu. The following setup is required:
-        -   Portrait Mode needs to be forced on always.
-        -   Bluestacks itself needs to be updated to the latest version to avoid Uma Musume crashing.
-        -   In the Bluestacks Settings > Phone, the predefined profile needs to be set to a modern high-end phone like the Samsung Galaxy S22.
-        -   Setup for both BlueStacks and MuMu:
-            -   4 CPU Cores
-            -   4GB Memory
-            -   1080 x 1920 (width x height)
-            -   240 DPI (This is important)
--   The in-game graphics need to be set to `Standard` instead of `Basic`.
+- Android Device or Emulator (Nougat 7.0+)
+    - Hard requirement for Android phones is 1080p and 240 DPI or 450 DPI (for Samsung phones). If your device do not meet these, you can try the `Basic Template Matching Test` in the Settings under the `Debug Tests` section to determine the best scale to use in the `Custom Scale for Template Matching` setting. If not, then you can also try the [To set the phone's resolution to 1080p (faster and more accurate)](#to-set-the-phones-resolution-to-1080p-faster-and-more-accurate) section to forcibly set the display resolution and DPI of your Android phone. Note that may come with the side-effect of your device UI being scrunched in or zoomed out.
+    - Tested emulators are Bluestacks 5 (Pie 64-bit, but other versions should work) and MuMu. The following setup is required:
+        - Portrait Mode needs to be forced on always.
+        - Bluestacks itself needs to be updated to the latest version to avoid Uma Musume crashing.
+        - In the Bluestacks Settings > Phone, the predefined profile needs to be set to a modern high-end phone like the Samsung Galaxy S22.
+        - Setup for both BlueStacks and MuMu:
+            - 4 CPU Cores
+            - 4GB Memory
+            - 1080 x 1920 (width x height)
+            - 240 DPI (This is important)
+
+> [!WARNING]
+> If you change the display resolution while the overlay button is still active, you will need to restart the app in order for the display changes to persist to the `MediaProjection` service.
+
+> [!IMPORTANT]
+> The in-game graphics need to be set to `Standard` instead of `Basic`.
 
 # Features
 
--   [x] Completes a full run from start/midway to its conclusion.
--   [x] Supports multiple scenarios including **URA Finale**, **Unity Cup**, and those in the future to come.
--   [x] Advanced OpenCV template matching for real-time gamestate awareness.
--   [x] YOLOv8-powered real-time stat gain detection for improved accuracy.
--   [x] Tesseract OCR integrated with rapid fuzzy string matching.
--   [x] Modern user interface built using React Native, Typescript and Expo for full configurability.
--   [x] Remote Log Viewer to monitor real-time automation progress from any browser on the same network.
--   [x] Screen recording for debugging to easily capture and review issues.
--   [x] Import/export settings as JSON, alongside customizable skill point buying plans and training configurations.
--   [x] Smart racing plan that dynamically schedules extra races based on current stats and fan requirements.
--   [x] Training Event customization per event for fine-grained control over choices.
--   [x] Load and manage profiles for the Training Settings to easily swap between different builds.
--   [x] A multitude of settings to configure including setting preferred stat targets per distance.
+- [x] Completes a full run from start/midway to its conclusion.
+- [x] Supports multiple scenarios including **URA Finale**, **Unity Cup**, and those in the future to come.
+- [x] Advanced OpenCV template matching for real-time gamestate awareness.
+- [x] YOLOv8-powered real-time stat gain detection for improved accuracy.
+- [x] Tesseract OCR integrated with rapid fuzzy string matching.
+- [x] Modern user interface built using React Native, Typescript and Expo for full configurability.
+- [x] Remote Log Viewer to monitor real-time automation progress from any browser on the same network.
+- [x] Screen recording for debugging to easily capture and review issues.
+- [x] Import/export settings as JSON, alongside customizable skill point buying plans and training configurations.
+- [x] Smart racing plan that dynamically schedules extra races based on current stats and fan requirements.
+- [x] Training Event customization per event for fine-grained control over choices.
+- [x] Load and manage profiles for the Training Settings to easily swap between different builds.
+- [x] A multitude of settings to configure including setting preferred stat targets per distance.
 
 # Instructions
 
@@ -50,14 +57,24 @@ This project is purely for educational purposes to learn about Android automatio
 2. Open the application. Upon launching, navigate through the user-friendly frontend to select your desired scenario (URA Finale, Unity Cup, etc.) and configure your training priorities, races, and other settings.
 3. You can review your loaded settings and configurations directly on the Home page.
 4. Tap the `Start` button. If this is the first time, you will be prompted to grant `Overlay` permissions and enable the `Accessibility` service.
-    1. On newer Android versions, you're required to enable `Allow restricted settings` in the app's `App Info` settings.
+
+> [!NOTE]
+> On newer Android versions, you're required to enable `Allow restricted settings` in the app's `App Info` settings.
+
 5. Once enabled, tapping `Start` will request `MediaProjection` access (select `Entire screen` if prompted). A floating overlay button will appear that you can drag around the screen.
-6. **IMPORTANT:** Follow the guidance overlay when you drag the overlay button for the places on the screen to safely leave the button at to avoid covering important UI elements.
+6. Follow the guidance overlay when you drag the overlay button for the places on the screen to safely leave the button at to avoid covering important UI elements.
+
+> [!CAUTION]
+> Placing the overlay button over important UI elements will interfere with template matching and OCR detection.
+
 7. Navigate to the main training menu in Uma Musume (where Rest, Train, Buy Skills, Races, etc. are visible).
 
 > <img width="270" height="585" alt="main screen" src="https://github.com/user-attachments/assets/05239856-878e-4e49-a325-db60013d7c75" />
 
-8. Tap the overlay button to start automation. (Tip: Use minimal or deactivated notifications to prevent interference with OCR scanning the top of the screen).
+8. Tap the overlay button to start automation.
+
+> [!TIP]
+> Use minimal or deactivated notifications to prevent interference with OCR scanning the top of the screen.
 
 ## To view Logs in Real-time
 
@@ -65,14 +82,20 @@ This project is purely for educational purposes to learn about Android automatio
 2. Connect your Android device to your computer:
    - **USB Connection:** Enable `Developer Options` and `USB Debugging` on your device, then connect via USB cable.
    - **Wireless Connection:** In Developer Options, enable `Wireless debugging` and pair your device using the pairing code or QR code.
-   - **Bluestacks or other emulators** In the emulator settings, there is usually an option to open up to allow ADB wireless connection on `127.0.0.1:5555`. Enabling that option should be enough but if Android Studio still does not see it, you can open up a terminal like `cmd` and type `adb connect 127.0.0.1:5555` and it should say `connected to 127.0.0.1:5555`. You may need to type `adb disconnect` to disconnect all ADB connections beforehand for a fresh slate.
+   - **Bluestacks or other emulators:** In the emulator settings, there is usually an option to allow ADB wireless connection on `127.0.0.1:5555`. Enabling that option should be enough, but if Android Studio still does not see it, you can open up a terminal like `cmd` and type `adb connect 127.0.0.1:5555` and it should say `connected to 127.0.0.1:5555`.
+
+> [!TIP]
+> You may need to type `adb disconnect` to disconnect all ADB connections beforehand for a fresh slate.
+
 3. In Android Studio's Logcat console at the bottom of the window, select your connected device from the device dropdown menu.
 4. Filter the logs by typing `package:com.steve1316.uma_android_automation [UAA]` or just `[UAA]` in the search box to see only the logs from this app.
 5. Run the app - you'll now see all of its logs appear in real-time as it runs.
 
 ## To set the phone's resolution to 1080p (faster and more accurate)
 
-**NOTE:** this only works when downscaling. If your device official resolution is lower than 1080p it will most likely not work.
+> [!NOTE]
+> This only works when downscaling. If your device's official resolution is lower than 1080p it will most likely not work.
+
 1. Install the [**aShell You**](https://github.com/DP-Hridayan/aShellYou) app. This allows you to run adb commands locally on your Android device, but requires [**Shizuku**](https://github.com/RikkaApps/Shizuku).
 2. Install [**Shizuku**](https://github.com/RikkaApps/Shizuku), then start it by following [these instructions](https://shizuku.rikka.app/guide/setup/#start-via-wireless-debugging).
 3. With **Shizuku** started, you can then use **aShell You** to send the following adb commands:
@@ -89,9 +112,11 @@ Alternatively, you can do the same on a computer if you cannot get the above to 
     - **Change resolution to 1080p:** `adb shell wm size 1080x1920` and `adb shell wm density 240`
     - **Revert changes:** `adb shell wm size reset` and `adb shell wm density reset`
 
-Note: If your home button disappears, reset the DPI back to default.
+> [!WARNING]
+> If your home button disappears, reset the DPI back to default.
 
-Make sure to use 1.0 scaling, and an 80% confidence threshold for best results in 1080p natively.
+> [!TIP]
+> Use 1.0 scaling and an 80% confidence threshold for best results in 1080p natively.
 
 # For Developers
 
@@ -99,14 +124,21 @@ This project is separated into a React Native frontend configured via Expo and a
 
 1. Download and extract the repository.
 2. Download OpenCV for Android (v4.12.0) from `https://opencv.org/releases/`. Create `/android/opencv` and copy the extracted `/OpenCV-android-sdk/sdk/` contents into it.
-3. **IMPORTANT:** The project uses a YOLOv8 model for stat gain detection. Ensure the `best.onnx` model file is present in the `android/app/src/main/assets/` directory.
+3. The project uses a YOLOv8 model for stat gain detection. Ensure the `best.onnx` model file is present in the `android/app/src/main/assets/` directory.
+
+> [!IMPORTANT]
+> Without the ONNX model file, the YOLO stat detection feature will not work. Template matching will still function as a fallback.
+
 4. The project utilizes Expo. Run `yarn install` from the root directory to install frontend dependencies.
 5. The dev environment is ready. Run `yarn start` or `npx expo start` to run the Metro HTTP server.
 6. To ensure code consistency, developers should format and lint the codebase using the following commands:
-    - `yarn format`: Formats TypeScript and TSX files using **Prettier**.
-    - `yarn format:kt`: Formats Kotlin files using **Ktlint** (following settings in [android/.editorconfig](./android/.editorconfig)).
+    - `yarn format`: Formats both TypeScript/TSX files (via **Prettier**) and Kotlin files (via **Ktlint**).
+    - `yarn format:tsx`: Formats only TypeScript and TSX files using **Prettier**.
+    - `yarn format:kt`: Formats only Kotlin files using **Ktlint** (following settings in [android/.editorconfig](./android/.editorconfig)).
 7. To test Android builds, execute `yarn android` to compile and install the application directly on your device. Use `yarn build` for release APK generation.
-8. *Note*: Do not run the React Native shell app directly from Android Studio. Always rely on the Expo Metro bundler for correct bridging.
+
+> [!NOTE]
+> Do not run the React Native shell app directly from Android Studio. Always rely on the Expo Metro bundler for correct bridging.
 
 # Technologies Used
 
