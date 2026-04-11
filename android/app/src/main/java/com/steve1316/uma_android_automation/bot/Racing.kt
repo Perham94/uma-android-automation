@@ -2369,6 +2369,9 @@ class Racing(private val game: Game, private val campaign: Campaign) {
             lastRaceFans = if (campaign.date.day == 75) 30000 else 10000
         }
 
+        // Let the campaign handle any pre-race logic (e.g. using race items in Trackblazer).
+        campaign.onScheduledRacePrepScreen()
+
         // If there is a popup warning about racing too many times, confirm the popup to continue as this is a mandatory race.
         if (ButtonOk.click(game.imageUtils, region = game.imageUtils.regionMiddle)) {
             game.wait(2.0)
