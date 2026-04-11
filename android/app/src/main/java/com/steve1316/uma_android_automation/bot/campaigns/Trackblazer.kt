@@ -437,6 +437,16 @@ class Trackblazer(game: Game) : Campaign(game) {
     }
 
     override fun shouldAllowConsecutiveRace(args: Map<String, Any>): Boolean {
+        // Block racing at 0-1 energy with 3+ consecutive races to avoid -30 stat penalty.
+        if (trainee.energy <= 1 && consecutiveRaceCount >= 3) {
+            MessageLog.w(
+                TAG,
+                "[WARN] shouldAllowConsecutiveRace:: Energy is critically low (${trainee.energy}%) with $consecutiveRaceCount consecutive races. Blocking to avoid possible -30 stat penalty.",
+            )
+            racing.encounteredRacingPopup = false
+            return false
+        }
+
         // A -30 stat penalty can apply starting from 3 consecutive races.
         if (consecutiveRaceCount >= 3) {
             MessageLog.w(TAG, "[WARN] shouldAllowConsecutiveRace:: Current consecutive race count is $consecutiveRaceCount. Note that a -30 stat penalty can apply starting from 3 consecutive races!")
